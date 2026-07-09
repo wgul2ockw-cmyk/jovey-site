@@ -455,3 +455,69 @@ footer .copy { margin-top: 22px; color: var(--muted); font-size: 13px; }
   .tip { grid-template-columns: 1fr; gap: 4px; }
   .tip__num { min-width: 0; }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   READING PROGRESS — confetti dots stack left→right as you read,
+   + a small circular % gauge. Injected by assets/read-progress.js.
+   ═══════════════════════════════════════════════════════════════ */
+.read-rail {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  z-index: 60;
+  pointer-events: none;
+}
+.read-rail__dot {
+  width: 2.5px; height: 12px;              /* vertical confetti bar — 90° */
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--line);
+  opacity: 0.5;
+  transform: scaleY(0.72);                 /* grows taller when lit */
+  transition: opacity 0.35s ease, transform 0.35s ease, background-color 0.35s ease, box-shadow 0.35s ease;
+}
+/* lit = "stacked in": confetti colour, full length, soft neon glow */
+.read-rail__dot.on {
+  background: var(--c);
+  opacity: 1;
+  transform: scaleY(1);
+  box-shadow: 0 0 6px -2px var(--c);
+}
+
+.read-gauge {
+  position: fixed;
+  right: 18px; bottom: 18px;
+  width: 48px; height: 48px;
+  display: grid;
+  place-items: center;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(10px) scale(0.9);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.read-gauge.show { opacity: 1; transform: none; }
+.read-gauge svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.read-gauge__track { fill: none; stroke: var(--line); stroke-width: 3.5; }
+.read-gauge__fill  { fill: none; stroke: var(--blue); stroke-width: 3.5; stroke-linecap: round; transition: stroke-dashoffset 0.15s linear; }
+.read-gauge__num {
+  position: relative;
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--ink);
+  background: var(--card);
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  box-shadow: 0 6px 16px -8px rgba(40,40,60,0.4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .read-rail__dot { transition: opacity 0.2s linear, background-color 0.2s linear; transform: none; }
+  .read-rail__dot.on { transform: none; }
+}
