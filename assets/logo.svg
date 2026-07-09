@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" fill="none">
+  <defs>
+    <linearGradient id="jv" x1="100" y1="148" x2="100" y2="268" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7E93A6"/>
+      <stop offset="1" stop-color="#2B5D7E"/>
+    </linearGradient>
+  </defs>
+  <!-- soft shadows -->
+  <path d="M42 128 L100 64 L158 128" stroke="#FBF0C4" stroke-width="30" stroke-linecap="round" stroke-linejoin="round" opacity="0.85" transform="translate(-4 10)"/>
+  <path d="M48 156 L100 262 L152 156" stroke="#C4D2DC" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" opacity="0.9" transform="translate(-4 10)"/>
+  <!-- yellow chevron -->
+  <path d="M42 128 L100 64 L158 128" stroke="#F6D75E" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- blue V -->
+  <path d="M48 156 L100 262 L152 156" stroke="url(#jv)" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
