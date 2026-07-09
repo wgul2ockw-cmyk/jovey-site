@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>บทความ — Jovey</title>
+<meta name="description" content="บทความจาก Jovey — เรื่องราวการเติบโต ทั้งภายนอกและภายใน. Personal, Spiritual & Vitality Growth.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://jovey.co/blog/">
+<link rel="icon" href="/assets/logo.png" type="image/png">
+<link rel="apple-touch-icon" href="/assets/logo.png">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Jovey">
+<meta property="og:title" content="บทความ — Jovey">
+<meta property="og:description" content="เรื่องราวการเติบโต ทั้งภายนอกและภายใน — Personal, Spiritual & Vitality Growth.">
+<meta property="og:url" content="https://jovey.co/blog/">
+<meta property="og:image" content="https://jovey.co/assets/orb-rainbow.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prata&family=Anuphan:wght@400;500;600&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/blog.css">
+</head>
+<body>
+
+<canvas id="field"></canvas>
+
+<main>
+  <nav>
+    <a class="brand" href="/">
+      <img src="/assets/logo.png" alt="Jovey logo">
+      <span class="wordmark">Jovey</span>
+    </a>
+    <div class="links">
+      <a class="plain" href="/#growth">Growth</a>
+      <a class="plain active" href="/blog/">Blog</a>
+      <a class="pill small" href="https://wgul2ockw-cmyk.github.io/-mindspend-site/" target="_blank" rel="noopener">MindSpend <svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+    </div>
+  </nav>
+
+  <header class="blog-head">
+    <span class="sec-label">Journal</span>
+    <h1>บทความ &amp; เรื่องราวการเติบโต</h1>
+    <p>บันทึกระหว่างทาง — ทั้งภายนอก และภายใน<br>เพื่อเติมเต็มจิตวิญญาณของเพื่อนๆ ทุกคนครับ</p>
+  </header>
+
+  <div class="filters wrap" role="tablist" aria-label="กรองบทความตามหมวด">
+    <button class="filter-pill active" data-cat="all" aria-pressed="true">ทั้งหมด</button>
+    <button class="filter-pill" data-cat="personal" aria-pressed="false"><span class="fdot"></span>Personal Growth</button>
+    <button class="filter-pill" data-cat="spiritual" aria-pressed="false"><span class="fdot"></span>Spiritual Growth</button>
+    <button class="filter-pill" data-cat="vitality" aria-pressed="false"><span class="fdot"></span>Vitality Growth</button>
+  </div>
+
+  <section class="wrap">
+    <div class="post-grid">
+
+      <a class="post-card" href="/blog/10-romanticize-your-process/" data-cats="personal spiritual">
+        <!-- CARD COVER — same image as the post; 16:9 cover-crop. Falls back to the
+             gradient tile if cover.png isn't there yet. -->
+        <img class="post-card__cover" src="/assets/blog/10-romanticize/cover.png" alt=""
+             onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'post-card__cover'}))">
+        <div class="post-card__body">
+          <div class="post-card__cats">
+            <span class="chip personal">Personal Growth</span>
+            <span class="chip spiritual">Spiritual Growth</span>
+          </div>
+          <h2>10 วิธีตกหลุมรักในกระบวนการของคุณ ให้ทุกการทำงานมีความหมาย</h2>
+          <p class="post-card__excerpt">You Need to Romanticize Your Process — สรุป 10 ข้อคิดจากคลิปของ Tozak Filming ที่นำไปปรับใช้ได้ทันที เพื่อให้ทุกกระบวนการทำงานกลายเป็นเรื่องที่คุณรัก</p>
+          <div class="post-card__foot">
+            <span>ธ.ค. 18, 2024</span>
+            <span class="post-card__read">อ่านต่อ →</span>
+          </div>
+        </div>
+      </a>
+
+    </div>
+    <p class="blog-empty" style="display:none">ยังไม่มีบทความในหมวดนี้ · เร็วๆ นี้ครับ 🌱</p>
+  </section>
+
+  <footer>
+    <img src="/assets/logo.png" alt="Jovey logo">
+    <div class="tagline">Every Journey's Companion, Every Soul's Completion.</div>
+    <div class="foot-links">
+      <a href="/">Home</a>
+      <a href="/#growth">Growth</a>
+      <a href="/blog/">Blog</a>
+      <a href="https://wgul2ockw-cmyk.github.io/-mindspend-site/" target="_blank" rel="noopener">MindSpend <svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+    </div>
+    <div class="copy">© 2026 Jovey Co.</div>
+  </footer>
+</main>
+
+<script src="/assets/field.js"></script>
+<script>
+  // category filter — colour-coded pills show/hide post cards by data-cats
+  (() => {
+    const pills = [...document.querySelectorAll('.filter-pill')];
+    const cards = [...document.querySelectorAll('.post-card')];
+    const empty = document.querySelector('.blog-empty');
+    function apply(cat) {
+      let shown = 0;
+      cards.forEach(card => {
+        const cats = (card.dataset.cats || '').split(/\s+/);
+        const match = cat === 'all' || cats.includes(cat);
+        card.style.display = match ? '' : 'none';
+        if (match) shown++;
+      });
+      if (empty) empty.style.display = shown ? 'none' : '';
+    }
+    pills.forEach(pill => pill.addEventListener('click', () => {
+      pills.forEach(p => { p.classList.remove('active'); p.setAttribute('aria-pressed', 'false'); });
+      pill.classList.add('active');
+      pill.setAttribute('aria-pressed', 'true');
+      apply(pill.dataset.cat);
+    }));
+  })();
+</script>
+
+</body>
+</html>

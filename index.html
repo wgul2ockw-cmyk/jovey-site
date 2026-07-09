@@ -134,6 +134,9 @@
   }
   .pill.ghost:hover { box-shadow: 0 14px 24px -14px rgba(40,40,60,0.35); }
 
+  /* inline arrow on MindSpend links — scales with text, inherits link colour */
+  .link-arrow { width: 0.95em; height: 0.95em; vertical-align: -0.1em; flex: 0 0 auto; }
+
   /* ─ hero ─ */
   .hero {
     min-height: calc(100vh - 96px);
@@ -155,17 +158,15 @@
     margin-bottom: clamp(44px, 7vh, 84px);
   }
   /* sphere in the source PNG sits at (50%, 49.5%) with ~31% radius —
-     oversize + offset so it fills the circle, then spin so the rainbow
-     circulates; the baked shadow is clipped away by overflow:hidden */
+     oversize + offset so it fills the circle; the baked shadow is
+     clipped away by overflow:hidden. (rotation removed per user) */
   .orb img {
     position: absolute;
     width: 164%;
     left: -32%;
     top: -31.5%;
     transform-origin: 50% 49.5%;
-    animation: circulate 16s linear infinite;
   }
-  @keyframes circulate { to { transform: rotate(360deg); } }
   @keyframes float {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-12px); }
@@ -349,7 +350,8 @@
     </a>
     <div class="links">
       <a class="plain" href="#growth">Growth</a>
-      <a class="pill small" href="https://wgul2ockw-cmyk.github.io/-mindspend-site/" target="_blank" rel="noopener">MindSpend ↗</a>
+      <a class="plain" href="blog/">Blog</a>
+      <a class="pill small" href="https://wgul2ockw-cmyk.github.io/-mindspend-site/" target="_blank" rel="noopener">MindSpend <svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
     </div>
   </nav>
 
@@ -365,7 +367,7 @@
     </p>
     <div class="ctas">
       <a class="pill big" href="#growth">About Us</a>
-      <a class="pill big ghost" href="https://wgul2ockw-cmyk.github.io/-mindspend-site/" target="_blank" rel="noopener">MindSpend ↗</a>
+      <a class="pill big ghost" href="https://wgul2ockw-cmyk.github.io/-mindspend-site/" target="_blank" rel="noopener">MindSpend <svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
     </div>
   </section>
 
@@ -401,7 +403,7 @@
         <span class="sec-label">Our First Journey</span>
         <h3>MindSpend</h3>
         <p>แอปการเงินเพื่อนคู่ใจ — น้องมายด์จะอยู่ข้างๆ คุณ ช่วยให้ใช้จ่ายอย่างมีสติ ทีละก้าว ทีละบาท</p>
-        <a class="pill big" href="https://wgul2ockw-cmyk.github.io/-mindspend-site/" target="_blank" rel="noopener">เปิด MindSpend ↗</a>
+        <a class="pill big" href="https://wgul2ockw-cmyk.github.io/-mindspend-site/" target="_blank" rel="noopener">เปิด MindSpend <svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
       </div>
     </div>
   </section>
@@ -412,7 +414,8 @@
     <div class="foot-links">
       <a href="#top">Home</a>
       <a href="#growth">Growth</a>
-      <a href="https://wgul2ockw-cmyk.github.io/-mindspend-site/" target="_blank" rel="noopener">MindSpend ↗</a>
+      <a href="blog/">Blog</a>
+      <a href="https://wgul2ockw-cmyk.github.io/-mindspend-site/" target="_blank" rel="noopener">MindSpend <svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
     </div>
     <div class="copy">© 2026 Jovey Co.</div>
   </footer>
