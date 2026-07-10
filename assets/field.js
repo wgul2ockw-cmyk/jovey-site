@@ -11,6 +11,9 @@
   let W = 0, H = 0, dpr = 1, cx = 0, cy = 0;
   let particles = [];
   const mouse = { x: -99999, y: -99999 };
+  let hoverEl = null;   // a hovered .post-card → the ring follows it instead of the cursor
+  let ringScale = 1;    // current ring-size multiplier (eases toward card-fit on hover, 1 off)
+  let baseRadius = 1;   // ring radius at scale 1 (set on resize)
 
   const RING_FRAC = 0.322;    // ring radius as a fraction of min(W,H) — reduced ~30%
   const RING_THICK = 0.28;    // radial spread of the ring — ×2 thicker band
@@ -27,7 +30,7 @@
   function seed() {
     particles = [];
     // one massive ring — dots spawn only along it
-    const radius = Math.min(W, H) * RING_FRAC;
+    const radius = baseRadius;
     const count = Math.round((TWO_PI * radius) / DOT_SPACING);
     for (let i = 0; i < count; i++) {
       particles.push({
@@ -59,6 +62,7 @@
     canvas.style.width = W + 'px';
     canvas.style.height = H + 'px';
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    baseRadius = Math.min(W, H) * RING_FRAC;
     seed();
   }
 
@@ -70,6 +74,20 @@
   }, { passive: true });
   window.addEventListener('pointerleave', () => { mouse.x = -99999; mouse.y = -99999; });
 
+  // hovering a blog card hands the ring from the cursor to that card; leaving
+  // the card hands it back. Cards are static (the filter only toggles display),
+  // so a one-time bind is enough.
+  function bindCards() {
+    document.querySelectorAll('.post-card').forEach(card => {
+      if (card.__fieldBound) return;
+      card.__fieldBound = true;
+      card.addEventListener('mouseenter', () => { hoverEl = card; });
+      card.addEventListener('mouseleave', () => { if (hoverEl === card) hoverEl = null; });
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bindCards);
+  else bindCards();
+
   let lastT = performance.now() / 1000;
 
   function tick() {
@@ -80,10 +98,26 @@
     lastT = t;
     ctx.clearRect(0, 0, W, H);
 
-    // cursor target (idles at screen center with a small sway when away)
-    const hasMouse = mouse.x > -9999;
-    const tmx = hasMouse ? mouse.x : cx + Math.sin(t * 0.3) * W * 0.12;
-    const tmy = hasMouse ? mouse.y : cy + Math.cos(t * 0.24) * H * 0.12;
+    // target: a hovered card (ring gathers around it) or the cursor (idling at
+    // screen center with a small sway when the pointer is away)
+    let tmx, tmy, targetR = baseRadius;
+    if (hoverEl) {
+      const r = hoverEl.getBoundingClientRect();
+      if (r.width > 0) {
+        tmx = r.left + r.width / 2;
+        tmy = r.top + r.height / 2;
+        targetR = Math.hypot(r.width, r.height) / 2 + 14;   // ring hugs the card
+      } else {
+        hoverEl = null;                                     // card filtered out mid-hover
+      }
+    }
+    if (!hoverEl) {
+      const hasMouse = mouse.x > -9999;
+      tmx = hasMouse ? mouse.x : cx + Math.sin(t * 0.3) * W * 0.12;
+      tmy = hasMouse ? mouse.y : cy + Math.cos(t * 0.24) * H * 0.12;
+    }
+    // ease the ring size toward its target (card-fit on hover, base otherwise)
+    ringScale += (targetR / baseRadius - ringScale) * 0.08 * dt60;
 
     for (const p of particles) {
       // each dot eases its OWN center toward the cursor at its own rate —
@@ -92,7 +126,7 @@
       p.fy += (tmy - p.fy) * p.ease * dt60;
 
       // no spin — each dot holds its angle; only a gentle radial shimmer
-      const rr = p.radius + Math.sin(t * p.wobSpd + p.wob) * WOBBLE;
+      const rr = p.radius * ringScale + Math.sin(t * p.wobSpd + p.wob) * WOBBLE;
       const tx = p.fx + Math.cos(p.ang) * rr;            // ring point around its lagged center
       const ty = p.fy + Math.sin(p.ang) * rr;
 
