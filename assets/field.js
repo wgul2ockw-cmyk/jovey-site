@@ -10,6 +10,7 @@
   const canvas = document.getElementById('field');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let W = 0, H = 0, dpr = 1, cx = 0, cy = 0;
   let particles = [];
   const mouse = { x: -99999, y: -99999 };
@@ -21,9 +22,9 @@
   const RING_FRAC = 0.322;    // ring radius as a fraction of min(W,H) — reduced ~30%
   const RING_THICK = 0.28;    // radial spread of the ring — ×2 thicker band
   const DOT_SPACING = 6;      // ~1 dot per this many px along the ring
-  const SPRING = 0.09;        // pull toward the target
-  const FRICTION = 0.82;      // velocity damping — smooth, no jitter
-  const WOBBLE = 7;           // gentle radial shimmer (px)
+  const SPRING = 0.07;        // pull toward the target — gentle, unhurried
+  const FRICTION = 0.58;      // velocity damping — heavy = settles with ~no overshoot / bounce
+  const WOBBLE = 4;           // gentle radial shimmer (px)
 
   // vibrant confetti palette — neon pink / purple / orange / blue / yellow
   const PALETTE = ['#FF5E7E', '#B15BFF', '#FF9F43', '#48dbfb', '#feca57'];
@@ -67,7 +68,7 @@
         wobSpd: 0.4 + Math.random() * 0.8,
         // each dot chases the cursor at its own pace → staggered follow delay
         fx: cx, fy: cy,
-        ease: 0.025 + Math.random() * 0.095,
+        ease: 0.03 + Math.random() * 0.05,
         x: cx, y: cy, vx: 0, vy: 0
       });
     }
@@ -86,6 +87,7 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     baseRadius = Math.min(W, H) * RING_FRAC;
     seed();
+    if (reduceMotion.matches) drawStatic();   // reduced-motion: repaint the static ring
   }
 
   window.addEventListener('resize', resize);
@@ -110,9 +112,32 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bindCards);
   else bindCards();
 
+  // reduced-motion: paint one calm, centred ring — no cursor-follow, no wobble, no loop
+  function drawStatic() {
+    ctx.clearRect(0, 0, W, H);
+    for (const p of particles) {
+      const x = cx + Math.cos(p.ang) * p.radius;
+      const y = cy + Math.sin(p.ang) * p.radius;
+      const ang = Math.atan2(cy - y, cx - x);
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(ang);
+      ctx.globalAlpha = 0.5;
+      ctx.strokeStyle = p.color;
+      ctx.lineWidth = p.weight;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(-p.size / 2, 0);
+      ctx.lineTo(p.size / 2, 0);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
   let lastT = performance.now() / 1000;
 
   function tick() {
+    if (reduceMotion.matches) { drawStatic(); return; }  // reduced-motion: static, stop looping
     const t = performance.now() / 1000;
     // frames → time: identical feel on 60Hz and 120Hz displays,
     // and no giant jump when the tab resumes from background
@@ -196,5 +221,10 @@
   }
 
   resize();
-  tick();
+  if (!reduceMotion.matches) tick();
+  // react if the user flips the OS "reduce motion" setting mid-session
+  reduceMotion.addEventListener('change', () => {
+    if (reduceMotion.matches) drawStatic();   // running loop self-halts next frame
+    else tick();                              // resume the animation
+  });
 })();
