@@ -523,3 +523,43 @@ footer .copy { margin-top: 22px; color: var(--muted); font-size: 13px; }
   .read-rail__dot { transition: opacity 0.2s linear, background-color 0.2s linear; transform: none; }
   .read-rail__dot.on { transform: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   LONG-FORM PROSE EXTRAS — bulleted technique lists, quote labels
+   + attribution, references. Scoped to avoid the .tips component
+   (ol.tips / h3.tip__title live inside .prose): only `.prose ul`
+   and `.prose ul li` are styled, never a bare `.prose ol`/`li`.
+   ═══════════════════════════════════════════════════════════════ */
+.prose ul { margin: 4px 0 24px; padding-left: 1.4em; }
+.prose ul li { margin: 0 0 10px; line-height: 1.85; color: #40424a; }
+.prose ul li::marker { color: var(--blue); }
+.prose ul li:last-child { margin-bottom: 0; }
+.prose strong { font-weight: 600; color: var(--ink); }
+
+/* small uppercase label inside a pullquote (Problem / Solution / Benefit) */
+.pullquote .qlabel {
+  display: block;
+  margin-bottom: 12px;
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--c-personal-ink);
+}
+/* attribution line under a pullquote */
+.pullquote cite {
+  display: block;
+  margin-top: 14px;
+  font-style: normal;
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* references list */
+.refs { list-style: decimal; padding-left: 1.5em; margin: 8px 0 0; font-size: 14px; color: var(--muted); line-height: 1.8; }
+.refs li { margin-bottom: 12px; }
+.refs li:last-child { margin-bottom: 0; }
+.refs a { word-break: break-word; }
