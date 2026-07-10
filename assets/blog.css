@@ -225,11 +225,41 @@ footer .copy { margin-top: 22px; color: var(--muted); font-size: 13px; }
   border: 1px solid var(--line);
   border-radius: 24px;
   overflow: hidden;
+  position: relative;
   text-decoration: none;
   color: inherit;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 .post-card:hover { transform: translateY(-6px); box-shadow: 0 26px 40px -24px rgba(40,40,60,0.35); }
+
+/* ── "Dots" hover — a soft pillar-tinted dot grid materialises on hover,
+      strongest over the cover and fading before the text so titles stay legible.
+      Dot colour follows the card's pillar (personal wins on dual-tag cards). ── */
+.post-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: inherit;
+  --dot: var(--blue);
+  background-image: radial-gradient(circle, var(--dot) 1.4px, transparent 1.6px);
+  background-size: 15px 15px;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+  -webkit-mask-image: radial-gradient(140% 84% at 50% -6%, #000 36%, transparent 78%);
+          mask-image: radial-gradient(140% 84% at 50% -6%, #000 36%, transparent 78%);
+}
+.post-card[data-cats~="spiritual"]::before { --dot: var(--c-spiritual); }
+.post-card[data-cats~="vitality"]::before  { --dot: var(--c-vitality); }
+.post-card[data-cats~="personal"]::before  { --dot: var(--c-personal); }
+.post-card:hover::before { opacity: 0.5; animation: dot-drift 2.8s linear infinite; }
+
+@keyframes dot-drift { to { background-position: 15px 15px; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .post-card:hover::before { animation: none; }
+}
 .post-card__cover {
   aspect-ratio: 16 / 9;
   width: 100%;
