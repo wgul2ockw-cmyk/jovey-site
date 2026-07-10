@@ -48,6 +48,10 @@
     --muted: #6a6a71;
     --line: #e1e6ec;
     --card: #ffffff;
+    /* three-pillar colours — Personal (orange) · Spiritual (magenta) · Vitality (teal) */
+    --c-personal-ink:  #B4661A;
+    --c-spiritual-ink: #9E3F8E;
+    --c-vitality-ink:  #177F77;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -123,6 +127,16 @@
     transition: opacity 0.2s ease;
   }
   nav .links a.plain:hover { opacity: 1; }
+  /* small phones: compact the nav so brand + links + pill fit without
+     horizontal scroll (375px viewport) */
+  @media (max-width: 480px) {
+    nav { padding: 16px 14px; gap: 8px; }
+    nav .brand img { height: 38px; margin: -3px -6px; }
+    nav .wordmark { font-size: 21px; }
+    nav .links { gap: 10px; }
+    nav .links a.plain { font-size: 14px; }
+    nav .links .pill.small { font-size: 13px; padding: 8px 14px; }
+  }
 
   /* pills */
   .pill {
@@ -243,17 +257,35 @@
     gap: clamp(16px, 2.5vw, 28px);
   }
   .card {
+    display: block;
     background: var(--card);
     border: 1px solid var(--line);
     border-radius: 24px;
     padding: 34px 28px 30px;
     text-align: center;
+    text-decoration: none;
+    color: inherit;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
   .card:hover {
     transform: translateY(-6px);
     box-shadow: 0 26px 40px -24px rgba(40, 40, 60, 0.35);
   }
+  /* per-pillar "explore" affordance at the card foot */
+  .card-go {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 18px;
+    font-family: 'Quicksand', 'Anuphan', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    transition: gap 0.25s ease;
+  }
+  .card:hover .card-go { gap: 12px; }
+  .card-go.personal  { color: var(--c-personal-ink); }
+  .card-go.spiritual { color: var(--c-spiritual-ink); }
+  .card-go.vitality  { color: var(--c-vitality-ink); }
   .card .ball {
     width: 72px;
     height: 72px;
@@ -394,21 +426,24 @@
       <p class="sec-sub">เส้นทางของ Jovey แบ่งการเติบโตเป็นสามวง — กาย ใจ และจิตวิญญาณ</p>
     </div>
     <div class="cards">
-      <div class="card">
+      <a class="card" href="growth/personal/">
         <div class="ball personal"></div>
         <h3>Personal Growth</h3>
         <p>พัฒนาตัวเองทีละก้าว ทั้งความคิด นิสัย และการงาน ให้ดีขึ้นกว่าเมื่อวาน</p>
-      </div>
-      <div class="card">
+        <span class="card-go personal">สำรวจเส้นทาง <svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+      </a>
+      <a class="card" href="growth/spiritual/">
         <div class="ball spiritual"></div>
         <h3>Spiritual Growth</h3>
         <p>เติมเต็มจิตวิญญาณ อยู่กับปัจจุบัน และเข้าใจตัวเองให้ลึกขึ้นในทุกวัน</p>
-      </div>
-      <div class="card">
+        <span class="card-go spiritual">สำรวจเส้นทาง <svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+      </a>
+      <a class="card" href="growth/vitality/">
         <div class="ball vitality"></div>
         <h3>Vitality Growth</h3>
         <p>ดูแลพลังกาย สุขภาพ และการพักผ่อน ให้สมดุลไปตลอดการเดินทาง</p>
-      </div>
+        <span class="card-go vitality">สำรวจเส้นทาง <svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+      </a>
     </div>
   </section>
 

@@ -26,8 +26,11 @@
   const FRICTION = 0.58;      // velocity damping — heavy = settles with ~no overshoot / bounce
   const WOBBLE = 4;           // gentle radial shimmer (px)
 
-  // vibrant confetti palette — neon pink / purple / orange / blue / yellow
-  const PALETTE = ['#FF5E7E', '#B15BFF', '#FF9F43', '#48dbfb', '#feca57'];
+  // vibrant confetti palette — neon pink / purple / orange / blue / yellow.
+  // Pages may tint the field to their own hue family via
+  // <canvas id="field" data-palette="#hex,#hex,…"> (growth pillar pages).
+  const PALETTE = (canvas.dataset.palette || '#FF5E7E,#B15BFF,#FF9F43,#48dbfb,#feca57')
+    .split(',').map(s => s.trim()).filter(Boolean);
 
   const TWO_PI = Math.PI * 2;
 
@@ -102,7 +105,7 @@
   // the card hands it back. Cards are static (the filter only toggles display),
   // so a one-time bind is enough.
   function bindCards() {
-    document.querySelectorAll('.post-card').forEach(card => {
+    document.querySelectorAll('.post-card, .g-card, .g-pillar, .g-quote, .g-empty, .ms-card').forEach(card => {
       if (card.__fieldBound) return;
       card.__fieldBound = true;
       card.addEventListener('mouseenter', () => { hoverEl = card; });
