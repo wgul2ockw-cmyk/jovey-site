@@ -29,6 +29,22 @@ body {
 }
 a { color: inherit; }
 
+/* ── a11y: visible keyboard-focus ring on every interactive element ── */
+:focus-visible {
+  outline: 2.5px solid var(--blue);
+  outline-offset: 2px;
+}
+
+/* ── a11y: honour prefers-reduced-motion — calm CSS animation/scroll ── */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
 /* cursor particle field */
 #field { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
 main { position: relative; z-index: 1; }
