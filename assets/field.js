@@ -4,6 +4,8 @@
   //   • each dot chases the cursor at its OWN pace → staggered trailing physics
   //   • the ring idles at screen center when the pointer is away
   //   • no spin — dashes hold fixed angles and point toward the cursor; gentle shimmer
+  //   • hovering a blog card MORPHS the ring into that card's rounded-rect shape
+  //     (same trailing physics); leaving eases it back to a cursor-following ring
   //   • spring/friction keeps motion smooth; responsive; 60fps via rAF
   const canvas = document.getElementById('field');
   if (!canvas) return;
@@ -11,9 +13,10 @@
   let W = 0, H = 0, dpr = 1, cx = 0, cy = 0;
   let particles = [];
   const mouse = { x: -99999, y: -99999 };
-  let hoverEl = null;   // a hovered .post-card → the ring follows it instead of the cursor
-  let ringScale = 1;    // current ring-size multiplier (eases toward card-fit on hover, 1 off)
-  let baseRadius = 1;   // ring radius at scale 1 (set on resize)
+  let hoverEl = null;   // a hovered .post-card → the outline follows it instead of the cursor
+  let morph = 0;        // 0 = circle ring (cursor) · 1 = rounded-rect matching the card (eases)
+  let baseRadius = 1;   // circle-ring radius (set on resize)
+  let cardA = 0, cardB = 0, cardR = 0;  // last card's half-width, half-height, corner radius (+margin)
 
   const RING_FRAC = 0.322;    // ring radius as a fraction of min(W,H) — reduced ~30%
   const RING_THICK = 0.28;    // radial spread of the ring — ×2 thicker band
@@ -26,6 +29,25 @@
   const PALETTE = ['#FF5E7E', '#B15BFF', '#FF9F43', '#48dbfb', '#feca57'];
 
   const TWO_PI = Math.PI * 2;
+
+  const CARD_RADIUS = 24;     // matches .post-card border-radius
+  const CARD_MARGIN = 12;     // how far outside the card edge the outline sits
+
+  // distance from a card's centre to its rounded-rect outline along unit dir (dx,dy).
+  // lets the dots trace the card's SHAPE (smooth-cornered rectangle) instead of a circle.
+  function rrDist(dx, dy, a, b, r) {
+    const tx = Math.abs(dx) > 1e-6 ? a / Math.abs(dx) : Infinity;
+    const ty = Math.abs(dy) > 1e-6 ? b / Math.abs(dy) : Infinity;
+    let tt = Math.min(tx, ty);                             // hit on the sharp rectangle
+    if (Math.abs(tt * dx) > a - r && Math.abs(tt * dy) > b - r) {
+      // that hit is past the straight edge → re-solve against the corner arc
+      const ccx = Math.sign(dx) * (a - r), ccy = Math.sign(dy) * (b - r);
+      const bq = dx * ccx + dy * ccy;
+      const disc = bq * bq - (ccx * ccx + ccy * ccy - r * r);
+      if (disc >= 0) tt = bq + Math.sqrt(disc);            // outer intersection with corner circle
+    }
+    return tt;
+  }
 
   function seed() {
     particles = [];
@@ -98,17 +120,20 @@
     lastT = t;
     ctx.clearRect(0, 0, W, H);
 
-    // target: a hovered card (ring gathers around it) or the cursor (idling at
-    // screen center with a small sway when the pointer is away)
-    let tmx, tmy, targetR = baseRadius;
+    // target CENTRE + shape: a hovered card (outline morphs to the card's
+    // rounded-rect shape) or the cursor (circle ring, idling at screen centre)
+    let tmx, tmy, want = 0;
     if (hoverEl) {
       const r = hoverEl.getBoundingClientRect();
       if (r.width > 0) {
         tmx = r.left + r.width / 2;
         tmy = r.top + r.height / 2;
-        targetR = Math.hypot(r.width, r.height) / 2 + 14;   // ring hugs the card
+        cardA = r.width / 2 + CARD_MARGIN;      // remember the card shape so the outline
+        cardB = r.height / 2 + CARD_MARGIN;     // can hold while morph decays back to a
+        cardR = CARD_RADIUS + CARD_MARGIN;      // circle after the pointer leaves
+        want = 1;
       } else {
-        hoverEl = null;                                     // card filtered out mid-hover
+        hoverEl = null;                         // card filtered out mid-hover
       }
     }
     if (!hoverEl) {
@@ -116,8 +141,9 @@
       tmx = hasMouse ? mouse.x : cx + Math.sin(t * 0.3) * W * 0.12;
       tmy = hasMouse ? mouse.y : cy + Math.cos(t * 0.24) * H * 0.12;
     }
-    // ease the ring size toward its target (card-fit on hover, base otherwise)
-    ringScale += (targetR / baseRadius - ringScale) * 0.08 * dt60;
+    // ease circle → rounded-rect (and back) with the same feel as the trailing
+    // centre, so the ring melts seamlessly into the card's shape
+    morph += (want - morph) * 0.08 * dt60;
 
     for (const p of particles) {
       // each dot eases its OWN center toward the cursor at its own rate —
@@ -125,10 +151,19 @@
       p.fx += (tmx - p.fx) * p.ease * dt60;
       p.fy += (tmy - p.fy) * p.ease * dt60;
 
-      // no spin — each dot holds its angle; only a gentle radial shimmer
-      const rr = p.radius * ringScale + Math.sin(t * p.wobSpd + p.wob) * WOBBLE;
-      const tx = p.fx + Math.cos(p.ang) * rr;            // ring point around its lagged center
-      const ty = p.fy + Math.sin(p.ang) * rr;
+      // each dot holds its angle; its REACH blends from a circle (cursor) to the
+      // card's rounded-rect outline (hover) — so the shape morphs, not the angles
+      const ca = Math.cos(p.ang), sa = Math.sin(p.ang);
+      const wob = Math.sin(t * p.wobSpd + p.wob) * WOBBLE;
+      let reach = p.radius;                               // circle-ring radius (cursor mode)
+      if (morph > 0.001 && cardA > 0) {
+        const thick = p.radius / baseRadius;              // keep each dot's band offset (~0.86–1.14)
+        const rect = rrDist(ca, sa, cardA, cardB, cardR) * thick;
+        reach += (rect - reach) * morph;                 // circle → card-shaped outline
+      }
+      const rr = reach + wob;
+      const tx = p.fx + ca * rr;                          // point around its lagged center
+      const ty = p.fy + sa * rr;
 
       // spring toward the target; friction eases it in
       p.vx += (tx - p.x) * SPRING * dt60;
