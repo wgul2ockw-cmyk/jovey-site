@@ -224,7 +224,7 @@ footer .copy { margin-top: 22px; color: var(--muted); font-size: 13px; }
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 24px;
-  overflow: hidden;
+  overflow: visible;
   position: relative;
   text-decoration: none;
   color: inherit;
@@ -232,33 +232,35 @@ footer .copy { margin-top: 22px; color: var(--muted); font-size: 13px; }
 }
 .post-card:hover { transform: translateY(-6px); box-shadow: 0 26px 40px -24px rgba(40,40,60,0.35); }
 
-/* ── "Dots" hover — a soft pillar-tinted dot grid materialises on hover,
-      strongest over the cover and fading before the text so titles stay legible.
-      Dot colour follows the card's pillar (personal wins on dual-tag cards). ── */
+/* ── "Dots" hover — a burst of confetti long-dots fans out from BEHIND each
+      card on hover (behind the card, NOT over the cover image). The card
+      interior is opaque, so the dots only peek in a soft band around the edges.
+      z-index:-1 keeps the layer behind the card; the multi-colour palette
+      mirrors the site's confetti field. ── */
 .post-card::before {
   content: "";
   position: absolute;
-  inset: 0;
-  z-index: 3;
+  inset: -18px;
+  z-index: -1;
   pointer-events: none;
-  border-radius: inherit;
-  --dot: var(--blue);
-  background-image: radial-gradient(circle, var(--dot) 1.4px, transparent 1.6px);
-  background-size: 15px 15px;
+  border-radius: 40px;
+  background-image:
+    radial-gradient(1.6px 5px, #FF5E7E 88%, transparent 92%),
+    radial-gradient(1.6px 5px, #48dbfb 88%, transparent 92%),
+    radial-gradient(1.6px 5px, #FF9F43 88%, transparent 92%),
+    radial-gradient(1.6px 5px, #B15BFF 88%, transparent 92%),
+    radial-gradient(1.6px 5px, #feca57 88%, transparent 92%);
+  background-size: 32px 32px;
+  background-position: 3px 6px, 20px 15px, 12px 27px, 27px 3px, 15px 22px;
   opacity: 0;
-  transition: opacity 0.45s ease;
-  -webkit-mask-image: radial-gradient(140% 84% at 50% -6%, #000 36%, transparent 78%);
-          mask-image: radial-gradient(140% 84% at 50% -6%, #000 36%, transparent 78%);
+  transform: scale(0.95);
+  transition: opacity 0.5s ease, transform 0.5s ease;
 }
-.post-card[data-cats~="spiritual"]::before { --dot: var(--c-spiritual); }
-.post-card[data-cats~="vitality"]::before  { --dot: var(--c-vitality); }
-.post-card[data-cats~="personal"]::before  { --dot: var(--c-personal); }
-.post-card:hover::before { opacity: 0.5; animation: dot-drift 2.8s linear infinite; }
-
-@keyframes dot-drift { to { background-position: 15px 15px; } }
+.post-card:hover::before { opacity: 1; transform: scale(1); }
 
 @media (prefers-reduced-motion: reduce) {
-  .post-card:hover::before { animation: none; }
+  .post-card::before { transition: opacity 0.3s ease; }
+  .post-card:hover::before { transform: none; }
 }
 .post-card__cover {
   aspect-ratio: 16 / 9;
@@ -267,12 +269,12 @@ footer .copy { margin-top: 22px; color: var(--muted); font-size: 13px; }
   display: block;
   border: none;
   border-bottom: 1px solid var(--line);
-  border-radius: 0;
+  border-radius: 23px 23px 0 0;
   background:
     radial-gradient(120% 120% at 50% 0%, rgba(59,110,143,0.06), transparent 60%),
     linear-gradient(135deg, #fdfdff, #f1f4f8);
 }
-.post-card__body { padding: 22px 24px 26px; display: flex; flex-direction: column; flex: 1; }
+.post-card__body { padding: 22px 24px 26px; display: flex; flex-direction: column; flex: 1; background: var(--card); border-radius: 0 0 23px 23px; }
 .post-card__cats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
 .post-card h2 {
   font-family: 'Prata', serif;
