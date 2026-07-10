@@ -1,0 +1,350 @@
+/* ─────────────────────────────────────────────────────────────
+   Jovey · growth pillar pages (/growth/personal · spiritual · vitality)
+   Layers on top of blog.css — base tokens / nav / pills / footer /
+   post-cards all come from there. This file adds the pillar hero,
+   focus-axis cards, quote band, empty state and pillar switcher,
+   themed per page via a body class (g-personal / g-spiritual /
+   g-vitality) that sets the --accent custom properties.
+   ───────────────────────────────────────────────────────────── */
+
+/* pillar accent — every colour below derives from these four vars */
+body.g-personal {
+  --accent: var(--c-personal);
+  --accent-ink: var(--c-personal-ink);
+  --accent-soft: rgba(217, 130, 43, 0.12);
+  --accent-glow: rgba(217, 130, 43, 0.30);
+}
+body.g-spiritual {
+  --accent: var(--c-spiritual);
+  --accent-ink: var(--c-spiritual-ink);
+  --accent-soft: rgba(176, 81, 158, 0.12);
+  --accent-glow: rgba(176, 81, 158, 0.30);
+}
+body.g-vitality {
+  --accent: var(--c-vitality);
+  --accent-ink: var(--c-vitality-ink);
+  --accent-soft: rgba(31, 163, 154, 0.12);
+  --accent-glow: rgba(31, 163, 154, 0.28);
+}
+
+/* breadcrumb row above the hero */
+.g-crumb { padding-top: clamp(6px, 1.5vh, 14px); }
+
+/* ─ hero ─ */
+.g-hero {
+  position: relative;
+  text-align: center;
+  padding: clamp(20px, 4vh, 44px) clamp(20px, 6vw, 64px) clamp(52px, 8vh, 88px);
+}
+/* soft accent wash so each pillar page opens in its own light */
+.g-hero::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: -140px;
+  height: 520px;
+  background: radial-gradient(640px 340px at 50% 30%, var(--accent-soft), transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* floating orb — same oversize-and-clip technique as the homepage hero */
+.g-orb {
+  width: clamp(96px, 13vw, 126px);
+  height: clamp(96px, 13vw, 126px);
+  border-radius: 50%;
+  overflow: hidden;
+  position: relative;
+  margin: 0 auto clamp(30px, 5vh, 48px);
+  filter: drop-shadow(0 24px 18px var(--accent-glow));
+  animation: g-float 6s ease-in-out infinite;
+}
+.g-orb img {
+  position: absolute;
+  width: 164%;
+  left: -32%;
+  top: -31.5%;
+}
+@keyframes g-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+.g-eyebrow {
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+}
+.g-title {
+  font-family: 'Prata', serif;
+  font-weight: 400;
+  font-size: clamp(36px, 5.6vw, 66px);
+  line-height: 1.22;
+  margin-top: 14px;
+}
+.g-lead {
+  margin: clamp(22px, 3.5vh, 34px) auto 0;
+  font-size: clamp(15.5px, 1.9vw, 19px);
+  font-weight: 500;
+  line-height: 1.95;
+  max-width: 64ch;
+}
+.g-ctas {
+  margin-top: clamp(30px, 5vh, 46px);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+}
+
+/* ─ shared section shell ─ */
+.g-block {
+  padding: clamp(48px, 8vh, 88px) clamp(20px, 6vw, 64px);
+  max-width: 1160px;
+  margin: 0 auto;
+}
+.g-sec-head { text-align: center; margin-bottom: clamp(32px, 5vh, 48px); }
+.g-sec-head .sec-label { color: var(--accent-ink); }
+.g-sec-title {
+  font-family: 'Prata', serif;
+  font-weight: 400;
+  font-size: clamp(24px, 3.4vw, 38px);
+  margin-top: 14px;
+}
+.g-sec-sub {
+  margin-top: 12px;
+  font-size: clamp(14.5px, 1.7vw, 17px);
+  color: var(--muted);
+  line-height: 1.9;
+}
+#focus, #posts { scroll-margin-top: 24px; }
+
+/* ─ focus-axis cards ─ */
+.g-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: clamp(16px, 2.5vw, 28px);
+}
+.g-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 32px 26px 30px;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.g-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 26px 40px -24px rgba(40, 40, 60, 0.35);
+}
+.g-ic {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 18px;
+  border-radius: 17px;
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+.g-ic svg { width: 26px; height: 26px; display: block; }
+.g-card h3 {
+  font-family: 'Anuphan', sans-serif;
+  font-weight: 600;
+  font-size: 19.5px;
+  line-height: 1.5;
+}
+.g-card .en {
+  display: block;
+  margin-top: 5px;
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 700;
+  font-size: 11.5px;
+  letter-spacing: 2.2px;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+  opacity: 0.9;
+}
+.g-card p {
+  margin-top: 13px;
+  font-size: 14.5px;
+  line-height: 1.9;
+  color: var(--muted);
+}
+
+/* ─ philosophy quote band ─ */
+.g-quote {
+  max-width: 780px;
+  margin: 0 auto;
+  text-align: center;
+  padding: clamp(30px, 5vw, 50px) clamp(24px, 5vw, 60px);
+  background:
+    linear-gradient(135deg, var(--accent-soft), rgba(59, 110, 143, 0.05)),
+    var(--card);
+  border: 1px solid var(--line);
+  border-radius: 28px;
+}
+.g-quote .qmark {
+  display: block;
+  font-family: 'Prata', serif;
+  font-size: clamp(44px, 6vw, 60px);
+  line-height: 0.5;
+  padding-top: 14px;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+.g-quote p {
+  font-size: clamp(17px, 2.1vw, 22px);
+  font-weight: 500;
+  line-height: 1.9;
+  color: var(--ink);
+}
+.g-quote cite {
+  display: block;
+  margin-top: 18px;
+  font-style: normal;
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* view-all link under the post grid */
+.g-more { display: flex; justify-content: center; margin-top: clamp(6px, 1vh, 10px); }
+
+/* post-cards on pillar pages use h3 (h2 = section title) — mirror blog.css's h2 rule */
+.post-card h3 {
+  font-family: 'Prata', serif;
+  font-weight: 400;
+  font-size: 20px;
+  line-height: 1.4;
+}
+
+/* ─ empty state (pillars without posts yet) ─ */
+.g-empty {
+  border: 1.5px dashed var(--line);
+  border-radius: 24px;
+  background:
+    radial-gradient(120% 120% at 50% 0%, var(--accent-soft), transparent 60%),
+    var(--card);
+  padding: clamp(40px, 7vh, 64px) 24px;
+  text-align: center;
+}
+.g-empty .g-ic { margin-bottom: 16px; }
+.g-empty h3 {
+  font-family: 'Anuphan', sans-serif;
+  font-weight: 600;
+  font-size: 19px;
+}
+.g-empty p {
+  margin: 10px auto 0;
+  color: var(--muted);
+  font-size: 14.5px;
+  line-height: 1.9;
+  max-width: 44ch;
+}
+.g-empty .pill { margin-top: 22px; }
+
+/* ─ MindSpend callout (Personal Growth) — mirrors the homepage ms-card,
+   with axis chips tying the app to the pillar's focus areas ─ */
+.ms-card {
+  display: flex;
+  align-items: center;
+  gap: clamp(24px, 4vw, 48px);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  padding: clamp(28px, 4vw, 48px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.ms-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 30px 48px -28px rgba(40, 40, 60, 0.35);
+}
+.ms-icon {
+  flex: 0 0 auto;
+  width: clamp(96px, 14vw, 148px);
+  height: clamp(96px, 14vw, 148px);
+  border-radius: 24%;
+  overflow: hidden;
+  box-shadow: 0 18px 28px -14px rgba(40, 40, 60, 0.4);
+}
+.ms-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ms-body .sec-label { display: block; color: var(--accent-ink); }
+.ms-body h2 {
+  font-family: 'Prata', serif;
+  font-weight: 400;
+  font-size: clamp(26px, 3.4vw, 38px);
+  margin-top: 10px;
+}
+.ms-body .ms-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.ms-body p {
+  margin-top: 14px;
+  font-size: clamp(15px, 1.8vw, 17px);
+  line-height: 1.9;
+  color: var(--muted);
+  max-width: 52ch;
+}
+.ms-ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+@media (max-width: 640px) {
+  .ms-card { flex-direction: column; text-align: center; }
+  .ms-body .ms-tags, .ms-ctas { justify-content: center; }
+}
+
+/* ─ pillar switcher — continue the journey ─ */
+.g-pillars {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: clamp(16px, 2.5vw, 24px);
+}
+.g-pillar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  text-align: left;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 22px 24px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.g-pillar:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 24px 36px -24px rgba(40, 40, 60, 0.35);
+}
+.g-pillar .ball {
+  width: 56px;
+  height: 56px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background-size: 164%;
+  background-position: 50% 48%;
+  background-repeat: no-repeat;
+  box-shadow: 0 12px 14px -8px rgba(40, 40, 60, 0.3);
+}
+.ball.personal  { background-image: url('/assets/orb-personal.png'); }
+.ball.spiritual { background-image: url('/assets/orb-spiritual.png'); }
+.ball.vitality  { background-image: url('/assets/orb-vitality.png'); }
+.g-pillar h3 {
+  font-family: 'Prata', serif;
+  font-weight: 400;
+  font-size: 19px;
+}
+.g-pillar p {
+  margin-top: 4px;
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.g-pillar .go {
+  margin-left: auto;
+  flex: 0 0 auto;
+  color: var(--muted);
+  transition: transform 0.25s ease, color 0.25s ease;
+}
+.g-pillar .go svg { width: 20px; height: 20px; display: block; }
+.g-pillar:hover .go { transform: translateX(4px); color: var(--ink); }

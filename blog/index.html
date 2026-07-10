@@ -205,6 +205,15 @@
       pill.setAttribute('aria-pressed', 'true');
       apply(pill.dataset.cat);
     }));
+    // deep link: /blog/#personal · #spiritual · #vitality pre-applies that filter
+    // (growth pillar pages link here); works on load and on hash change
+    function applyHash() {
+      const cat = (location.hash || '').slice(1);
+      const pill = pills.find(p => p.dataset.cat === cat);
+      if (pill) pill.click();
+    }
+    window.addEventListener('hashchange', applyHash);
+    applyHash();
   })();
 </script>
 
