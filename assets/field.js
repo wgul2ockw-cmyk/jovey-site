@@ -6,7 +6,7 @@
   //   • no spin — dashes hold fixed angles and point toward the cursor; gentle shimmer
   //   • hovering a blog card MORPHS the ring into that card's rounded-rect shape
   //     (same trailing physics); leaving eases it back to a cursor-following ring
-  //   • spring/friction keeps motion smooth; responsive; 60fps via rAF
+  //   • eased follow (no spring) → smooth and never overshoots; responsive; 60fps via rAF
   const canvas = document.getElementById('field');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
@@ -22,8 +22,7 @@
   const RING_FRAC = 0.322;    // ring radius as a fraction of min(W,H) — reduced ~30%
   const RING_THICK = 0.28;    // radial spread of the ring — ×2 thicker band
   const DOT_SPACING = 6;      // ~1 dot per this many px along the ring
-  const SPRING = 0.07;        // pull toward the target — gentle, unhurried
-  const FRICTION = 0.58;      // velocity damping — heavy = settles with ~no overshoot / bounce
+  const FOLLOW = 0.22;        // eased follow rate — pure ease approaches, never passes → zero bounce
   const WOBBLE = 4;           // gentle radial shimmer (px)
 
   // vibrant confetti palette — neon pink / purple / orange / blue / yellow
@@ -102,7 +101,7 @@
   // the card hands it back. Cards are static (the filter only toggles display),
   // so a one-time bind is enough.
   function bindCards() {
-    document.querySelectorAll('.post-card').forEach(card => {
+    document.querySelectorAll('.post-card, .about-card').forEach(card => {
       if (card.__fieldBound) return;
       card.__fieldBound = true;
       card.addEventListener('mouseenter', () => { hoverEl = card; });
@@ -190,13 +189,10 @@
       const tx = p.fx + ca * rr;                          // point around its lagged center
       const ty = p.fy + sa * rr;
 
-      // spring toward the target; friction eases it in
-      p.vx += (tx - p.x) * SPRING * dt60;
-      p.vy += (ty - p.y) * SPRING * dt60;
-      p.vx *= FRICTION;
-      p.vy *= FRICTION;
-      p.x += p.vx * dt60;
-      p.y += p.vy * dt60;
+      // pure eased follow — approaches the target, never passes it → no overshoot, no bounce
+      const k = Math.min(1, FOLLOW * dt60);   // clamp keeps it stable on long frames
+      p.x += (tx - p.x) * k;
+      p.y += (ty - p.y) * k;
     }
 
     for (const p of particles) {

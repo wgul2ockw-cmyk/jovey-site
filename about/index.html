@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About — Aznr (Thitipong Nonnoi) · Jovey</title>
+<meta name="description" content="รู้จัก Aznr — Thitipong Nonnoi แพทย์ประจำบ้านปีที่ 1 สาขาเวชศาสตร์ครอบครัว โรงพยาบาลขอนแก่น ผู้อยู่เบื้องหลัง Jovey — เส้นทางกิจกรรมวิชาการ ผลงาน และความตั้งใจส่งต่อการเติบโตทั้งภายนอกและภายใน">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://jovey.co/about/">
+<link rel="icon" href="/assets/logo.png" type="image/png">
+<link rel="apple-touch-icon" href="/assets/logo.png">
+
+<!-- Open Graph / social share -->
+<meta property="og:type" content="profile">
+<meta property="og:site_name" content="Jovey">
+<meta property="og:title" content="About — Aznr (Thitipong Nonnoi) · Jovey">
+<meta property="og:description" content="เพื่อนร่วมทางของคุณ — เส้นทางของ Aznr จากห้องเรียนแพทย์ สู่การเดินทางของ Jovey">
+<meta property="og:url" content="https://jovey.co/about/">
+<meta property="og:image" content="https://jovey.co/assets/about-portrait.jpg">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Thitipong Nonnoi",
+  "alternateName": "Aznr",
+  "url": "https://jovey.co/about/",
+  "image": "https://jovey.co/assets/about-portrait.jpg",
+  "jobTitle": "Family Medicine Resident",
+  "worksFor": { "@type": "Hospital", "name": "Khon Kaen Hospital" },
+  "alumniOf": { "@type": "CollegeOrUniversity", "name": "Khon Kaen University" }
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prata&family=Anuphan:wght@400;500;600&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/blog.css">
+<style>
+  /* ═══ about page — profile card ═══ */
+  .about-card {
+    display: flex;
+    align-items: center;
+    gap: clamp(28px, 5vw, 56px);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 28px;
+    padding: clamp(28px, 4vw, 48px);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .about-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 30px 48px -28px rgba(40, 40, 60, 0.35);
+  }
+  .about-photo {
+    flex: 0 0 auto;
+    width: clamp(210px, 28vw, 330px);
+    margin: 0;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 18px 28px -14px rgba(40, 40, 60, 0.4);
+  }
+  .about-photo img { width: 100%; height: auto; display: block; }
+  .about-body h2 {
+    font-family: 'Prata', serif;
+    font-weight: 400;
+    font-size: clamp(24px, 3vw, 34px);
+  }
+  .about-body .who {
+    margin-top: 8px;
+    font-family: 'Quicksand', 'Anuphan', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--blue);
+    letter-spacing: 0.3px;
+  }
+  .about-body p {
+    margin-top: 14px;
+    font-size: clamp(15px, 1.8vw, 17px);
+    line-height: 1.95;
+    color: var(--muted);
+    max-width: 54ch;
+  }
+  .about-body .about-sign {
+    font-family: 'Prata', serif;
+    font-size: clamp(16px, 1.9vw, 20px);
+    color: var(--ink);
+    margin-top: 22px;
+  }
+  .about-body .about-sign span { color: var(--blue); margin: 0 8px; }
+  .about-body .about-tag { font-size: 13.5px; letter-spacing: 0.3px; margin-top: 6px; }
+  .about-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+  @media (max-width: 640px) {
+    .about-card { flex-direction: column; text-align: center; }
+    .about-photo { width: min(300px, 78vw); }
+    .about-body p { max-width: none; }
+    .about-links { justify-content: center; }
+  }
+
+  /* ═══ about page — CV sheet (mirrors the blog reading sheet) ═══ */
+  .cv-sheet {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 28px;
+    padding: clamp(26px, 5vw, 60px);
+    margin-top: clamp(24px, 4vh, 40px);
+    box-shadow: 0 30px 60px -40px rgba(40, 40, 60, 0.3);
+  }
+  .cv-group { padding: clamp(28px, 4.5vh, 44px) 0; border-top: 1px solid var(--line); }
+  .cv-group:first-child { border-top: none; padding-top: 0; }
+  .cv-group:last-child { padding-bottom: 0; }
+  .cv-group .sec-label { display: block; }
+  .cv-group h3 {
+    font-family: 'Anuphan', sans-serif;
+    font-weight: 600;
+    font-size: clamp(20px, 2.4vw, 26px);
+    color: var(--ink);
+    margin-top: 10px;
+  }
+
+  /* timeline rows — year column in Prata blue, like the blog's numbered tips */
+  .tl { list-style: none; margin: 18px 0 0; padding: 0; }
+  .tl li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: clamp(16px, 2.5vw, 28px);
+    padding: clamp(16px, 2.4vh, 22px) 0;
+    border-top: 1px solid var(--line);
+  }
+  .tl li:first-child { border-top: none; padding-top: 4px; }
+  .tl .yr {
+    font-family: 'Prata', serif;
+    font-size: clamp(13.5px, 1.6vw, 15.5px);
+    color: var(--blue);
+    white-space: nowrap;
+    min-width: 9ch;
+    padding-top: 3px;
+    opacity: 0.9;
+    font-variant-numeric: tabular-nums;
+  }
+  .tl .role {
+    font-family: 'Quicksand', 'Anuphan', sans-serif;
+    font-weight: 700;
+    font-size: clamp(16px, 1.9vw, 18.5px);
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  .tl .org {
+    font-family: 'Quicksand', 'Anuphan', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--blue);
+    margin-top: 2px;
+  }
+  .tl .desc { margin-top: 8px; font-size: 15px; line-height: 1.85; color: #40424a; }
+  @media (max-width: 560px) {
+    .tl li { grid-template-columns: 1fr; gap: 4px; }
+    .tl .yr { min-width: 0; padding-top: 0; }
+  }
+
+  /* skills — reuse the blog chip look */
+  .skillset { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 18px; }
+
+  /* certifications — compact sub-group tucked under Education & Training */
+  .cv-subhead {
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 700;
+    font-size: 12.5px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: clamp(26px, 3.5vh, 36px);
+  }
+  .cert-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px clamp(20px, 3vw, 32px);
+    margin-top: 16px;
+  }
+  .cert { padding-left: 14px; border-left: 2px solid var(--line); }
+  .cert__name {
+    font-family: 'Quicksand', 'Anuphan', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    line-height: 1.45;
+    color: var(--ink);
+  }
+  .cert__meta {
+    margin-top: 3px;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--blue);
+  }
+</style>
+</head>
+<body>
+
+<canvas id="field"></canvas>
+
+<main>
+  <nav>
+    <a class="brand" href="/">
+      <img src="/assets/logo.png" alt="Jovey logo">
+      <span class="wordmark">Jovey</span>
+    </a>
+    <div class="links">
+      <a class="plain" href="/#growth">Growth</a>
+      <a class="plain active" href="/about/">About</a>
+      <a class="plain" href="/blog/">Blog</a>
+      <a class="pill small" href="https://wgul2ockw-cmyk.github.io/-mindspend-site/" target="_blank" rel="noopener">MindSpend <svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+    </div>
+  </nav>
+
+  <header class="blog-head">
+    <span class="sec-label">About Us</span>
+    <h1>รู้จักเพื่อนร่วมทางของคุณ</h1>
+    <p>เส้นทางของ Aznr — จากห้องเรียนแพทย์ สู่การเดินทางของ Jovey</p>
+  </header>
+
+  <section class="wrap">
+
+    <div class="about-card">
+      <figure class="about-photo">
+        <img src="/assets/about-portrait.jpg" alt="Aznr (Thitipong Nonnoi) และเพื่อนร่วมทาง" width="900" height="1200">
+      </figure>
+      <div class="about-body">
+        <h2>Hello, I&rsquo;m Aznr.</h2>
+        <div class="who">Thitipong Nonnoi — Family Medicine Resident (Year 1) · Khon Kaen Hospital</div>
+        <p>ผมพัฒนาทักษะตัวเองผ่านสายกิจกรรมทางวิชาการของคณะแพทย์ และสนใจทักษะผู้นำ การบริหาร และการพัฒนามนุษย์ โดยมุ่งเน้น Impact ด้วยการสร้างความเปลี่ยนแปลง (Transformation) และผลกระทบเชิงกว้าง (Scalability) ผ่านเทคโนโลยีและการพัฒนาทรัพยากรมนุษย์</p>
+        <p>ตอนนี้ผมเป็นแพทย์ประจำบ้านปีที่ 1 สาขาเวชศาสตร์ครอบครัว ที่โรงพยาบาลขอนแก่น ซึ่งผมเชื่อว่าเวชศาสตร์ครอบครัวคือทางออกของระบบสาธารณสุขไทย — และ Jovey คือบันทึกการเดินทางของผม ทั้งภายนอกและภายใน เพื่อส่งต่อการเติบโตให้เพื่อนร่วมทางทุกคนครับ</p>
+        <p class="about-sign">Aznr <span>|</span> Jovey Co.</p>
+        <p class="about-tag">เปิดมุมมองใหม่ เพื่อเราที่ดีกว่า · Let&rsquo;s start our journey — Strength from inside</p>
+        <div class="about-links">
+          <a class="pill small ghost" href="mailto:Mdthitipong@hotmail.com">Email</a>
+          <a class="pill small" href="/blog/">อ่านบทความ <svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="cv-sheet">
+
+      <section class="cv-group">
+        <span class="sec-label">The Journey</span>
+        <h3>เส้นทางกิจกรรมที่ผ่านมา</h3>
+        <ul class="tl">
+          <li>
+            <span class="yr">2023 – 2024</span>
+            <div>
+              <div class="role">Founder &amp; Head — The Origin</div>
+              <div class="org">Udonthani Hospital</div>
+              <p class="desc">ก่อตั้งชุมชนแห่งการเปลี่ยนแปลงของนักศึกษาแพทย์ 21 คนจาก 3 ชั้นปี นำแนวคิด Agile มาใช้กับงานกิจกรรม — Discord community, Notion academic treasure และ Samo logo contest</p>
+            </div>
+          </li>
+          <li>
+            <span class="yr">2023 – 2024</span>
+            <div>
+              <div class="role">Project Manager — Notion Academic Treasure</div>
+              <div class="org">สำหรับนักศึกษาแพทย์ชั้นคลินิก</div>
+              <p class="desc">แหล่งรวม Lecture, Topic presentation และ Study guide — platform หลักด้านการเรียนของนักศึกษาแพทย์ ยอดการใช้งาน 4,178 ครั้งในเวลา 1 ปี</p>
+            </div>
+          </li>
+          <li>
+            <span class="yr">2022 – 2024</span>
+            <div>
+              <div class="role">Core Team &amp; Head of Academic Team</div>
+              <div class="org">UDH SAMO&rsquo;66-67</div>
+              <p class="desc">ดูแลงานวิชาการและช่วยเหลือนักศึกษาแพทย์เติบโตในแบบของตัวเอง · Founder &amp; Head of Book club UDH (สมาชิก 35 คนจาก 3 ชั้นปี) · รางวัล &ldquo;นักกิจกรรมดีเด่นสาขาวิชาการ&rdquo; ประจำปี 2567</p>
+            </div>
+          </li>
+          <li>
+            <span class="yr">2020 – 2021</span>
+            <div>
+              <div class="role">Head of Student Academic Affair</div>
+              <div class="org">Academic Team of MD47</div>
+              <p class="desc">จัดทำคลังแนวข้อสอบพร้อมเฉลยกว่า 2,000 ข้อใน 8 รายวิชา และ &ldquo;โครงการจับมือไว้แล้วไปด้วยกัน&rdquo; ช่วยเหลือเพื่อนที่สอบตกในแต่ละรายวิชา — engagement นักศึกษาแพทย์ 124 จาก 280 คน</p>
+            </div>
+          </li>
+          <li>
+            <span class="yr">2019 – 2020</span>
+            <div>
+              <div class="role">Head of IT &amp; Core Team Member</div>
+              <div class="org">Academic Team of MD47</div>
+              <p class="desc">ก่อตั้งฐานข้อมูลวิชาการ md47 และ YouTube channel &ldquo;md47 academic affair&rdquo; (17,600+ views) · จัดติว Online ผ่าน Zoom ช่วง Covid-19 — Live class เฉลี่ย 120 คนต่อวัน</p>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+      <section class="cv-group">
+        <span class="sec-label">Academic Achievement</span>
+        <h3>ผลงานวิชาการ</h3>
+        <ul class="tl">
+          <li>
+            <span class="yr">2024</span>
+            <div>
+              <div class="role">Research Study — Randomized Controlled Trial</div>
+              <div class="org">ร่วมกับโรงพยาบาลอุดรธานี</div>
+              <p class="desc">ศึกษาผลของการบริหารกล้ามเนื้อเข่าและคำแนะนำออนไลน์ผ่าน LINE Official Account ในผู้ป่วยโรคข้อเข่าเสื่อม อายุ 55–70 ปี — เปรียบเทียบอาการปวด ข้อติด และ Range of motion ที่ 2, 3 และ 6 เดือน</p>
+            </div>
+          </li>
+          <li>
+            <span class="yr">2019</span>
+            <div>
+              <div class="role">International Poster Presentation</div>
+              <div class="org">The 20th Thai Medical Education Conference · Faculty of Medicine Siriraj</div>
+              <p class="desc">The Initial Study of Efficiency and Satisfaction of Multimedia Flashcard Application in 1st Year Medical Students, Khon Kaen University — ริเริ่มนำ Flash card ร่วมกับ Active learning และ Spaced repetition มาใช้ในการเรียน</p>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+      <section class="cv-group">
+        <span class="sec-label">Education &amp; Training</span>
+        <h3>การศึกษาและการฝึกอบรม</h3>
+        <ul class="tl">
+          <li>
+            <span class="yr">2026 – ปัจจุบัน</span>
+            <div>
+              <div class="role">Family Medicine Residency — Year 1</div>
+              <div class="org">Khon Kaen Hospital</div>
+            </div>
+          </li>
+          <li>
+            <span class="yr">2019 – 2025</span>
+            <div>
+              <div class="role">Doctor of Medicine (M.D.)</div>
+              <div class="org">Khon Kaen University</div>
+            </div>
+          </li>
+          <li>
+            <span class="yr">2016 – 2018</span>
+            <div>
+              <div class="role">Gifted Science #121</div>
+              <div class="org">KhonKaen Wittayayon School</div>
+            </div>
+          </li>
+        </ul>
+
+        <div class="cv-subhead">Certifications</div>
+        <div class="cert-grid">
+          <div class="cert">
+            <div class="cert__name">AI Engineering Specialization</div>
+            <div class="cert__meta">IBM · 2024</div>
+          </div>
+          <div class="cert">
+            <div class="cert__name">Data Analytics Specialization</div>
+            <div class="cert__meta">Google · 2024</div>
+          </div>
+          <div class="cert">
+            <div class="cert__name">Finance &amp; Quantitative Modeling for Analysts</div>
+            <div class="cert__meta">University of Pennsylvania · 2023</div>
+          </div>
+          <div class="cert">
+            <div class="cert__name">Business &amp; Financial Modeling</div>
+            <div class="cert__meta">University of Pennsylvania · 2023</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="cv-group">
+        <span class="sec-label">Skills</span>
+        <h3>ทักษะ</h3>
+        <div class="skillset">
+          <span class="chip">Leadership</span>
+          <span class="chip">Managing People</span>
+          <span class="chip">Business Analysis</span>
+          <span class="chip">Business &amp; Financial Analysis</span>
+          <span class="chip">Data Analysis</span>
+          <span class="chip">AI Fundamentals</span>
+          <span class="chip">Python</span>
+          <span class="chip">R</span>
+          <span class="chip">SQL</span>
+          <span class="chip">HTML / CSS</span>
+          <span class="chip">Transformative Learning</span>
+          <span class="chip">Technology Proficiency</span>
+        </div>
+      </section>
+
+    </div>
+
+    <div class="post-foot">
+      <a class="back" href="/">&larr; กลับหน้าแรก</a>
+    </div>
+
+  </section>
+
+  <footer>
+    <img src="/assets/logo.png" alt="Jovey logo">
+    <div class="tagline">Every Journey's Companion, Every Soul's Completion.</div>
+    <div class="foot-links">
+      <a href="/">Home</a>
+      <a href="/#growth">Growth</a>
+      <a href="/about/">About</a>
+      <a href="/blog/">Blog</a>
+      <a href="https://wgul2ockw-cmyk.github.io/-mindspend-site/" target="_blank" rel="noopener">MindSpend <svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+    </div>
+    <div class="copy">© 2026 Jovey Co.</div>
+  </footer>
+</main>
+
+<script src="/assets/field.js"></script>
+
+</body>
+</html>

@@ -366,6 +366,7 @@
     </a>
     <div class="links">
       <a class="plain" href="#growth">Growth</a>
+      <a class="plain" href="about/">About</a>
       <a class="plain" href="blog/">Blog</a>
       <a class="pill small" href="https://wgul2ockw-cmyk.github.io/-mindspend-site/" target="_blank" rel="noopener">MindSpend <svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
     </div>
@@ -382,7 +383,7 @@
       ขอบคุณโชคชะตาที่ทำให้เราได้เดินทางมาเจอกัน ณ ปัจจุบัน
     </p>
     <div class="ctas">
-      <a class="pill big" href="#growth">About Us</a>
+      <a class="pill big" href="about/">About Us</a>
       <a class="pill big ghost" href="https://wgul2ockw-cmyk.github.io/-mindspend-site/" target="_blank" rel="noopener">MindSpend <svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
     </div>
   </section>
@@ -430,6 +431,7 @@
     <div class="foot-links">
       <a href="#top">Home</a>
       <a href="#growth">Growth</a>
+      <a href="about/">About</a>
       <a href="blog/">Blog</a>
       <a href="https://wgul2ockw-cmyk.github.io/-mindspend-site/" target="_blank" rel="noopener">MindSpend <svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
     </div>
@@ -446,7 +448,7 @@
   //   • no spin — dashes hold fixed angles and point toward the cursor; gentle shimmer
   //   • hovering a card MORPHS the ring into that card's rounded-rect shape
   //     (same trailing physics); leaving eases it back to a cursor-following ring
-  //   • spring/friction keeps motion smooth; responsive; 60fps via rAF
+  //   • eased follow (no spring) → smooth and never overshoots; responsive; 60fps via rAF
   const canvas = document.getElementById('field');
   const ctx = canvas.getContext('2d');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -462,8 +464,7 @@
   const RING_FRAC = 0.322;    // ring radius as a fraction of min(W,H) — reduced ~30%
   const RING_THICK = 0.28;    // radial spread of the ring — ×2 thicker band
   const DOT_SPACING = 6;      // ~1 dot per this many px along the ring
-  const SPRING = 0.07;        // pull toward the target — gentle, unhurried
-  const FRICTION = 0.58;      // velocity damping — heavy = settles with ~no overshoot / bounce
+  const FOLLOW = 0.22;        // eased follow rate — pure ease approaches, never passes → zero bounce
   const WOBBLE = 4;           // gentle radial shimmer (px)
 
   // vibrant confetti palette — neon pink / purple / orange / blue / yellow
@@ -628,13 +629,10 @@
       const tx = p.fx + ca * rr;                          // point around its lagged center
       const ty = p.fy + sa * rr;
 
-      // spring toward the target; friction eases it in
-      p.vx += (tx - p.x) * SPRING * dt60;
-      p.vy += (ty - p.y) * SPRING * dt60;
-      p.vx *= FRICTION;
-      p.vy *= FRICTION;
-      p.x += p.vx * dt60;
-      p.y += p.vy * dt60;
+      // pure eased follow — approaches the target, never passes it → no overshoot, no bounce
+      const k = Math.min(1, FOLLOW * dt60);   // clamp keeps it stable on long frames
+      p.x += (tx - p.x) * k;
+      p.y += (ty - p.y) * k;
     }
 
     for (const p of particles) {
