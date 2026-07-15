@@ -589,3 +589,10 @@ footer .copy { margin-top: 22px; color: var(--muted); font-size: 13px; }
 .refs li { margin-bottom: 12px; }
 .refs li:last-child { margin-bottom: 0; }
 .refs a { word-break: break-word; }
+
+/* wiki-map launcher (pops the Obsidian-style graph via assets/graph.js) */
+button.pill { cursor: pointer; border: 0; -webkit-appearance: none; appearance: none; }
+.map-launch { text-align: center; margin: clamp(-6px, -1vh, 0px) auto clamp(28px, 4.5vh, 44px); }
+.map-launch .map-ico { width: 18px; height: 18px; }
+.map-launch .pill.ghost { color: var(--ink); }
+.map-launch .pill.ghost:hover { border-color: #cdd5df; color: var(--blue); }

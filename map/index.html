@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>แผนที่ Wiki — Jovey</title>
+<meta name="description" content="แผนที่ความคิดของ Jovey — เชื่อมโยงบทความ, สามเสาการเติบโต (Personal · Spiritual · Vitality) และซีรีส์ต่างๆ เข้าด้วยกันแบบกราฟ เหมือน Obsidian.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://jovey.co/map/">
+<link rel="icon" href="/assets/logo.png" type="image/png">
+<link rel="apple-touch-icon" href="/assets/logo.png">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Jovey">
+<meta property="og:title" content="แผนที่ Wiki — Jovey">
+<meta property="og:description" content="แผนที่ความคิด — เชื่อมโยงบทความและสามเสาการเติบโตเข้าด้วยกันแบบกราฟ.">
+<meta property="og:url" content="https://jovey.co/map/">
+<meta property="og:image" content="https://jovey.co/assets/orb-rainbow.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prata&family=Anuphan:wght@400;500;600&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/blog.css">
+<style>
+  /* /map/ — page-only chrome; the graph itself is styled by assets/graph.js (tokens only) */
+  .map-frame {
+    position: relative;
+    width: min(1180px, 100%);
+    height: clamp(440px, 68vh, 760px);
+    margin: 4px auto clamp(14px, 3vh, 28px);
+    border: 1px solid var(--line);
+    border-radius: 26px;
+    overflow: hidden;
+    background:
+      radial-gradient(120% 120% at 50% 34%, #ffffff 0%, var(--bg) 74%);
+    box-shadow: 0 30px 80px -52px rgba(20, 20, 30, 0.42);
+  }
+  .map-frame > div { width: 100%; height: 100%; }
+  .map-note {
+    text-align: center; color: var(--muted); font-size: 13.5px;
+    font-family: 'Quicksand', sans-serif; font-weight: 600; letter-spacing: 0.01em;
+    margin: 0 auto clamp(40px, 7vh, 74px);
+  }
+  /* accessible / no-JS index of everything on the map, grouped by pillar */
+  .map-index { margin: 0 auto clamp(50px, 9vh, 96px); }
+  .map-index h2 {
+    font-family: 'Prata', serif; font-weight: 400; text-align: center;
+    font-size: clamp(19px, 3vw, 24px); color: var(--ink); margin: 0 0 6px;
+  }
+  .map-index > p { text-align: center; color: var(--muted); margin: 0 0 clamp(24px, 4vh, 38px); font-size: 15px; }
+  .map-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: clamp(18px, 3vw, 30px); }
+  .map-col h3 {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 12px;
+    letter-spacing: 0.14em; text-transform: uppercase; margin: 0 0 12px;
+  }
+  .map-col h3 .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .map-col.personal  h3 { color: var(--c-personal-ink); }  .map-col.personal  .dot { background: var(--c-personal); }
+  .map-col.spiritual h3 { color: var(--c-spiritual-ink); } .map-col.spiritual .dot { background: var(--c-spiritual); }
+  .map-col.vitality  h3 { color: var(--c-vitality-ink); }  .map-col.vitality  .dot { background: var(--c-vitality); }
+  .map-col ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 2px; }
+  .map-col a {
+    display: block; text-decoration: none; color: var(--ink); font-size: 15px; line-height: 1.5;
+    padding: 8px 12px; border-radius: 12px; border: 1px solid transparent; transition: 0.15s;
+  }
+  .map-col a:hover { background: var(--card); border-color: var(--line); color: var(--blue); transform: translateX(2px); }
+  .map-col .soon { color: var(--muted); font-size: 14px; padding: 8px 12px; }
+</style>
+</head>
+<body>
+
+<canvas id="field"></canvas>
+
+<main>
+  <nav>
+    <a class="brand" href="/">
+      <img src="/assets/logo.png" alt="Jovey logo">
+      <span class="wordmark">Jovey</span>
+    </a>
+    <div class="links">
+      <a class="plain" href="/#growth">Growth</a>
+      <a class="plain" href="/about/">About</a>
+      <a class="plain" href="/blog/">Blog</a>
+      <a class="plain active" href="/map/">Map</a>
+      <a class="pill small" href="https://wgul2ockw-cmyk.github.io/-mindspend-site/" target="_blank" rel="noopener">MindSpend <svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+    </div>
+  </nav>
+
+  <header class="blog-head">
+    <span class="sec-label">Wiki Map</span>
+    <h1>แผนที่ความคิด</h1>
+    <p>ทุกบทความ ทุกเส้นทาง เชื่อมโยงกันอย่างไร<br>ลากสำรวจ แล้วคลิกโหนดเพื่อเปิดอ่าน — เหมือนกราฟใน Obsidian ครับ</p>
+  </header>
+
+  <section class="wrap">
+    <div class="map-frame"><div id="map-stage"></div></div>
+    <p class="map-note">ลากเพื่อสำรวจ · เลื่อนล้อเพื่อซูม · แตะโหนดเพื่อเปิด · แตะสีในตำนานเพื่อไฮไลต์เสานั้น</p>
+
+    <div class="map-index">
+      <h2>สารบัญทั้งหมด</h2>
+      <p>รวมทุกโหนดบนแผนที่ · จัดกลุ่มตามสามเสาการเติบโต</p>
+      <div class="map-cols">
+        <div class="map-col personal">
+          <h3><span class="dot"></span>Personal Growth</h3>
+          <ul>
+            <li><a href="/blog/transformative-learning/">พลังแห่งการเรียนรู้สู่การเปลี่ยนแปลง (Transformative Learning)</a></li>
+            <li><a href="/blog/three-part-structure/">วิธีพัฒนาทักษะการเล่าเรื่องด้วย Three-part structure</a></li>
+            <li><a href="/blog/the-devil-we-share/">ปีศาจ ของเราเป็นตัวเดียวกันไหม</a></li>
+            <li><a href="/blog/10-romanticize-your-process/">10 วิธีตกหลุมรักในกระบวนการของคุณ</a></li>
+            <li><a href="/growth/personal/">→ เสา Personal Growth</a></li>
+          </ul>
+        </div>
+        <div class="map-col spiritual">
+          <h3><span class="dot"></span>Spiritual Growth</h3>
+          <ul>
+            <li><a href="/blog/destiny-and-the-present/">โชคชะตา ทำให้เรารู้คุณค่าของปัจจุบัน</a></li>
+            <li><a href="/blog/the-power-of-now/">สิ่งเดียวที่คุณมี คือ ปัจจุบัน (The Power of Now)</a></li>
+            <li><a href="/blog/transformative-learning/">พลังแห่งการเรียนรู้สู่การเปลี่ยนแปลง</a></li>
+            <li><a href="/blog/10-romanticize-your-process/">10 วิธีตกหลุมรักในกระบวนการของคุณ</a></li>
+            <li><a href="/growth/spiritual/">→ เสา Spiritual Growth</a></li>
+          </ul>
+        </div>
+        <div class="map-col vitality">
+          <h3><span class="dot"></span>Vitality Growth</h3>
+          <ul>
+            <li class="soon">ยังไม่มีบทความในเสานี้ · เร็วๆ นี้ครับ 🌱</li>
+            <li><a href="/growth/vitality/">→ เสา Vitality Growth</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <img src="/assets/logo.png" alt="Jovey logo">
+    <div class="tagline">Every Journey's Companion, Every Soul's Completion.</div>
+    <div class="foot-links">
+      <a href="/">Home</a>
+      <a href="/#growth">Growth</a>
+      <a href="/about/">About</a>
+      <a href="/blog/">Blog</a>
+      <a href="/map/">Map</a>
+      <a href="https://wgul2ockw-cmyk.github.io/-mindspend-site/" target="_blank" rel="noopener">MindSpend <svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+    </div>
+    <div class="copy">© 2026 Jovey Co.</div>
+  </footer>
+</main>
+
+<script src="/assets/field.js"></script>
+<script src="/assets/graph.js"></script>
+<script>
+  // mount the interactive graph inline into the framed stage
+  (function () {
+    var stage = document.getElementById('map-stage');
+    if (stage && window.JoveyMap) window.JoveyMap.mount(stage);
+  })();
+</script>
+
+</body>
+</html>

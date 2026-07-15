@@ -36,6 +36,7 @@
       <a class="plain" href="/#growth">Growth</a>
       <a class="plain" href="/about/">About</a>
       <a class="plain active" href="/blog/">Blog</a>
+      <a class="plain" href="/map/">Map</a>
       <a class="pill small" href="https://wgul2ockw-cmyk.github.io/-mindspend-site/" target="_blank" rel="noopener">MindSpend <svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
     </div>
   </nav>
@@ -45,6 +46,16 @@
     <h1>บทความ &amp; เรื่องราวการเติบโต</h1>
     <p>บันทึกระหว่างทาง — ทั้งภายนอก และภายใน<br>เพื่อเติมเต็มจิตวิญญาณของเพื่อนๆ ทุกคนครับ</p>
   </header>
+
+  <div class="map-launch">
+    <button type="button" class="pill ghost small" data-jovey-map aria-haspopup="dialog">
+      <svg class="map-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="6" cy="8" r="2.3"/><circle cx="18.2" cy="6.2" r="2.1"/><circle cx="13" cy="17.4" r="2.6"/>
+        <path d="M8.1 9.2 11.2 15.3M15.9 7.4 11.1 15.1M8.2 7.9 16.1 6.5"/>
+      </svg>
+      เปิดแผนที่ Wiki
+    </button>
+  </div>
 
   <div class="filters wrap" role="tablist" aria-label="กรองบทความตามหมวด">
     <button class="filter-pill active" data-cat="all" aria-pressed="true">ทั้งหมด</button>
@@ -178,6 +189,7 @@
       <a href="/#growth">Growth</a>
       <a href="/about/">About</a>
       <a href="/blog/">Blog</a>
+      <a href="/map/">Map</a>
       <a href="https://wgul2ockw-cmyk.github.io/-mindspend-site/" target="_blank" rel="noopener">MindSpend <svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
     </div>
     <div class="copy">© 2026 Jovey Co.</div>
@@ -185,6 +197,7 @@
 </main>
 
 <script src="/assets/field.js"></script>
+<script src="/assets/graph.js"></script>
 <script>
   // category filter — colour-coded pills show/hide post cards by data-cats
   (() => {
