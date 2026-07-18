@@ -1,7 +1,7 @@
 /* Attention Switch — offline cache (stale-while-revalidate) */
 "use strict";
 
-const CACHE = "attention-switch-v38";
+const CACHE = "attention-switch-v39";
 const ASSETS = ["./", "./index.html", "./styles.css", "./app.js", "./manifest.json", "./icon.svg"];
 
 self.addEventListener("install", (e) => {

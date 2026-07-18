@@ -63,6 +63,7 @@ const CAT_HEX = ["#FF9F43", "#3B6E8F", "#FECA57", "#B0519E", "#1FA39A", "#FF5E7E
 const CAT_LABELS = ["Tangerine", "Jovey blue", "Sunshine", "Magenta", "Teal", "Coral", "Sky", "Violet", "Rose"];
 
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+const mobileMotion = matchMedia("(max-width: 720px), (pointer: coarse)");
 
 /* ---------- State ---------- */
 
@@ -2030,6 +2031,13 @@ let homeSwarmLastT = 0;
 let homeSwarmStarted = 0;
 let homeSwarmW = 0;
 let homeSwarmH = 0;
+let homeSwarmObserver = null;
+let homeSwarmVisible = true;
+let homeSwarmReturnAt = 0;
+let homeSwarmReturnStarted = 0;
+
+const HOME_SWARM_RETURN_DELAY_MS = 620;
+const HOME_SWARM_RETURN_MS = 1450;
 
 const HOME_SWARM_PALETTES = [
   ["#F6D064", "#F4C461", "#EA6E3C"],
@@ -2063,6 +2071,25 @@ function homeSwarmMixHex(color, base, strength) {
 function homeSwarmEase(t) {
   const x = Math.max(0, Math.min(1, t));
   return 1 - Math.pow(1 - x, 3);
+}
+
+function delayHomeSwarmReturn() {
+  if (reducedMotion.matches) return;
+  const delay = mobileMotion.matches ? HOME_SWARM_RETURN_DELAY_MS : 160;
+  homeSwarmReturnAt = performance.now() + delay;
+  homeSwarmReturnStarted = homeSwarmReturnAt;
+}
+
+function homeSwarmReturnStrength(ms) {
+  if (reducedMotion.matches || !homeSwarmReturnAt) return 1;
+  if (ms < homeSwarmReturnAt) return 0;
+  const strength = homeSwarmEase((ms - homeSwarmReturnStarted) / HOME_SWARM_RETURN_MS);
+  if (strength >= 1) {
+    homeSwarmReturnAt = 0;
+    homeSwarmReturnStarted = 0;
+    return 1;
+  }
+  return strength;
 }
 
 function addHomeSwarmParticle(data) {
@@ -2239,7 +2266,7 @@ function drawHomeSwarmParticle(p, alpha) {
 }
 
 function homeSwarmFrame(ms) {
-  if (!homeSwarmCtx || !homeSwarmCanvas || view !== "home" || document.hidden) {
+  if (!homeSwarmCtx || !homeSwarmCanvas || view !== "home" || document.hidden || !homeSwarmVisible) {
     homeSwarmRaf = null;
     return;
   }
@@ -2248,6 +2275,7 @@ function homeSwarmFrame(ms) {
   homeSwarmLastT = t;
   const dt60 = dt * 60;
   const summoned = reducedMotion.matches ? 1 : homeSwarmEase((ms - homeSwarmStarted) / 2200);
+  const returnStrength = homeSwarmReturnStrength(ms);
   homeSwarmCtx.clearRect(0, 0, homeSwarmW, homeSwarmH);
 
   for (const p of homeSwarmParticles) {
@@ -2256,7 +2284,9 @@ function homeSwarmFrame(ms) {
       p.color = homeSwarmColor(p.palette, p.u);
     }
     const target = homeSwarmTarget(p, t);
-    const k = reducedMotion.matches ? 1 : Math.min(1, p.ease * dt60 * (0.35 + summoned * 0.65));
+    const k = reducedMotion.matches
+      ? 1
+      : Math.min(1, p.ease * dt60 * (0.35 + summoned * 0.65) * returnStrength);
     const moveX = target.x - p.x;
     const moveY = target.y - p.y;
     p.x += (target.x - p.x) * k;
@@ -2287,15 +2317,107 @@ function homeSwarmFrame(ms) {
 
 function stopHomeSwarm() {
   if (homeSwarmRaf !== null) cancelAnimationFrame(homeSwarmRaf);
+  if (homeSwarmObserver) homeSwarmObserver.disconnect();
   homeSwarmRaf = null;
+  homeSwarmObserver = null;
   homeSwarmCanvas = null;
   homeSwarmCtx = null;
   homeSwarmParticles = [];
+  homeSwarmVisible = true;
+  homeSwarmReturnAt = 0;
+  homeSwarmReturnStarted = 0;
+}
+
+function observeHomeSwarm() {
+  if (!homeSwarmCanvas || !("IntersectionObserver" in window)) return;
+  if (homeSwarmObserver) homeSwarmObserver.disconnect();
+  homeSwarmVisible = true;
+  homeSwarmObserver = new IntersectionObserver((entries) => {
+    const entry = entries.find((item) => item.target === homeSwarmCanvas);
+    if (!entry) return;
+    const nextVisible = entry.isIntersecting && entry.intersectionRatio > 0.04;
+    if (nextVisible === homeSwarmVisible) return;
+    homeSwarmVisible = nextVisible;
+    if (!nextVisible) {
+      if (homeSwarmRaf !== null) cancelAnimationFrame(homeSwarmRaf);
+      homeSwarmRaf = null;
+      return;
+    }
+    delayHomeSwarmReturn();
+    homeSwarmLastT = 0;
+    if (homeSwarmRaf === null && !document.hidden) {
+      homeSwarmRaf = requestAnimationFrame(homeSwarmFrame);
+    }
+  }, { threshold: [0, 0.04, 0.2] });
+  homeSwarmObserver.observe(homeSwarmCanvas);
+}
+
+function resumeHomeSwarm({ delay = false } = {}) {
+  if (!homeSwarmCanvas || !homeSwarmCtx || !homeSwarmParticles.length) {
+    setupHomeSwarm();
+    return;
+  }
+  if (delay) delayHomeSwarmReturn();
+  homeSwarmLastT = 0;
+  if (homeSwarmVisible && homeSwarmRaf === null && !document.hidden) {
+    homeSwarmRaf = requestAnimationFrame(homeSwarmFrame);
+  }
+}
+
+function resizeHomeSwarm() {
+  const canvas = appEl.querySelector(".home-arrow-swarm");
+  if (!canvas || canvas !== homeSwarmCanvas || !homeSwarmParticles.length) {
+    stopHomeSwarm();
+    setupHomeSwarm();
+    return;
+  }
+  const rect = canvas.getBoundingClientRect();
+  const nextW = Math.max(1, rect.width);
+  const nextH = Math.max(1, rect.height);
+  // Phone browser chrome resizes the viewport during scroll without changing
+  // the swarm canvas. Ignoring that event prevents the visible particle reset.
+  if (Math.abs(nextW - homeSwarmW) < 0.5 && Math.abs(nextH - homeSwarmH) < 0.5) return;
+
+  if (homeSwarmRaf !== null) cancelAnimationFrame(homeSwarmRaf);
+  homeSwarmRaf = null;
+  const oldW = homeSwarmW;
+  const oldH = homeSwarmH;
+  const oldCx = oldW / 2;
+  const oldCy = oldH / 2;
+  const nextCx = nextW / 2;
+  const nextCy = nextH / 2;
+  const scaleX = nextW / oldW;
+  const scaleY = nextH / oldH;
+  const scale = Math.min(nextW, nextH) / Math.min(oldW, oldH);
+  for (const particle of homeSwarmParticles) {
+    particle.x = nextCx + (particle.x - oldCx) * scaleX;
+    particle.y = nextCy + (particle.y - oldCy) * scaleY;
+    particle.waveAmp *= scale;
+    particle.waveAmp2 *= scale;
+    if (particle.type === "body") {
+      particle.radius *= scale;
+      particle.band *= scale;
+    } else {
+      particle.tipX = nextCx + (particle.tipX - oldCx) * scale;
+      particle.tipY = nextCy + (particle.tipY - oldCy) * scale;
+      particle.legX *= scale;
+      particle.legY *= scale;
+    }
+  }
+  homeSwarmW = nextW;
+  homeSwarmH = nextH;
+  const dpr = Math.min(2, devicePixelRatio || 1);
+  canvas.width = Math.round(nextW * dpr);
+  canvas.height = Math.round(nextH * dpr);
+  homeSwarmCtx = canvas.getContext("2d");
+  homeSwarmCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  resumeHomeSwarm({ delay: true });
 }
 
 function setupHomeSwarm() {
   homeSwarmCanvas = appEl.querySelector(".home-arrow-swarm");
   if (!homeSwarmCanvas) return;
+  if (homeSwarmRaf !== null) cancelAnimationFrame(homeSwarmRaf);
   const rect = homeSwarmCanvas.getBoundingClientRect();
   homeSwarmW = Math.max(1, rect.width);
   homeSwarmH = Math.max(1, rect.height);
@@ -2307,6 +2429,10 @@ function setupHomeSwarm() {
   seedHomeSwarm();
   homeSwarmLastT = 0;
   homeSwarmStarted = performance.now();
+  homeSwarmReturnAt = 0;
+  homeSwarmReturnStarted = 0;
+  homeSwarmVisible = true;
+  observeHomeSwarm();
   homeSwarmRaf = requestAnimationFrame(homeSwarmFrame);
 }
 
@@ -2718,13 +2844,18 @@ function syncRingLoop() {
 
 addEventListener("resize", () => {
   if (view === "session") setupRing();
-  else if (view === "home") setupHomeSwarm();
+  else if (view === "home") resizeHomeSwarm();
   else if (view === "trends" || view === "project") setupAttentionMaps();
 });
 
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) tick();
-  if (!document.hidden && view === "home" && homeSwarmRaf === null) setupHomeSwarm();
+  if (document.hidden && view === "home" && homeSwarmRaf !== null) {
+    cancelAnimationFrame(homeSwarmRaf);
+    homeSwarmRaf = null;
+  } else if (!document.hidden && view === "home" && homeSwarmRaf === null) {
+    resumeHomeSwarm({ delay: true });
+  }
   syncRingLoop();
   syncWakeLock();
 });
