@@ -1,0 +1,13 @@
+{
+  "name": "Attention Switch",
+  "short_name": "Attention",
+  "description": "Track where your attention goes — time per project and the number of switches between them.",
+  "start_url": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F8F9FA",
+  "theme_color": "#F8F9FA",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
