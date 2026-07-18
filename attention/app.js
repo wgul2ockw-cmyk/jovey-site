@@ -12,15 +12,23 @@ const PROJECT_LIMIT = 8; // matches the validated 8-slot categorical palette
 const MIN_SESSION_MS = 10_000;
 const HISTORY_PREVIEW = 8;
 // Attention ring — jovey-style confetti dashes orbiting the counting clock.
-// Dots ACCUMULATE: one is born for every slice of focused time, coloured by
-// the project that owned that slice — the ring grows denser as time passes.
+// The ring holds the WHOLE SESSION'S composition: every project's earned
+// dots in its own colour. The focused project's pile glows at full
+// prominence (and pops up fast when you switch to it); the rest recede
+// but remain visible. Past the soft cap the oldest dots are deducted.
 const RING_FRAC = 0.44;   // ring radius as a fraction of the dial box
 const RING_THICK = 0.24;  // radial band spread (fraction of radius)
 const WOBBLE = 4;         // gentle radial shimmer (px)
 const ORBIT_SPEED = (2 * Math.PI) / 80; // one lap ≈ 80s, per-dot variance applied
 const BREAK_GRAY = "#9aa1ab";
-const DOT_MS = 30_000;    // one confetti dash per 30s of focus
-const DOT_MAX = 420;      // ring saturates after ~3.5h
+const DOT_MAX = 420;      // absolute earn ceiling (safety)
+const DOT_SOFT = 240;     // ring ceiling — overflow is deducted ONLY at a swap
+const DOT_CURVE_K = 2.2;  // reward curve: dots ≈ K·√(project seconds) — fast burst early
+const DOT_DIE_S = 0.45;   // quick pop-away for deducted dots
+const DOT_IN_S = 0.25;    // pop-in age of a newborn dot
+const WAVE_DUR = 1.4;     // swap wave: a ripple runs through the ring
+const WAVE_A = 10;        // wave amplitude (px)
+const TILT_MAX = 11;      // ring parallax with device tilt / cursor (px)
 
 // Orb-gradient shade families per slot (light / base / deep), echoing the
 // jovey.co growth orbs. Ring-only; charts keep the validated base hexes.
@@ -298,6 +306,7 @@ const actions = {
     state.active = { startedAt: null, segments: [], breaks: [] };
     view = "session";
     addOpen = false;
+    askMotionPermission();
     commit();
   },
 
@@ -440,6 +449,7 @@ const actions = {
     state.active = { startedAt: null, segments: [], breaks: [] };
     view = "session";
     addOpen = false;
+    askMotionPermission();
     save();
     const p = state.projects.find((x) => x.id === id) ?? state.projects[0];
     if (p) actions.tap(p.id);
@@ -682,7 +692,7 @@ function renderSession() {
         ? `${dotHtml(pausedProj.slot)}<span>${esc(pausedProj.name)}</span><span class="state-word">— break</span>`
         : `<span class="state-word">On a break</span>`,
       clockStr: fmtClock(frozen), clockKind: "pausedProj", clockClass: " paused",
-      underHtml: `<p class="under-clock">Break <b data-clock="break">${fmtClock(segMs(brk, t))}</b></p>${switchLine}`,
+      underHtml: `<p class="under-clock">Break <b data-clock="break">${fmtClock(segMs(brk, t))}</b> · Focus <b data-clock="focus">${fmtClock(focusMs(a, t))}</b></p>${switchLine}`,
     });
   } else {
     dial = dialHtml({
@@ -690,7 +700,7 @@ function renderSession() {
       labelHtml: `<span class="pulse-dot" style="--pc: var(--cat-${activeProj.slot})" aria-hidden="true"></span>
                   <span>${esc(activeProj.name)}</span>`,
       clockStr: fmtClock(projSessionMs(a, activeProj.id, t)), clockKind: "activeProj", clockClass: "",
-      underHtml: switchLine,
+      underHtml: `<p class="under-clock">Focus total <b data-clock="focus">${fmtClock(focusMs(a, t))}</b></p>${switchLine}`,
     });
   }
 
@@ -1107,16 +1117,26 @@ setInterval(tick, 500);
 
 let rafId = null;
 let ringCanvas = null, ringCtx = null, ringSize = 0, ringR = 0;
-let ringParticles = [];
+let ringParticles = [];      // every project's dots — the session's composition
+let dyingParticles = [];     // deducted dots scattering away
 let ringLastT = null;
-let ringKey = null; // active-session identity — a new session clears the ring
+let ringSessionKey = null;   // session identity — a new session clears the ring
+let ringEarnedBy = new Map(); // projId → dots ever born (deducted dots aren't reborn)
+let ringFocusId = null;      // current focus — a change triggers wave + deduction
+let ringWaveT0 = -99;        // when the last swap wave started (perf seconds)
+const ringTilt = { x: 0, y: 0, tx: 0, ty: 0 }; // parallax state (current → target)
 
-function seedDot(slot) {
+function seedDot(slot, born = 0, projId = null, k = 1) {
   // shade: light / base / deep from the project's orb family (30/40/30)
   const r = Math.random();
+  const band = 1 + (Math.random() - 0.5) * RING_THICK;
   return {
+    born,
+    projId,
+    k, // prominence 0..1 — focused project's dots glow, others recede
     ang: Math.random() * 2 * Math.PI,
-    band: 1 + (Math.random() - 0.5) * RING_THICK,
+    band,
+    depth: 0.5 + (band - 1 + RING_THICK / 2) / RING_THICK, // 0.5..1.5 parallax layer
     size: 5 + Math.random() * 4.5,      // dash length, like the jovey field
     weight: 1.1 + Math.random() * 0.7,  // ~thin strokes, round caps
     phase: Math.random() * 2 * Math.PI,
@@ -1130,31 +1150,74 @@ function seedDot(slot) {
   };
 }
 
-// How many dots the session has earned, in chronological order with the
-// project slot that owned each 30s slice (first tap births dot #1 at once).
-function dotTargets(a, t) {
-  if (!a || a.startedAt === null) return [];
-  const out = [];
-  let cum = 0;
-  for (const g of a.segments) {
-    const p = state.projects.find((x) => x.id === g.p);
-    const slot = p ? p.slot : 0;
-    cum += segMs(g, t);
-    const want = Math.min(DOT_MAX, 1 + Math.floor(cum / DOT_MS));
-    while (out.length < want) out.push(slot);
-  }
-  return out;
+// Reward curve: √time. A burst when focus begins (~12 dots in the first
+// 30s, one every couple of seconds), easing toward ~one dot per minute
+// deep into a project.
+function dotCountFor(ms) {
+  return Math.min(DOT_MAX, Math.max(1, Math.round(DOT_CURVE_K * Math.sqrt(ms / 1000))));
 }
 
-// Grow the particle list to match earned dots; existing dots never move.
-function syncDots() {
+// The ring holds EVERY project's earned dots at once — the session's
+// composition so far. Each project's pile grows on its own √ curve while
+// focused (fast burst early). The focused project's dots glow at full
+// prominence; the others recede but stay visible in their colours.
+// Past DOT_SOFT total, the oldest dots are deducted (and never reborn).
+// `dt` present → animated births (1/frame); dt null → instant fill.
+function syncDots(dt) {
   const a = state.active;
-  const key = a ? a.startedAt : null;
-  if (ringKey !== key) { ringKey = key; ringParticles = []; }
-  const targets = a ? dotTargets(a, now()) : [];
-  if (ringParticles.length > targets.length) ringParticles = [];
-  for (let i = ringParticles.length; i < targets.length; i++) {
-    ringParticles.push(seedDot(targets[i]));
+  const key = a && a.startedAt !== null ? a.startedAt : null;
+  if (ringSessionKey !== key) {
+    ringSessionKey = key;
+    ringParticles = [];
+    dyingParticles = [];
+    ringEarnedBy = new Map();
+    ringFocusId = null;
+    ringWaveT0 = -99;
+  }
+  if (!key) return;
+  const t = now();
+  const focusSeg = openSeg(a) ?? (a.segments.length ? a.segments[a.segments.length - 1] : null);
+  const focusId = focusSeg ? focusSeg.p : null;
+
+  // A swap: send a wave through the ring, and only NOW deduct overflow —
+  // dots are never pushed out while you stay inside a project.
+  if (focusId !== ringFocusId) {
+    if (ringFocusId !== null && focusId !== null && !reducedMotion.matches) {
+      ringWaveT0 = performance.now() / 1000;
+    }
+    while (ringParticles.length > DOT_SOFT) {
+      const old = ringParticles.shift();
+      if (dt != null && !reducedMotion.matches) {
+        dyingParticles.push({
+          ...old,
+          dieT: 0,
+          vBand: 0.8 + Math.random() * 1.2,
+          vAng: (Math.random() - 0.5),
+        });
+      }
+    }
+    ringFocusId = focusId;
+  }
+
+  let budget = dt == null ? Infinity : 1;
+  const bornT = performance.now() / 1000;
+  for (const p of state.projects) {
+    if (budget <= 0) break;
+    const ms = projSessionMs(a, p.id, t);
+    if (!ms) continue;
+    const earned = dotCountFor(ms);
+    let born = ringEarnedBy.get(p.id) || 0;
+    while (born < earned && budget > 0) {
+      ringParticles.push(seedDot(p.slot, bornT, p.id, p.id === focusId ? 1 : 0.35));
+      born++;
+      budget--;
+    }
+    ringEarnedBy.set(p.id, born);
+  }
+
+  // static contexts can't animate prominence — set it directly
+  if (dt == null || reducedMotion.matches) {
+    for (const p of ringParticles) p.k = p.projId === focusId ? 1 : 0.35;
   }
 }
 
@@ -1176,38 +1239,68 @@ function setupRing() {
   syncRingLoop();
 }
 
+function drawDash(p, alpha, color, wobble, pop = 1) {
+  const cx = ringSize / 2, cy = ringSize / 2;
+  const r = ringR * p.band + wobble;
+  const depth = p.depth || 1; // deeper-band dots drift more — parallax layers
+  const x = cx + Math.cos(p.ang) * r + ringTilt.x * depth;
+  const y = cy + Math.sin(p.ang) * r + ringTilt.y * depth;
+  ringCtx.save();
+  ringCtx.translate(x, y);
+  ringCtx.rotate(p.ang + Math.PI / 2 + p.tilt); // tangent to the orbit
+  ringCtx.globalAlpha = alpha;
+  ringCtx.strokeStyle = color;
+  ringCtx.lineWidth = p.weight * pop;
+  ringCtx.lineCap = "round";
+  ringCtx.beginPath();
+  ringCtx.moveTo((-p.size / 2) * pop, 0);
+  ringCtx.lineTo((p.size / 2) * pop, 0);
+  ringCtx.stroke();
+  ringCtx.restore();
+}
+
 function drawRing(t, { motion, gray }) {
   if (!ringCtx) return;
-  const cx = ringSize / 2, cy = ringSize / 2;
   ringCtx.clearRect(0, 0, ringSize, ringSize);
+  // dropped-streak dots scatter behind the living ring
+  if (motion && !gray) {
+    for (const p of dyingParticles) {
+      const fade = Math.max(0, 1 - p.dieT / DOT_DIE_S);
+      drawDash(p, fade * 0.7, CAT_FAM[p.slot][p.shade], 0);
+    }
+  }
+  const waveT = t - ringWaveT0;
+  const waving = motion && waveT >= 0 && waveT < WAVE_DUR;
   for (const p of ringParticles) {
-    const wobble = motion ? Math.sin(t * p.wobSpd + p.wob) * WOBBLE : 0;
-    const r = ringR * p.band + wobble;
-    const x = cx + Math.cos(p.ang) * r;
-    const y = cy + Math.sin(p.ang) * r;
-    const alpha = motion
+    let wobble = motion ? Math.sin(t * p.wobSpd + p.wob) * WOBBLE : 0;
+    if (waving) {
+      // the swap wave: a decaying ripple travelling around the ring
+      wobble += WAVE_A * Math.exp(-waveT * 2.2) * Math.sin(p.ang * 3 - waveT * 12);
+    }
+    let alpha = motion
       ? Math.max(0.18, 0.55 + 0.4 * Math.sin(t * p.pulse * 2 + p.phase))
       : 0.5;
-    ringCtx.save();
-    ringCtx.translate(x, y);
-    ringCtx.rotate(p.ang + Math.PI / 2 + p.tilt); // tangent to the orbit
-    ringCtx.globalAlpha = gray ? 0.4 : alpha;
-    ringCtx.strokeStyle = gray || CAT_FAM[p.slot][p.shade];
-    ringCtx.lineWidth = p.weight;
-    ringCtx.lineCap = "round";
-    ringCtx.beginPath();
-    ringCtx.moveTo(-p.size / 2, 0);
-    ringCtx.lineTo(p.size / 2, 0);
-    ringCtx.stroke();
-    ringCtx.restore();
+    // prominence: focused project full-strength, others recessive
+    const prom = 0.4 + 0.6 * p.k;
+    alpha *= prom;
+    let pop = 0.82 + 0.22 * p.k;
+    // newborn pop: fade in fast, land from slightly oversized
+    if (motion && p.born) {
+      const age = Math.min(1, (t - p.born) / DOT_IN_S);
+      alpha *= Math.max(0.2, age);
+      pop *= 1 + 0.7 * (1 - age);
+    }
+    drawDash(p, gray ? 0.4 : alpha, gray || CAT_FAM[p.slot][p.shade], wobble, pop);
   }
 }
 
-// Static paints for the non-orbiting states (idle, break, reduced motion).
+// Paint after a render. Running + motion allowed → births stay animated
+// (the loop re-piles at one dot per frame); otherwise fill instantly.
 function paintRingForState() {
   const a = state.active;
   if (!ringCtx || !a) return;
-  syncDots();
+  const animated = openSeg(a) && !reducedMotion.matches;
+  syncDots(animated ? 0 : null);
   const t = performance.now() / 1000;
   if (openSeg(a)) drawRing(t, { motion: !reducedMotion.matches, gray: null });
   else if (openBreak(a)) drawRing(t, { motion: false, gray: BREAK_GRAY });
@@ -1224,8 +1317,28 @@ function ringFrame() {
   const t = performance.now() / 1000;
   const dt = ringLastT === null ? 0 : Math.min(0.1, t - ringLastT);
   ringLastT = t;
-  for (const p of ringParticles) p.ang += p.orbit * dt; // the circling
-  syncDots(); // births a new dash every 30s of focus
+  const focusNow = openSeg(state.active);
+  const focusId = focusNow ? focusNow.p : null;
+  const lerp = Math.min(1, 7 * dt);
+  // parallax chase — the ring leans with the phone (or the cursor)
+  const tiltLerp = Math.min(1, 5 * dt);
+  ringTilt.x += (ringTilt.tx - ringTilt.x) * tiltLerp;
+  ringTilt.y += (ringTilt.ty - ringTilt.y) * tiltLerp;
+  for (const p of ringParticles) {
+    p.ang += p.orbit * dt; // the circling
+    // prominence chase: the focused project's pile pops up fast,
+    // the others settle back — nothing disappears
+    p.k += ((p.projId === focusId ? 1 : 0.35) - p.k) * lerp;
+  }
+  if (dyingParticles.length) {
+    for (const p of dyingParticles) {
+      p.dieT += dt;
+      p.band += p.vBand * dt;             // fly outward
+      p.ang += (p.orbit + p.vAng) * dt;   // with a spin of its own
+    }
+    dyingParticles = dyingParticles.filter((p) => p.dieT < DOT_DIE_S);
+  }
+  syncDots(dt); // reward-curve births + deduction past the soft cap
   drawRing(t, { motion: true, gray: null });
   rafId = requestAnimationFrame(ringFrame);
 }
@@ -1253,6 +1366,30 @@ document.addEventListener("visibilitychange", () => {
   syncRingLoop();
   syncWakeLock();
 });
+
+/* ---------- Ring parallax input: device tilt, cursor as fallback ---------- */
+
+addEventListener("deviceorientation", (e) => {
+  if (e.gamma == null || e.beta == null || reducedMotion.matches) return;
+  ringTilt.tx = Math.max(-1, Math.min(1, e.gamma / 28)) * TILT_MAX;
+  ringTilt.ty = Math.max(-1, Math.min(1, (e.beta - 42) / 28)) * TILT_MAX;
+});
+
+addEventListener("mousemove", (e) => {
+  if (reducedMotion.matches) return;
+  ringTilt.tx = (e.clientX / innerWidth - 0.5) * 2 * TILT_MAX * 0.8;
+  ringTilt.ty = (e.clientY / innerHeight - 0.5) * 2 * TILT_MAX * 0.8;
+});
+
+// iOS needs a user-gesture permission for motion events — ask when a
+// session starts (a tap), fail silently everywhere else.
+function askMotionPermission() {
+  try {
+    if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === "function") {
+      DeviceOrientationEvent.requestPermission().catch(() => {});
+    }
+  } catch (_) { /* not iOS — listener already works */ }
+}
 
 /* ---------- Phone niceties: haptics + screen wake lock ---------- */
 
