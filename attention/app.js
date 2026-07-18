@@ -8,9 +8,17 @@
 "use strict";
 
 const KEY = "attention-switch:v1";
-const PROJECT_LIMIT = 8; // matches the validated 8-slot categorical palette
+const PROJECT_LIMIT = 9; // matches the nine stable Jovey color slots
 const MIN_SESSION_MS = 10_000;
 const HISTORY_PREVIEW = 8;
+const SWITCH_REASONS = [
+  "Priority changed",
+  "Finished a step",
+  "Got blocked",
+  "Interrupted",
+  "New thought",
+  "Needed variety",
+];
 // Attention ring — jovey-style confetti dashes orbiting the counting clock.
 // The ring holds the WHOLE SESSION'S composition: every project's earned
 // dots in its own colour. The focused project's pile glows at full
@@ -18,8 +26,15 @@ const HISTORY_PREVIEW = 8;
 // but remain visible. Past the soft cap the oldest dots are deducted.
 const RING_FRAC = 0.44;   // ring radius as a fraction of the dial box
 const RING_THICK = 0.24;  // radial band spread (fraction of radius)
-const WOBBLE = 4;         // gentle radial shimmer (px)
-const ORBIT_SPEED = (2 * Math.PI) / 80; // one lap ≈ 80s, per-dot variance applied
+// Locked particle model — shared by the logo, home swarm, and session ring.
+const PARTICLE_SIZE = 7;
+const PARTICLE_WEIGHT = 1.35;
+const PARTICLE_ALPHA_MIN = 0.28;
+const PARTICLE_ALPHA_MAX = 0.9;
+const PARTICLE_ROTATION_SPEED = (2 * Math.PI) / 42;
+const SINE_AMP_MIN = 1.2;
+const SINE_AMP_MAX = 4.8;
+const ORBIT_SPEED = PARTICLE_ROTATION_SPEED;
 const BREAK_GRAY = "#9aa1ab";
 const DOT_MAX = 420;      // absolute earn ceiling (safety)
 const DOT_SOFT = 240;     // ring ceiling — overflow is deducted ONLY at a swap
@@ -30,28 +45,29 @@ const WAVE_DUR = 1.4;     // swap wave: a ripple runs through the ring
 const WAVE_A = 10;        // wave amplitude (px)
 const TILT_MAX = 11;      // ring parallax with device tilt / cursor (px)
 
-// Orb-gradient shade families per slot (light / base / deep), echoing the
-// jovey.co growth orbs. Ring-only; charts keep the validated base hexes.
+// Jovey field/pillar families shared by the swarm, session, and project UI.
 const CAT_FAM = [
-  ["#F5A83C", "#D9822B", "#B85F14"], // personal orange
-  ["#5B99C9", "#2E74A8", "#1E5680"], // jovey blue
-  ["#E3BC5C", "#C29A3F", "#9C7722"], // ochre
-  ["#DD74C4", "#B0519E", "#8A3B9E"], // spiritual magenta → purple
-  ["#A3C167", "#7D9C43", "#5C7A2C"], // moss
-  ["#D67A5D", "#AD5340", "#7F3627"], // terracotta
-  ["#3FC7B8", "#1FA39A", "#0A5F53"], // vitality teal
-  ["#B191DE", "#8B6BB8", "#64478F"], // violet
+  ["#feca57", "#FF9F43", "#D9822B"],
+  ["#48dbfb", "#3b6e8f", "#3b6e8f"],
+  ["#feca57", "#feca57", "#FF9F43"],
+  ["#FF5E7E", "#B0519E", "#B15BFF"],
+  ["#1FA39A", "#1FA39A", "#3b6e8f"],
+  ["#FF9F43", "#FF5E7E", "#B0519E"],
+  ["#48dbfb", "#48dbfb", "#1FA39A"],
+  ["#B15BFF", "#B15BFF", "#B0519E"],
+  ["#FF9F43", "#E67673", "#FF5E7E"],
 ];
 
-// Mirrors --cat-0..7 in styles.css (for the dynamic <meta theme-color>)
-const CAT_HEX = ["#D9822B", "#2E74A8", "#C29A3F", "#B0519E", "#7D9C43", "#AD5340", "#1FA39A", "#8B6BB8"];
+// Mirrors --cat-0..8 in styles.css (for the dynamic <meta theme-color>)
+const CAT_HEX = ["#FF9F43", "#3B6E8F", "#FECA57", "#B0519E", "#1FA39A", "#FF5E7E", "#48DBFB", "#B15BFF", "#E67673"];
+const CAT_LABELS = ["Tangerine", "Jovey blue", "Sunshine", "Magenta", "Teal", "Coral", "Sky", "Violet", "Rose"];
 
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
 
 /* ---------- State ---------- */
 
 function defaults() {
-  return { projects: [], active: null, sessions: [], theme: "auto" };
+  return { projects: [], active: null, sessions: [], pendingReflectionId: null, theme: "auto" };
 }
 
 function load() {
@@ -64,11 +80,21 @@ function load() {
 
 let state = load();
 // UI-only state (not persisted)
-let view = state.active ? "session" : "home";
-let summaryId = null;
+const pendingReflection = state.pendingReflectionId
+  && state.sessions.some((session) => session.id === state.pendingReflectionId);
+let view = state.active ? "session" : pendingReflection ? "reflection" : "home";
+let summaryId = pendingReflection ? state.pendingReflectionId : null;
+let reflectionIndex = 0;
+let reflectionCustomOpen = false;
+let projectHubId = null;
+let selectedAttentionPathKey = null;
 let showAllHistory = false;
 let justSwitched = false;
 let addOpen = false; // in-session "add project" tile expanded
+let editingColorId = null;
+let showArchivedProjects = false;
+let expandedTaskProjectIds = new Set();
+let taskComposerProjectIds = new Set();
 
 function save() {
   localStorage.setItem(KEY, JSON.stringify(state));
@@ -77,6 +103,77 @@ function save() {
 function commit() {
   save();
   render();
+}
+
+function activeProjects() {
+  return state.projects.filter((project) => !project.archivedAt);
+}
+
+function archivedProjects() {
+  return state.projects
+    .filter((project) => project.archivedAt)
+    .sort((a, b) => b.archivedAt - a.archivedAt);
+}
+
+function projectTasks(project) {
+  return Array.isArray(project.tasks) ? project.tasks : [];
+}
+
+function ensureProjectTasks(project) {
+  if (!Array.isArray(project.tasks)) project.tasks = [];
+  return project.tasks;
+}
+
+function switchEventsFor(rec) {
+  if (Array.isArray(rec.switchEvents)) return rec.switchEvents;
+  const events = [];
+  for (let i = 1; i < rec.segments.length; i++) {
+    const from = rec.segments[i - 1];
+    const to = rec.segments[i];
+    const fromId = from.id ?? from.name;
+    const toId = to.id ?? to.name;
+    if (fromId === toId) continue;
+    events.push({
+      id: `legacy-${rec.id}-${i}`,
+      at: to.start,
+      fromId: from.id ?? null,
+      fromName: from.name,
+      fromSlot: projectSlot(from),
+      toId: to.id ?? null,
+      toName: to.name,
+      toSlot: projectSlot(to),
+      answered: true,
+      reason: null,
+    });
+  }
+  return events;
+}
+
+function switchEventSlot(event, side) {
+  return projectSlot({
+    id: event[`${side}Id`],
+    name: event[`${side}Name`],
+    slot: event[`${side}Slot`],
+  });
+}
+
+function reflectionRecord() {
+  return state.sessions.find((session) => session.id === summaryId) ?? null;
+}
+
+function advanceReflection(rec) {
+  const next = rec.switchEvents.findIndex((event) => !event.answered);
+  if (next !== -1) {
+    reflectionIndex = next;
+    reflectionCustomOpen = false;
+    save();
+    render();
+    return;
+  }
+  state.pendingReflectionId = null;
+  reflectionCustomOpen = false;
+  view = "summary";
+  commit();
 }
 
 /* ---------- Time helpers ---------- */
@@ -124,6 +221,13 @@ function fmtHuman(ms) {
   return m % 60 ? `${h}h ${m % 60}m` : `${h}h`;
 }
 
+function fmtCompact(ms) {
+  if (ms < 60_000) return "<1m";
+  if (ms < 3_600_000) return `${Math.round(ms / 60_000)}m`;
+  const hours = ms / 3_600_000;
+  return `${hours < 10 ? hours.toFixed(1).replace(".0", "") : Math.round(hours)}h`;
+}
+
 function fmtTime(ts) {
   return new Date(ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
@@ -157,6 +261,9 @@ const ICONS = {
   stop: svg('<rect x="5" y="5" width="14" height="14" rx="2"/>'),
   plus: svg('<path d="M12 5v14M5 12h14"/>'),
   trash: svg('<path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6M14 11v6"/>'),
+  archive: svg('<path d="M3 6h18v4H3zM5 10v10h14V10M10 14h4"/>'),
+  restore: svg('<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>'),
+  chevron: svg('<path d="m9 18 6-6-6-6"/>'),
   shuffle: svg('<path d="M2 18h4.5c1.5 0 2.8-.7 3.7-1.9L15 9.5c.9-1.2 2.2-1.9 3.7-1.9H22M18.5 4.5 22 7.6l-3.5 3.1M2 7.6h4.5c1.1 0 2.2.4 3 1.2M18.5 21.4l3.5-3.1-3.5-3.1M13.4 17.1c.9.8 1.9 1.2 3 1.2H22"/>'),
   spark: svg('<path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/>'),
 };
@@ -216,8 +323,79 @@ function dailySeries(days) {
     day.focusMs += s.focusMs;
     day.switches += s.switches;
     for (const pp of s.perProject) {
-      day.perSlot.set(pp.slot, (day.perSlot.get(pp.slot) || 0) + pp.ms);
+      const slot = projectSlot(pp);
+      day.perSlot.set(slot, (day.perSlot.get(slot) || 0) + pp.ms);
     }
+  }
+  return out;
+}
+
+// Focus distributed across the clock, split at each local hour boundary.
+// This reveals when sustained work actually happens rather than only which
+// calendar day contained the session.
+function hourlyFocusSeries(days = 30) {
+  const bins = Array.from({ length: 24 }, (_, hour) => ({ hour, focusMs: 0 }));
+  const cutoff = new Date();
+  cutoff.setHours(0, 0, 0, 0);
+  cutoff.setDate(cutoff.getDate() - (days - 1));
+  const cutoffMs = cutoff.getTime();
+  for (const session of state.sessions) {
+    for (const segment of session.segments || []) {
+      let cursor = Math.max(segment.start, cutoffMs);
+      const finish = Math.max(cursor, segment.end);
+      while (cursor < finish) {
+        const at = new Date(cursor);
+        const boundary = new Date(cursor);
+        boundary.setMinutes(0, 0, 0);
+        boundary.setHours(boundary.getHours() + 1);
+        const sliceEnd = Math.min(finish, boundary.getTime());
+        bins[at.getHours()].focusMs += sliceEnd - cursor;
+        cursor = sliceEnd;
+      }
+    }
+  }
+  return bins;
+}
+
+function fmtHour(hour) {
+  const date = new Date(2020, 0, 1, hour);
+  return date.toLocaleTimeString([], { hour: "numeric" });
+}
+
+function timeOfDayHtml(series) {
+  const max = Math.max(...series.map((item) => item.focusMs), 1);
+  const best = series.reduce((top, item) => item.focusMs > top.focusMs ? item : top, series[0]);
+  const total = series.reduce((sum, item) => sum + item.focusMs, 0);
+  const aria = total
+    ? series.filter((item) => item.focusMs).map((item) => `${fmtHour(item.hour)}, ${fmtHuman(item.focusMs)}`).join(". ")
+    : "No focus time recorded in the last 30 days";
+  return `<section class="sum-section" aria-label="Focus by time of day, last 30 days">
+    <div class="chart-head"><h2 class="sec-label">Time of day</h2><span class="chart-max">${total ? `peak ${fmtHour(best.hour)}–${fmtHour((best.hour + 1) % 24)}` : "last 30 days"}</span></div>
+    <div class="time-day-card">
+      <div class="time-day-bars" role="img" aria-label="${esc(aria)}">
+        ${series.map((item) => `<i class="${item.hour === best.hour && item.focusMs ? "peak" : ""}" style="--h:${item.focusMs ? Math.max(5, (item.focusMs / max) * 100).toFixed(2) : 2}%" title="${fmtHour(item.hour)}–${fmtHour((item.hour + 1) % 24)} · ${item.focusMs ? fmtHuman(item.focusMs) : "no focus"}"><span></span></i>`).join("")}
+      </div>
+      <div class="time-day-axis" aria-hidden="true"><span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span></div>
+      <p>${total ? `You focus most often between <b>${fmtHour(best.hour)} and ${fmtHour((best.hour + 1) % 24)}</b>.` : "Your strongest focus hour will appear after more sessions."}</p>
+    </div>
+  </section>`;
+}
+
+function projectDailySeries(projectId, days) {
+  const out = [];
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - (days - 1));
+  for (let i = 0; i < days; i++) {
+    out.push({ key: d.toDateString(), focusMs: 0 });
+    d.setDate(d.getDate() + 1);
+  }
+  const byKey = new Map(out.map((item) => [item.key, item]));
+  for (const session of state.sessions) {
+    const day = byKey.get(new Date(session.startedAt).toDateString());
+    if (!day) continue;
+    const project = session.perProject.find((item) => item.id === projectId);
+    if (project) day.focusMs += project.ms;
   }
   return out;
 }
@@ -239,13 +417,14 @@ function streakDays() {
 
 // The project the user most recently spent time on — the one-tap quick start.
 function suggestedProject() {
+  const projects = activeProjects();
   for (const s of state.sessions) {
     for (const pp of s.perProject) {
-      const p = state.projects.find((x) => x.id === pp.id);
+      const p = projects.find((x) => x.id === pp.id);
       if (p) return p;
     }
   }
-  return state.projects[0] ?? null;
+  return projects[0] ?? null;
 }
 
 // Gentle session character — variable reward, never a judgement.
@@ -288,21 +467,159 @@ function momentsFor(rec) {
 
 const actions = {
   goHome() {
+    projectHubId = null;
+    selectedAttentionPathKey = null;
     view = state.active ? "session" : "home";
     render();
+  },
+
+  closeAttentionPath() {
+    selectedAttentionPathKey = null;
+    render();
+  },
+
+  answerSwitchReason(id, el) {
+    const rec = reflectionRecord();
+    if (!rec || !Array.isArray(rec.switchEvents)) return;
+    const event = rec.switchEvents.find((item) => item.id === id);
+    if (!event) return;
+    event.reason = el.dataset.reason || null;
+    event.answered = true;
+    advanceReflection(rec);
+  },
+
+  openCustomReason(id) {
+    const rec = reflectionRecord();
+    if (!rec || !Array.isArray(rec.switchEvents)) return;
+    const index = rec.switchEvents.findIndex((event) => event.id === id);
+    if (index === -1) return;
+    reflectionIndex = index;
+    reflectionCustomOpen = true;
+    render();
+    const input = document.getElementById("switch-reason-custom");
+    if (input) input.focus();
+  },
+
+  skipSwitchReason(id) {
+    const rec = reflectionRecord();
+    if (!rec || !Array.isArray(rec.switchEvents)) return;
+    const event = rec.switchEvents.find((item) => item.id === id);
+    if (!event) return;
+    event.reason = null;
+    event.answered = true;
+    advanceReflection(rec);
+  },
+
+  skipReflection() {
+    const rec = reflectionRecord();
+    if (!rec || !Array.isArray(rec.switchEvents)) return;
+    for (const event of rec.switchEvents) {
+      if (!event.answered) event.answered = true;
+    }
+    advanceReflection(rec);
   },
 
   deleteProject(id) {
     if (state.active) return;
     const p = state.projects.find((x) => x.id === id);
     if (!p) return;
-    if (!confirm(`Delete "${p.name}"? Past sessions keep their records.`)) return;
+    if (!confirm(`Permanently delete "${p.name}"? Past sessions keep their records.`)) return;
     state.projects = state.projects.filter((x) => x.id !== id);
+    expandedTaskProjectIds.delete(id);
+    taskComposerProjectIds.delete(id);
     commit();
   },
 
+  toggleProjectColor(id) {
+    if (state.active) return;
+    expandedTaskProjectIds.delete(id);
+    taskComposerProjectIds.delete(id);
+    editingColorId = editingColorId === id ? null : id;
+    render();
+  },
+
+  toggleProjectTasks(id) {
+    if (state.active) return;
+    const p = state.projects.find((x) => x.id === id && !x.archivedAt);
+    if (!p) return;
+    editingColorId = null;
+    const opening = !expandedTaskProjectIds.has(id);
+    if (opening) expandedTaskProjectIds.add(id);
+    else {
+      expandedTaskProjectIds.delete(id);
+      taskComposerProjectIds.delete(id);
+    }
+    render();
+  },
+
+  openTaskComposer(id) {
+    if (state.active) return;
+    const p = state.projects.find((x) => x.id === id && !x.archivedAt);
+    if (!p) return;
+    editingColorId = null;
+    expandedTaskProjectIds.add(id);
+    taskComposerProjectIds.add(id);
+    render();
+    const input = document.getElementById(`task-input-${id}`);
+    if (input) input.focus();
+  },
+
+  toggleTask(id, el) {
+    const p = state.projects.find((x) => x.id === id && !x.archivedAt);
+    if (!p) return;
+    const task = projectTasks(p).find((item) => item.id === el.dataset.taskId);
+    if (!task) return;
+    task.done = !task.done;
+    task.completedAt = task.done ? now() : null;
+    expandedTaskProjectIds.add(id);
+    commit();
+  },
+
+  setProjectColor(id, el) {
+    if (state.active) return;
+    const p = state.projects.find((x) => x.id === id && !x.archivedAt);
+    const slot = Number(el.dataset.slot);
+    if (!p || !Number.isInteger(slot) || slot < 0 || slot >= CAT_HEX.length) return;
+    p.slot = slot;
+    editingColorId = null;
+    toast(`${p.name} color updated.`);
+    commit();
+  },
+
+  archiveProject(id) {
+    if (state.active) return;
+    const p = state.projects.find((x) => x.id === id && !x.archivedAt);
+    if (!p) return;
+    p.archivedAt = now();
+    if (editingColorId === id) editingColorId = null;
+    expandedTaskProjectIds.delete(id);
+    taskComposerProjectIds.delete(id);
+    showArchivedProjects = true;
+    toast(`${p.name} archived.`);
+    commit();
+  },
+
+  restoreProject(id) {
+    if (state.active) return;
+    const p = state.projects.find((x) => x.id === id && x.archivedAt);
+    if (!p) return;
+    if (activeProjects().length >= PROJECT_LIMIT) {
+      toast("Archive another project before restoring this one.");
+      return;
+    }
+    delete p.archivedAt;
+    if (!archivedProjects().length) showArchivedProjects = false;
+    toast(`${p.name} restored.`);
+    commit();
+  },
+
+  toggleArchived() {
+    showArchivedProjects = !showArchivedProjects;
+    render();
+  },
+
   startSession() {
-    if (!state.projects.length || state.active) return;
+    if (!activeProjects().length || state.active) return;
     state.active = { startedAt: null, segments: [], breaks: [] };
     view = "session";
     addOpen = false;
@@ -313,7 +630,7 @@ const actions = {
   tap(id) {
     const a = state.active;
     if (!a) return;
-    const p = state.projects.find((x) => x.id === id);
+    const p = state.projects.find((x) => x.id === id && !x.archivedAt);
     if (!p) return;
     const t = now();
     const s = openSeg(a);
@@ -391,6 +708,29 @@ const actions = {
       })
       .sort((x, y) => y.ms - x.ms);
 
+    const segmentSnapshots = a.segments.map((g) => {
+      const p = projOf(g.p);
+      return { id: g.p, name: p ? p.name : "Deleted project", slot: p ? p.slot : 0, start: g.start, end: g.end };
+    });
+    const switchEvents = [];
+    for (let i = 1; i < segmentSnapshots.length; i++) {
+      const from = segmentSnapshots[i - 1];
+      const to = segmentSnapshots[i];
+      if (from.id === to.id) continue;
+      switchEvents.push({
+        id: uid(),
+        at: to.start,
+        fromId: from.id,
+        fromName: from.name,
+        fromSlot: from.slot,
+        toId: to.id,
+        toName: to.name,
+        toSlot: to.slot,
+        answered: false,
+        reason: null,
+      });
+    }
+
     const rec = {
       id: uid(),
       startedAt: a.startedAt,
@@ -401,16 +741,17 @@ const actions = {
       longestMs: Math.max(...a.segments.map((g) => g.end - g.start)),
       blocks: a.segments.length,
       perProject,
-      segments: a.segments.map((g) => {
-        const p = projOf(g.p);
-        return { name: p ? p.name : "Deleted project", slot: p ? p.slot : 0, start: g.start, end: g.end };
-      }),
+      segments: segmentSnapshots,
+      switchEvents,
       breaks: a.breaks.map((x) => ({ start: x.start, end: x.end })),
     };
     state.sessions.unshift(rec);
     state.active = null;
     summaryId = rec.id;
-    view = "summary";
+    reflectionIndex = 0;
+    reflectionCustomOpen = false;
+    state.pendingReflectionId = switchEvents.length ? rec.id : null;
+    view = switchEvents.length ? "reflection" : "summary";
     addOpen = false;
     commit();
   },
@@ -428,8 +769,19 @@ const actions = {
     if (!s) return;
     if (!confirm("Delete this session record?")) return;
     state.sessions = state.sessions.filter((x) => x.id !== id);
+    if (state.pendingReflectionId === id) state.pendingReflectionId = null;
     view = "home";
     commit();
+  },
+
+  openProjectHub(id) {
+    const p = state.projects.find((project) => project.id === id);
+    if (!p) return;
+    projectHubId = id;
+    selectedAttentionPathKey = null;
+    view = "project";
+    render();
+    scrollTo(0, 0);
   },
 
   showAllHistory() {
@@ -438,6 +790,7 @@ const actions = {
   },
 
   openTrends() {
+    selectedAttentionPathKey = null;
     view = "trends";
     render();
     scrollTo(0, 0);
@@ -445,13 +798,14 @@ const actions = {
 
   // Hook: one tap from opening the app to a running clock.
   quickStart(id) {
-    if (state.active || !state.projects.length) return;
+    const projects = activeProjects();
+    if (state.active || !projects.length) return;
     state.active = { startedAt: null, segments: [], breaks: [] };
     view = "session";
     addOpen = false;
     askMotionPermission();
     save();
-    const p = state.projects.find((x) => x.id === id) ?? state.projects[0];
+    const p = projects.find((x) => x.id === id) ?? projects[0];
     if (p) actions.tap(p.id);
     else commit();
   },
@@ -494,6 +848,440 @@ function dotHtml(slot) {
   return `<span class="dot" style="--pc: var(--cat-${slot})" aria-hidden="true"></span>`;
 }
 
+function heatLevel(ms) {
+  if (!ms) return 0;
+  if (ms < 10 * 60_000) return 1;
+  if (ms < 30 * 60_000) return 2;
+  if (ms < 60 * 60_000) return 3;
+  return 4;
+}
+
+function heatmapHtml(series, label) {
+  if (!series.length) return "";
+  const cells = Array(new Date(series[0].key).getDay()).fill(null).concat(series);
+  while (cells.length % 7) cells.push(null);
+  const weeks = [];
+  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+  return `<div class="heatmap-wrap">
+    <div class="heatmap-weekdays" aria-hidden="true"><span>M</span><span>W</span><span>F</span></div>
+    <div class="heatmap-scroll">
+      <div class="heatmap-grid" role="grid" aria-label="${esc(label)}">
+        ${weeks.map((week) => `<div class="heat-week" role="row">${week.map((day) => day
+          ? `<span class="heat-cell level-${heatLevel(day.focusMs)}" role="gridcell" aria-label="${esc(day.key)}: ${day.focusMs ? fmtHuman(day.focusMs) : "no focus"}" title="${esc(day.key)} — ${day.focusMs ? fmtHuman(day.focusMs) : "no focus"}"></span>`
+          : '<span class="heat-cell blank" aria-hidden="true"></span>').join("")}</div>`).join("")}
+      </div>
+    </div>
+    <div class="heatmap-legend" aria-hidden="true"><span>Less</span><i class="level-0"></i><i class="level-1"></i><i class="level-2"></i><i class="level-3"></i><i class="level-4"></i><span>More</span></div>
+  </div>`;
+}
+
+function allSwitchMoves() {
+  return state.sessions
+    .flatMap((session) => switchEventsFor(session).map((event) => ({ ...event, sessionId: session.id })))
+    .sort((a, b) => b.at - a.at);
+}
+
+function moveProjectId(event, side) {
+  const storedId = event[`${side}Id`];
+  if (storedId && state.projects.some((project) => project.id === storedId)) return storedId;
+  const project = state.projects.find((item) => item.name === event[`${side}Name`]);
+  return project ? project.id : null;
+}
+
+function attentionMapProjects(focusProjectId = null) {
+  const projects = activeProjects().slice(0, PROJECT_LIMIT);
+  if (!focusProjectId || projects.some((project) => project.id === focusProjectId)) return projects;
+  const focus = state.projects.find((project) => project.id === focusProjectId);
+  return focus ? [focus, ...projects].slice(0, PROJECT_LIMIT) : projects;
+}
+
+function attentionMapPaths(moves, projects, focusProjectId = null) {
+  const ids = new Set(projects.map((project) => project.id));
+  const paths = new Map();
+  for (const move of moves) {
+    const fromId = moveProjectId(move, "from");
+    const toId = moveProjectId(move, "to");
+    if (!fromId || !toId || fromId === toId || !ids.has(fromId) || !ids.has(toId)) continue;
+    if (focusProjectId && fromId !== focusProjectId && toId !== focusProjectId) continue;
+    const key = `${fromId}→${toId}`;
+    const path = paths.get(key) || { key, fromId, toId, count: 0, reasons: new Map(), events: [] };
+    path.count++;
+    path.events.push(move);
+    if (move.reason) path.reasons.set(move.reason, (path.reasons.get(move.reason) || 0) + 1);
+    paths.set(key, path);
+  }
+  return [...paths.values()].sort((a, b) => b.count - a.count);
+}
+
+function attentionPathAnalysisHtml(path, projects) {
+  if (!path) return "";
+  const from = projects.find((project) => project.id === path.fromId);
+  const to = projects.find((project) => project.id === path.toId);
+  if (!from || !to) return "";
+  const reasons = [...path.reasons.entries()].sort((a, b) => b[1] - a[1]);
+  const explained = reasons.reduce((total, reason) => total + reason[1], 0);
+  const missing = path.count - explained;
+  if (missing) reasons.push(["Reason not captured", missing]);
+  return `<div class="attention-path-analysis" aria-live="polite">
+    <div class="attention-analysis-head">
+      <div>
+        <span class="mini-path"><span>${dotHtml(from.slot)}${esc(from.name)}</span><b aria-hidden="true">→</b><span>${dotHtml(to.slot)}${esc(to.name)}</span></span>
+        <small>${explained} of ${path.count} ${path.count === 1 ? "switch" : "switches"} explained</small>
+      </div>
+      <strong>×${path.count}</strong>
+      <button data-action="closeAttentionPath" aria-label="Close switching analysis">×</button>
+    </div>
+    <h3>Why attention moved</h3>
+    ${reasons.length ? `<div class="attention-reason-breakdown">${reasons.map(([reason, count]) => `<div class="attention-reason-row${reason === "Reason not captured" ? " missing" : ""}">
+      <div><span>${esc(reason)}</span><b>×${count}</b></div>
+      <i aria-hidden="true"><span style="--share:${((count / path.count) * 100).toFixed(1)}%"></span></i>
+    </div>`).join("")}</div>` : '<p class="attention-analysis-empty">No reason was recorded for this path yet.</p>'}
+  </div>`;
+}
+
+function attentionMapHtml(moves, { focusProjectId = null, label = "Attention path map" } = {}) {
+  const projects = attentionMapProjects(focusProjectId);
+  const paths = attentionMapPaths(moves, projects, focusProjectId);
+  const shown = paths.slice(0, 18);
+  const selectedPath = paths.find((path) => path.key === selectedAttentionPathKey) || null;
+  const switchTotal = paths.reduce((total, path) => total + path.count, 0);
+  const aria = paths.length
+    ? `${label}. ${paths.map((path) => {
+        const from = projects.find((project) => project.id === path.fromId);
+        const to = projects.find((project) => project.id === path.toId);
+        return `${from ? from.name : "Project"} to ${to ? to.name : "Project"}, ${path.count} ${path.count === 1 ? "switch" : "switches"}`;
+      }).join(". ")}.`
+    : `${label}. No attention switches yet.`;
+  return `<div class="attention-map-card">
+    <canvas class="attention-map-canvas" width="420" height="420" data-focus-project-id="${focusProjectId ? esc(focusProjectId) : ""}" role="img" aria-label="${esc(aria)}"></canvas>
+    ${attentionPathAnalysisHtml(selectedPath, projects)}
+    <div class="attention-map-key" aria-label="Projects on the attention map">
+      ${projects.map((project, index) => `<button data-action="openProjectHub" data-id="${project.id}" style="--pc: var(--cat-${project.slot}); --number-ink: ${projectNumberInk(CAT_HEX[project.slot] || "#3B6E8F")}">
+        <i aria-hidden="true">${index + 1}</i><span>${esc(project.name)}</span>
+      </button>`).join("")}
+    </div>
+    <p class="attention-map-note">${paths.length
+      ? `Arrow direction shows where attention moved. Bolder arrows and × numbers mean more switches${paths.length > shown.length ? ` · strongest ${shown.length} paths shown` : ""}.`
+      : "Switch between projects during a session to draw your first attention path."}</p>
+    <span class="visually-hidden">${switchTotal} total switches represented.</span>
+  </div>`;
+}
+
+function canvasRoundRect(ctx, x, y, width, height, radius) {
+  const r = Math.min(radius, width / 2, height / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + width, y, x + width, y + height, r);
+  ctx.arcTo(x + width, y + height, x, y + height, r);
+  ctx.arcTo(x, y + height, x, y, r);
+  ctx.arcTo(x, y, x + width, y, r);
+  ctx.closePath();
+}
+
+function projectNumberInk(hex) {
+  const value = hex.replace("#", "");
+  const red = parseInt(value.slice(0, 2), 16);
+  const green = parseInt(value.slice(2, 4), 16);
+  const blue = parseInt(value.slice(4, 6), 16);
+  return (red * 0.299 + green * 0.587 + blue * 0.114) > 165 ? "#212226" : "#ffffff";
+}
+
+function quadraticMapPoint(start, control, end, t) {
+  const inv = 1 - t;
+  return {
+    x: inv * inv * start.x + 2 * inv * t * control.x + t * t * end.x,
+    y: inv * inv * start.y + 2 * inv * t * control.y + t * t * end.y,
+  };
+}
+
+function quadraticMapTangent(start, control, end, t) {
+  return {
+    x: 2 * (1 - t) * (control.x - start.x) + 2 * t * (end.x - control.x),
+    y: 2 * (1 - t) * (control.y - start.y) + 2 * t * (end.y - control.y),
+  };
+}
+
+// Draw a real, single-ended vector arrow as one filled outline. The shaft,
+// shoulder, and destination point are one continuous shape rather than a
+// stroked line with a separate triangle placed on top.
+function drawOneEndVector(ctx, start, control, end, bodyWidth, fill, alpha, selected) {
+  const direct = Math.hypot(end.x - start.x, end.y - start.y);
+  const bend = Math.hypot(control.x - (start.x + end.x) / 2, control.y - (start.y + end.y) / 2);
+  const estimatedLength = Math.max(1, direct + bend * 0.55);
+  const headLength = Math.max(14, Math.min(24, bodyWidth * 2.8));
+  const headT = Math.max(0.72, Math.min(0.93, 1 - headLength / estimatedLength));
+  const left = [];
+  const right = [];
+  const steps = 20;
+  for (let index = 0; index <= steps; index++) {
+    const t = headT * (index / steps);
+    const point = quadraticMapPoint(start, control, end, t);
+    const tangent = quadraticMapTangent(start, control, end, t);
+    const length = Math.hypot(tangent.x, tangent.y) || 1;
+    const normalX = -tangent.y / length;
+    const normalY = tangent.x / length;
+    const half = bodyWidth * (0.52 - 0.07 * (t / headT));
+    left.push({ x: point.x + normalX * half, y: point.y + normalY * half });
+    right.push({ x: point.x - normalX * half, y: point.y - normalY * half });
+  }
+  const base = quadraticMapPoint(start, control, end, headT);
+  const tangent = quadraticMapTangent(start, control, end, headT);
+  const tangentLength = Math.hypot(tangent.x, tangent.y) || 1;
+  const normalX = -tangent.y / tangentLength;
+  const normalY = tangent.x / tangentLength;
+  const headHalf = Math.max(8.5, bodyWidth * 1.65);
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = fill;
+  if (selected) {
+    ctx.shadowColor = "rgba(18, 19, 23, 0.2)";
+    ctx.shadowBlur = 7;
+  }
+  ctx.beginPath();
+  ctx.moveTo(left[0].x, left[0].y);
+  for (let index = 1; index < left.length; index++) ctx.lineTo(left[index].x, left[index].y);
+  ctx.lineTo(base.x + normalX * headHalf, base.y + normalY * headHalf);
+  ctx.lineTo(end.x, end.y);
+  ctx.lineTo(base.x - normalX * headHalf, base.y - normalY * headHalf);
+  for (let index = right.length - 1; index >= 0; index--) ctx.lineTo(right[index].x, right[index].y);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawAttentionMap(canvas) {
+  const focusProjectId = canvas.dataset.focusProjectId || null;
+  const projects = attentionMapProjects(focusProjectId);
+  const paths = attentionMapPaths(allSwitchMoves(), projects, focusProjectId).slice(0, 18);
+  const rect = canvas.getBoundingClientRect();
+  const width = Math.max(1, rect.width);
+  const height = Math.max(1, rect.height);
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  canvas.width = Math.round(width * dpr);
+  canvas.height = Math.round(height * dpr);
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, width, height);
+
+  if (!projects.length) {
+    ctx.fillStyle = "#6a6a71";
+    ctx.font = '600 13px "Quicksand", sans-serif';
+    ctx.textAlign = "center";
+    ctx.fillText("Add projects to build your attention map", width / 2, height / 2);
+    return;
+  }
+
+  const size = Math.min(width, height);
+  const cx = width / 2;
+  const cy = height / 2;
+  const radius = size * 0.355;
+  const nodeRadius = Math.max(17, Math.min(23, size * 0.052));
+  const nodes = projects.map((project, index) => {
+    const angle = projects.length === 1 ? -Math.PI / 2 : -Math.PI / 2 + (index * Math.PI * 2) / projects.length;
+    return {
+      project,
+      index,
+      x: cx + Math.cos(angle) * radius,
+      y: cy + Math.sin(angle) * radius,
+    };
+  });
+  const byId = new Map(nodes.map((node) => [node.project.id, node]));
+
+  ctx.save();
+  ctx.strokeStyle = "rgba(59, 110, 143, 0.16)";
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([2, 7]);
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+
+  const drawn = [];
+  const pathKeys = new Set(paths.map((path) => `${path.fromId}→${path.toId}`));
+  for (const path of [...paths].reverse()) {
+    const from = byId.get(path.fromId);
+    const to = byId.get(path.toId);
+    if (!from || !to) continue;
+    const vx = to.x - from.x;
+    const vy = to.y - from.y;
+    const distance = Math.hypot(vx, vy) || 1;
+    const ux = vx / distance;
+    const uy = vy / distance;
+    const roughStart = { x: from.x + ux * nodeRadius, y: from.y + uy * nodeRadius };
+    const roughEnd = { x: to.x - ux * nodeRadius, y: to.y - uy * nodeRadius };
+    const reciprocal = pathKeys.has(`${path.toId}→${path.fromId}`);
+    const bend = reciprocal ? Math.min(28, size * 0.06) : 0;
+    const normalX = -uy;
+    const normalY = ux;
+    const control = {
+      x: (roughStart.x + roughEnd.x) / 2 + normalX * bend,
+      y: (roughStart.y + roughEnd.y) / 2 + normalY * bend,
+    };
+    const startTangentLength = Math.hypot(control.x - from.x, control.y - from.y) || 1;
+    const endTangentLength = Math.hypot(to.x - control.x, to.y - control.y) || 1;
+    const start = {
+      x: from.x + ((control.x - from.x) / startTangentLength) * (nodeRadius + 0.5),
+      y: from.y + ((control.y - from.y) / startTangentLength) * (nodeRadius + 0.5),
+    };
+    // The arrow tip lands on the destination circle's outer edge. Nodes are
+    // painted after paths, so their white contour joins the two cleanly.
+    const end = {
+      x: to.x - ((to.x - control.x) / endTangentLength) * (nodeRadius + 0.5),
+      y: to.y - ((to.y - control.y) / endTangentLength) * (nodeRadius + 0.5),
+    };
+    const isSelected = selectedAttentionPathKey === path.key;
+    const lineWidth = 2.8 + Math.min(5.8, Math.log2(path.count + 1) * 1.65) + (isSelected ? 2 : 0);
+    const gradient = ctx.createLinearGradient(start.x, start.y, end.x, end.y);
+    gradient.addColorStop(0, CAT_HEX[from.project.slot] || "#3B6E8F");
+    gradient.addColorStop(1, CAT_HEX[to.project.slot] || "#212226");
+
+    drawOneEndVector(
+      ctx,
+      start,
+      control,
+      end,
+      lineWidth,
+      gradient,
+      isSelected ? 1 : (selectedAttentionPathKey ? 0.3 : 0.78),
+      isSelected,
+    );
+
+    const t = 0.5;
+    const inv = 1 - t;
+    drawn.push({
+      path,
+      isSelected,
+      count: path.count,
+      start,
+      control,
+      end,
+      lineWidth,
+      x: inv * inv * start.x + 2 * inv * t * control.x + t * t * end.x,
+      y: inv * inv * start.y + 2 * inv * t * control.y + t * t * end.y,
+    });
+  }
+
+  for (const marker of drawn) {
+    const text = `×${marker.count}`;
+    ctx.save();
+    ctx.font = '700 11px "Quicksand", sans-serif';
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    const pillWidth = Math.max(27, ctx.measureText(text).width + 12);
+    const pillHeight = 20;
+    marker.pillWidth = pillWidth;
+    marker.pillHeight = pillHeight;
+    canvasRoundRect(ctx, marker.x - pillWidth / 2, marker.y - pillHeight / 2, pillWidth, pillHeight, 10);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.96)";
+    ctx.fill();
+    ctx.strokeStyle = marker.isSelected ? "rgba(33, 34, 38, 0.46)" : "rgba(33, 34, 38, 0.14)";
+    ctx.lineWidth = marker.isSelected ? 1.5 : 1;
+    ctx.stroke();
+    ctx.fillStyle = "#212226";
+    ctx.fillText(text, marker.x, marker.y + 0.5);
+    ctx.restore();
+  }
+
+  for (const node of nodes) {
+    const color = CAT_HEX[node.project.slot] || "#3B6E8F";
+    if (node.project.id === focusProjectId) {
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.globalAlpha = 0.24;
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, nodeRadius + 5, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+    ctx.save();
+    ctx.shadowColor = "rgba(18, 19, 23, 0.15)";
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 3;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(node.x, node.y, nodeRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(node.x, node.y, nodeRadius, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = projectNumberInk(color);
+    ctx.font = '700 13px "Quicksand", sans-serif';
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(String(node.index + 1), node.x, node.y + 0.5);
+  }
+  canvas._attentionPathHits = drawn;
+  canvas._attentionMapNodes = nodes;
+  canvas._attentionNodeRadius = nodeRadius;
+}
+
+function pointToAttentionCurve(hit, x, y) {
+  let closest = Infinity;
+  for (let i = 0; i <= 28; i++) {
+    const t = i / 28;
+    const inv = 1 - t;
+    const px = inv * inv * hit.start.x + 2 * inv * t * hit.control.x + t * t * hit.end.x;
+    const py = inv * inv * hit.start.y + 2 * inv * t * hit.control.y + t * t * hit.end.y;
+    closest = Math.min(closest, Math.hypot(x - px, y - py));
+  }
+  return closest;
+}
+
+function attentionMapHit(canvas, event) {
+  const rect = canvas.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+  const hits = canvas._attentionPathHits || [];
+  for (const hit of [...hits].reverse()) {
+    if (Math.abs(x - hit.x) <= (hit.pillWidth || 27) / 2 + 8
+      && Math.abs(y - hit.y) <= (hit.pillHeight || 20) / 2 + 8) return hit;
+  }
+  let best = null;
+  let bestDistance = Infinity;
+  for (const hit of hits) {
+    const distance = pointToAttentionCurve(hit, x, y);
+    if (distance < Math.max(13, hit.lineWidth + 7) && distance < bestDistance) {
+      best = hit;
+      bestDistance = distance;
+    }
+  }
+  return best;
+}
+
+function activateAttentionPath(event) {
+  const hit = attentionMapHit(event.currentTarget, event);
+  if (!hit) return;
+  selectedAttentionPathKey = hit.path.key;
+  render();
+  const panel = appEl.querySelector(".attention-path-analysis");
+  if (panel) panel.scrollIntoView({ behavior: reducedMotion.matches ? "auto" : "smooth", block: "nearest" });
+}
+
+function setupAttentionMaps() {
+  for (const canvas of appEl.querySelectorAll(".attention-map-canvas")) {
+    drawAttentionMap(canvas);
+    canvas.addEventListener("click", activateAttentionPath);
+    canvas.addEventListener("pointermove", (event) => {
+      canvas.style.cursor = attentionMapHit(canvas, event) ? "pointer" : "default";
+    });
+    canvas.addEventListener("pointerleave", () => { canvas.style.cursor = "default"; });
+  }
+}
+
+// A color edit recolors the project's whole story. Snapshot colors remain as
+// a fallback if the project is later permanently deleted.
+function projectSlot(item) {
+  const current = item.id
+    ? state.projects.find((project) => project.id === item.id)
+    : state.projects.find((project) => project.name === item.name);
+  return current ? current.slot : (item.slot ?? 0);
+}
+
 // Timeline strip: focus blocks + breaks laid out proportionally on the
 // wall clock. flex-grow carries duration; 2px gaps keep adjacent fills
 // separated (the palette's secondary encoding).
@@ -513,7 +1301,7 @@ function stripHtml(items, { mini = false, label = "" } = {}) {
 function timelineItems(rec) {
   const items = [
     ...rec.segments.map((g) => ({
-      type: "seg", name: g.name, slot: g.slot, start: g.start, ms: g.end - g.start,
+      type: "seg", name: g.name, slot: projectSlot(g), start: g.start, ms: g.end - g.start,
     })),
     ...rec.breaks.map((b) => ({ type: "break", start: b.start, ms: b.end - b.start })),
   ];
@@ -529,7 +1317,8 @@ function stripLabel(rec) {
 
 function renderHome() {
   const t = todayStats();
-  const projects = state.projects;
+  const projects = activeProjects();
+  const archived = archivedProjects();
   const st = streakDays();
 
   const todayHtml = t.count
@@ -570,19 +1359,91 @@ function renderHome() {
     ? `<div class="proj-list">${projects
         .map((p) => {
           const all = projectAllTimeMs(p.id);
-          return `<div class="proj-row" style="--pc: var(--cat-${p.slot})">
-            ${dotHtml(p.slot)}
-            <span class="p-name">${esc(p.name)}</span>
-            <span class="p-meta">${all ? fmtHuman(all) + " all-time" : ""}</span>
-            <button class="del" data-action="deleteProject" data-id="${p.id}" aria-label="Delete project ${esc(p.name)}">${ICONS.trash}</button>
+          const tasks = projectTasks(p);
+          const taskDone = tasks.filter((task) => task.done).length;
+          const tasksOpen = expandedTaskProjectIds.has(p.id);
+          const composerOpen = taskComposerProjectIds.has(p.id);
+          const editorOpen = editingColorId === p.id;
+          const colorPicker = editorOpen
+            ? `<div class="project-color-editor" role="group" aria-label="Choose a color for ${esc(p.name)}">
+                <span>Project color</span>
+                <div class="project-swatches">
+                  ${CAT_HEX.map((color, slot) => `<button class="project-swatch${p.slot === slot ? " selected" : ""}"
+                    style="--swatch: ${color}" data-action="setProjectColor" data-id="${p.id}" data-slot="${slot}"
+                    aria-label="${CAT_LABELS[slot]}${p.slot === slot ? ", selected" : ""}" aria-pressed="${p.slot === slot}"></button>`).join("")}
+                </div>
+              </div>`
+            : "";
+          const taskPanel = tasksOpen
+            ? `<div class="project-task-panel" id="project-tasks-${p.id}">
+                <div class="project-task-head">
+                  <span>Tasks</span>
+                  <span class="project-task-head-actions">
+                    <span>${tasks.length ? `${taskDone}/${tasks.length} complete` : "Start with one small step"}</span>
+                    <button data-action="openProjectHub" data-id="${p.id}" aria-label="Open ${esc(p.name)} project hub">Hub →</button>
+                  </span>
+                </div>
+                ${composerOpen ? `<form class="task-add-form" data-form="add-task" data-project-id="${p.id}">
+                    <label class="visually-hidden" for="task-input-${p.id}">Add a task to ${esc(p.name)}</label>
+                    <input id="task-input-${p.id}" name="task" type="text" maxlength="80" autocomplete="off" placeholder="Add a task…" />
+                    <button type="submit" aria-label="Add task to ${esc(p.name)}">${ICONS.plus}<span>Add</span></button>
+                  </form>` : ""}
+                ${tasks.length
+                  ? `<ul class="project-task-list">${tasks.map((task) => `<li class="project-task${task.done ? " done" : ""}">
+                      <label>
+                        <input type="checkbox" data-action="toggleTask" data-id="${p.id}" data-task-id="${task.id}" ${task.done ? "checked" : ""} />
+                        <span class="task-checkbox" aria-hidden="true"></span>
+                        <span class="task-text">${esc(task.text)}</span>
+                      </label>
+                    </li>`).join("")}</ul>`
+                  : `<p class="task-empty">No tasks yet — press + to add one.</p>`}
+              </div>`
+            : "";
+          return `<div class="proj-item${tasksOpen ? " tasks-open" : ""}" data-swipe-item data-id="${p.id}" style="--pc: var(--cat-${p.slot})">
+            <div class="project-swipe-shell">
+              <button class="swipe-delete" data-action="deleteProject" data-id="${p.id}" aria-label="Delete project ${esc(p.name)}" tabindex="-1">
+                ${ICONS.trash}<span>Delete</span>
+              </button>
+              <div class="proj-row" data-swipe-row data-project-toggle data-action="toggleProjectTasks" data-id="${p.id}"
+                role="button" tabindex="0" aria-expanded="${tasksOpen}" aria-controls="project-tasks-${p.id}"
+                aria-label="${tasksOpen ? "Collapse" : "Open"} tasks for ${esc(p.name)}" style="--pc: var(--cat-${p.slot})">
+                <button class="project-color-trigger${editorOpen ? " active" : ""}" data-action="toggleProjectColor" data-id="${p.id}"
+                  aria-label="Change color for ${esc(p.name)}" aria-expanded="${editorOpen}">${dotHtml(p.slot)}</button>
+                <span class="p-name">${esc(p.name)}</span>
+                <span class="p-meta">${tasks.length ? `${taskDone}/${tasks.length} tasks${all ? " · " : ""}` : ""}${all ? fmtHuman(all) + " all-time" : ""}</span>
+                <button class="row-action task-toggle${composerOpen ? " active" : ""}" data-action="openTaskComposer" data-id="${p.id}"
+                  aria-label="Add a task to ${esc(p.name)}" aria-expanded="${composerOpen}" aria-controls="project-tasks-${p.id}">${ICONS.plus}</button>
+                <button class="row-action" data-action="archiveProject" data-id="${p.id}" aria-label="Archive project ${esc(p.name)}">${ICONS.archive}</button>
+              </div>
+            </div>
+            ${colorPicker}
+            ${taskPanel}
           </div>`;
         })
         .join("")}</div>`
     : `<div class="empty-card">Add the projects competing for your attention — then start a session and tap whichever one has it.</div>`;
 
+  const archivedHtml = archived.length
+    ? `<div class="archived-projects${showArchivedProjects ? " open" : ""}">
+        <button class="archived-toggle" data-action="toggleArchived" aria-expanded="${showArchivedProjects}">
+          <span>${ICONS.archive}Archived</span><span class="archived-count">${archived.length}</span>${ICONS.chevron}
+        </button>
+        ${showArchivedProjects ? `<div class="archived-list">${archived.map((p) => {
+          const all = projectAllTimeMs(p.id);
+          return `<div class="archived-row" style="--pc: var(--cat-${p.slot})">
+            ${dotHtml(p.slot)}
+            <span class="p-name">${esc(p.name)}</span>
+            <span class="p-meta">${all ? fmtHuman(all) + " all-time" : ""}</span>
+            <button class="row-action" data-action="restoreProject" data-id="${p.id}" aria-label="Restore project ${esc(p.name)}">${ICONS.restore}</button>
+            <button class="row-action danger" data-action="deleteProject" data-id="${p.id}" aria-label="Permanently delete project ${esc(p.name)}">${ICONS.trash}</button>
+          </div>`;
+        }).join("")}</div>` : ""}
+      </div>`
+    : "";
+
   const atLimit = projects.length >= PROJECT_LIMIT;
   const addForm = atLimit
-    ? `<p class="form-note">8 projects max — the palette (and your attention) has limits.</p>`
+    ? `<p class="form-note">${PROJECT_LIMIT} projects max — the palette (and your attention) has limits.</p>`
     : `<form class="add-form" data-form="add">
          <label class="visually-hidden" for="proj-name">Project name</label>
          <input id="proj-name" name="name" type="text" maxlength="32" autocomplete="off" placeholder="Add a project…" />
@@ -629,10 +1490,15 @@ function renderHome() {
     </div>
     ${todayHtml}
     ${dayCard}
+    <div class="swarm-stage" aria-hidden="true">
+      <canvas class="home-arrow-swarm"></canvas>
+    </div>
     <section class="section" aria-label="Your projects">
       <div class="section-head"><h2 class="sec-label">Projects</h2><span class="count">${projects.length}/${PROJECT_LIMIT}</span></div>
       ${projHtml}
+      ${projects.length ? `<p class="swipe-hint">Swipe a project left to delete</p>` : ""}
       ${addForm}
+      ${archivedHtml}
     </section>
     <div class="start-wrap">
       <button class="pill pill-dark pill-block cta-start" data-action="startSession" ${projects.length ? "" : "disabled"}>
@@ -641,6 +1507,81 @@ function renderHome() {
       <p class="cta-hint">${projects.length ? "Then tap a project to begin focusing." : "Add a project first."}</p>
     </div>
     ${historyHtml}
+  `;
+}
+
+/* ---------- Project hub ---------- */
+
+function renderProjectHub() {
+  const project = state.projects.find((item) => item.id === projectHubId);
+  if (!project) return renderHome();
+  const tasks = projectTasks(project);
+  const taskDone = tasks.filter((task) => task.done).length;
+  const sessions = state.sessions.filter((session) => session.perProject.some((item) => item.id === project.id));
+  const focus = sessions.reduce((total, session) => {
+    const item = session.perProject.find((entry) => entry.id === project.id);
+    return total + (item ? item.ms : 0);
+  }, 0);
+  const moves = allSwitchMoves()
+    .filter((event) => moveProjectId(event, "from") === project.id || moveProjectId(event, "to") === project.id)
+    .sort((a, b) => b.at - a.at);
+  const explained = moves.filter((event) => event.reason).length;
+  const slot = project.slot;
+
+  const taskList = tasks.length
+    ? `<ul class="project-task-list hub-task-list">${tasks.map((task) => `<li class="project-task${task.done ? " done" : ""}">
+        <label>
+          <input type="checkbox" data-action="toggleTask" data-id="${project.id}" data-task-id="${task.id}" ${task.done ? "checked" : ""} ${project.archivedAt ? "disabled" : ""} />
+          <span class="task-checkbox" aria-hidden="true"></span>
+          <span class="task-text">${esc(task.text)}</span>
+        </label>
+      </li>`).join("")}</ul>`
+    : `<p class="task-empty">No tasks yet.</p>`;
+
+  const recentSessions = sessions.length
+    ? `<div class="hub-session-list">${sessions.slice(0, 8).map((session) => {
+        const item = session.perProject.find((entry) => entry.id === project.id);
+        return `<button data-action="openSession" data-id="${session.id}">
+          <span><b>${fmtDay(session.startedAt)}</b><small>${fmtTime(session.startedAt)}</small></span>
+          <strong>${fmtHuman(item ? item.ms : 0)}</strong>
+        </button>`;
+      }).join("")}</div>`
+    : `<div class="empty-card compact">No completed focus sessions for this project yet.</div>`;
+
+  return `
+    <div class="hub-nav"><button class="pill pill-quiet" data-action="goHome">← Projects</button></div>
+    <div class="project-hub-head" style="--pc: var(--cat-${slot})">
+      <div>${dotHtml(slot)}<span class="sec-label">Project hub</span>${project.archivedAt ? '<span class="archived-chip">Archived</span>' : ""}</div>
+      <h1>${esc(project.name)}</h1>
+      <p>Tasks, focus activity, and every path that moved attention in or out.</p>
+    </div>
+    <div class="hub-stats">
+      <div><b>${fmtHuman(focus)}</b><span>focus</span></div>
+      <div><b>${sessions.length}</b><span>sessions</span></div>
+      <div><b>${taskDone}/${tasks.length}</b><span>tasks</span></div>
+      <div><b>${moves.length}</b><span>${explained} explained</span></div>
+    </div>
+    <section class="sum-section" aria-label="${esc(project.name)} focus activity">
+      <div class="chart-head"><h2 class="sec-label">Focus activity</h2><span class="chart-max">last 52 weeks</span></div>
+      ${heatmapHtml(projectDailySeries(project.id, 365), `${project.name} daily focus for the last 52 weeks`)}
+    </section>
+    <section class="hub-section" aria-label="${esc(project.name)} tasks" style="--pc: var(--cat-${slot})">
+      <div class="chart-head"><h2 class="sec-label">Tasks</h2><span class="chart-max">${taskDone}/${tasks.length} complete</span></div>
+      ${project.archivedAt ? "" : `<form class="task-add-form" data-form="add-task" data-project-id="${project.id}">
+        <label class="visually-hidden" for="task-input-${project.id}">Add a task to ${esc(project.name)}</label>
+        <input id="task-input-${project.id}" name="task" type="text" maxlength="80" autocomplete="off" placeholder="Add a task…" />
+        <button type="submit" aria-label="Add task to ${esc(project.name)}">${ICONS.plus}<span>Add</span></button>
+      </form>`}
+      ${taskList}
+    </section>
+    <section class="sum-section" aria-label="${esc(project.name)} attention paths">
+      <div class="chart-head"><h2 class="sec-label">Attention map</h2><span class="chart-max">in and out</span></div>
+      ${attentionMapHtml(moves, { focusProjectId: project.id, label: `${project.name} attention paths` })}
+    </section>
+    <section class="sum-section" aria-label="${esc(project.name)} recent sessions">
+      <div class="chart-head"><h2 class="sec-label">Recent sessions</h2><span class="chart-max">${sessions.length} total</span></div>
+      ${recentSessions}
+    </section>
   `;
 }
 
@@ -664,6 +1605,7 @@ function dialHtml({ slot, dimmed, labelHtml, clockStr, clockKind, clockClass, un
 function renderSession() {
   const a = state.active;
   if (!a) return renderHome();
+  const projects = activeProjects();
   const t = now();
   const seg = openSeg(a);
   const brk = openBreak(a);
@@ -704,7 +1646,7 @@ function renderSession() {
     });
   }
 
-  const cards = state.projects
+  const cards = projects
     .map((p, i) => {
       const isActive = !brk && seg && seg.p === p.id;
       return `<button class="proj-card${isActive ? " active" : ""}" style="--pc: var(--cat-${p.slot})"
@@ -715,7 +1657,7 @@ function renderSession() {
     })
     .join("");
 
-  const addTile = state.projects.length >= PROJECT_LIMIT
+  const addTile = projects.length >= PROJECT_LIMIT
     ? ""
     : addOpen
       ? `<form class="add-card-form" data-form="add">
@@ -740,7 +1682,60 @@ function renderSession() {
       </button>
       <button class="pill pill-dark" data-action="endSession">${ICONS.stop}<span class="lbl-long">End session</span><span class="lbl-short">End</span></button>
     </div>
-    <p class="key-hints"><span class="kbd">1</span>–<span class="kbd">8</span> switch project · <span class="kbd">Space</span> break</p>
+    <p class="key-hints"><span class="kbd">1</span>–<span class="kbd">9</span> switch project · <span class="kbd">Space</span> break</p>
+  `;
+}
+
+/* ---------- Post-session switch reflection ---------- */
+
+function renderReflection() {
+  const rec = reflectionRecord();
+  if (!rec || !Array.isArray(rec.switchEvents) || !rec.switchEvents.length) return renderSummary();
+  let event = rec.switchEvents[reflectionIndex];
+  if (!event || event.answered) {
+    reflectionIndex = rec.switchEvents.findIndex((item) => !item.answered);
+    event = rec.switchEvents[reflectionIndex];
+  }
+  if (!event) return renderSummary();
+
+  const answered = rec.switchEvents.filter((item) => item.answered).length;
+  const step = answered + 1;
+  const fromSlot = switchEventSlot(event, "from");
+  const toSlot = switchEventSlot(event, "to");
+  const progress = Math.max(0, Math.min(1, answered / rec.switchEvents.length));
+
+  return `
+    <div class="reflection-head">
+      <span class="sec-label">Session reflection</span>
+      <h1>What moved your attention?</h1>
+      <p>One quick answer makes your switching patterns useful later.</p>
+    </div>
+    <div class="reflection-progress" aria-label="Switch ${step} of ${rec.switchEvents.length}">
+      <span style="--f:${progress.toFixed(4)}"></span>
+      <small>${step}/${rec.switchEvents.length}</small>
+    </div>
+    <section class="reflection-card" aria-label="Attention moved from ${esc(event.fromName)} to ${esc(event.toName)}">
+      <span class="reflection-time">${fmtTime(event.at)}</span>
+      <div class="reflection-path">
+        <span style="--pc: var(--cat-${fromSlot})">${dotHtml(fromSlot)}<b>${esc(event.fromName)}</b></span>
+        <span class="path-arrow" aria-hidden="true">→</span>
+        <span style="--pc: var(--cat-${toSlot})">${dotHtml(toSlot)}<b>${esc(event.toName)}</b></span>
+      </div>
+      <p class="reflection-question">Why did you switch?</p>
+      <div class="reason-choices">
+        ${SWITCH_REASONS.map((reason) => `<button data-action="answerSwitchReason" data-id="${event.id}" data-reason="${esc(reason)}">${esc(reason)}</button>`).join("")}
+        <button class="reason-other${reflectionCustomOpen ? " active" : ""}" data-action="openCustomReason" data-id="${event.id}">Write my own…</button>
+      </div>
+      ${reflectionCustomOpen ? `<form class="reason-custom-form" data-form="switch-reason" data-event-id="${event.id}">
+          <label class="visually-hidden" for="switch-reason-custom">Why did your attention move?</label>
+          <input id="switch-reason-custom" name="reason" maxlength="100" autocomplete="off" placeholder="What pulled your attention?" />
+          <button type="submit">Save & continue</button>
+        </form>` : ""}
+    </section>
+    <div class="reflection-actions">
+      <button class="pill pill-quiet" data-action="skipSwitchReason" data-id="${event.id}">Skip this one</button>
+      <button class="pill pill-quiet" data-action="skipReflection">Skip the rest</button>
+    </div>
   `;
 }
 
@@ -769,7 +1764,7 @@ function renderSummary() {
   const rows = rec.perProject
     .map(
       (pp) => `<tr>
-        <td><span class="cell-name">${dotHtml(pp.slot)}${esc(pp.name)}</span></td>
+        <td><span class="cell-name">${dotHtml(projectSlot(pp))}${esc(pp.name)}</span></td>
         <td class="num">${fmtHuman(pp.ms)}</td>
         <td class="num pct">${Math.round((pp.ms / rec.focusMs) * 100)}%</td>
       </tr>`
@@ -778,9 +1773,26 @@ function renderSummary() {
 
   const shareBar = `<div class="share-bar" role="img" aria-label="Share of focus per project">
     ${rec.perProject
-      .map((pp) => `<i style="--f:${(pp.ms / rec.focusMs).toFixed(5)}; --pc: var(--cat-${pp.slot})" title="${esc(pp.name)} — ${Math.round((pp.ms / rec.focusMs) * 100)}%"></i>`)
+      .map((pp) => `<i style="--f:${(pp.ms / rec.focusMs).toFixed(5)}; --pc: var(--cat-${projectSlot(pp)})" title="${esc(pp.name)} — ${Math.round((pp.ms / rec.focusMs) * 100)}%"></i>`)
       .join("")}
   </div>`;
+
+  const switchEvents = switchEventsFor(rec);
+  const reflectionsHtml = switchEvents.length
+    ? `<section class="sum-section" aria-label="Attention switch reasons">
+        <h2 class="sec-label">Why attention moved</h2>
+        <div class="switch-reason-list">${switchEvents.map((event) => {
+          const fromSlot = switchEventSlot(event, "from");
+          const toSlot = switchEventSlot(event, "to");
+          return `<div class="switch-reason-row">
+            <div class="mini-path">
+              <span>${dotHtml(fromSlot)}${esc(event.fromName)}</span><b aria-hidden="true">→</b><span>${dotHtml(toSlot)}${esc(event.toName)}</span>
+            </div>
+            <span class="switch-why${event.reason ? "" : " missing"}">${event.reason ? esc(event.reason) : "Reason not captured"}</span>
+          </div>`;
+        }).join("")}</div>
+      </section>`
+    : "";
 
   // Variable rewards: a flow word + whatever records this session happened to set
   const flow = flowRating(rec);
@@ -805,6 +1817,7 @@ function renderSummary() {
       ${stripHtml(timelineItems(rec), { label: stripLabel(rec) })}
       <div class="strip-scale"><span>${fmtTime(rec.startedAt)}</span><span>${fmtTime(rec.endedAt)}</span></div>
     </section>
+    ${reflectionsHtml}
     <section class="sum-section" aria-label="Per-project breakdown">
       <h2 class="sec-label">Where it went</h2>
       ${shareBar}
@@ -862,6 +1875,24 @@ function renderTrends() {
       <div class="tile"><b>${st.n}</b><small>${st.n === 1 ? "Day streak" : "Day streak"}</small>${st.n > 0 && !st.today ? `<span class="sub">today keeps it alive</span>` : ""}</div>
     </div>`;
 
+  const yearSeries = dailySeries(365);
+  const heatmapSection = `<section class="sum-section" aria-label="Focus activity, last 52 weeks">
+    <div class="chart-head"><h2 class="sec-label">Focus activity</h2><span class="chart-max">last 52 weeks</span></div>
+    ${heatmapHtml(yearSeries, "Daily focus activity for the last 52 weeks")}
+  </section>`;
+  const timeOfDaySection = timeOfDayHtml(hourlyFocusSeries(30));
+
+  const allMoves = allSwitchMoves();
+  const attentionPaths = allMoves.length
+    ? `<section class="sum-section" aria-label="Attention switch paths and reasons">
+        <div class="chart-head"><h2 class="sec-label">Attention map</h2><span class="chart-max">project to project</span></div>
+        ${attentionMapHtml(allMoves, { label: "All project attention paths" })}
+      </section>`
+    : `<section class="sum-section" aria-label="Attention path map">
+        <div class="chart-head"><h2 class="sec-label">Attention map</h2><span class="chart-max">project to project</span></div>
+        ${attentionMapHtml([], { label: "All project attention paths" })}
+      </section>`;
+
   // Chart A — daily focus, stacked by project (14 days)
   const maxFocus = Math.max(...series.map((d) => d.focusMs), 1);
   const focusCols = series
@@ -874,6 +1905,7 @@ function renderTrends() {
                 aria-label="${d.label}: ${d.focusMs ? `${fmtHuman(d.focusMs)} focus, ${d.switches} switches` : "no focus"}"
                 title="${d.focusMs ? fmtHuman(d.focusMs) : "—"}">
         <div class="bar-stack">${segs || '<span class="nil"></span>'}</div>
+        <span class="bar-value">${d.focusMs ? fmtCompact(d.focusMs) : "—"}</span>
         <span class="bar-day">${d.label}</span>
       </div>`;
     })
@@ -929,7 +1961,7 @@ function renderTrends() {
   for (const s of state.sessions) {
     if (s.startedAt < weekStart.getTime()) continue;
     for (const pp of s.perProject) {
-      const cur = perWeek.get(pp.id) || { name: pp.name, slot: pp.slot, ms: 0 };
+      const cur = perWeek.get(pp.id) || { id: pp.id, name: pp.name, slot: projectSlot(pp), ms: 0 };
       cur.ms += pp.ms;
       perWeek.set(pp.id, cur);
     }
@@ -957,9 +1989,11 @@ function renderTrends() {
   return `
     <div class="sum-head">
       <h1>Your trends</h1>
-      <p>Last 14 days — focus, switching, and the records you're building.</p>
+      <p>Your focus rhythm, attention paths, and the reasons behind each move.</p>
     </div>
     ${tiles}
+    ${heatmapSection}
+    ${timeOfDaySection}
     <section class="sum-section" aria-label="Daily focus, last 14 days">
       <div class="chart-head"><h2 class="sec-label">Daily focus</h2><span class="chart-max">peak ${fmtHuman(maxFocus === 1 ? 0 : maxFocus)}</span></div>
       <div class="bars">${focusCols}</div>
@@ -968,6 +2002,7 @@ function renderTrends() {
       <div class="chart-head"><h2 class="sec-label">Switches per hour</h2><span class="chart-max">lower&nbsp;=&nbsp;calmer</span></div>
       <div class="bars">${rateCols}</div>
     </section>
+    ${attentionPaths}
     <section class="sum-section" aria-label="Personal records">
       <h2 class="sec-label" style="display:block;margin-bottom:12px">Records</h2>
       ${records}
@@ -980,6 +2015,300 @@ function renderTrends() {
 }
 
 /* ---------- Render root ---------- */
+
+/* ---------- Home arrow swarm ----------
+   Adapted from Jovey's particle-field character: thin rounded confetti,
+   staggered per-particle easing, shimmer, and independent twinkle. Here the
+   swarm is summoned into three equal double-ended arrow segments, then keeps
+   flowing along their paths so the mark never becomes a rigid illustration. */
+
+let homeSwarmRaf = null;
+let homeSwarmCanvas = null;
+let homeSwarmCtx = null;
+let homeSwarmParticles = [];
+let homeSwarmLastT = 0;
+let homeSwarmStarted = 0;
+let homeSwarmW = 0;
+let homeSwarmH = 0;
+
+const HOME_SWARM_PALETTES = [
+  ["#F6D064", "#F4C461", "#EA6E3C"],
+  ["#3C9088", "#1FA39A", "#25567C"],
+  ["#E67673", "#C8427E", "#61257F"],
+];
+const JOVEY_PROJECT_SWARM_PALETTES = CAT_FAM;
+const HOME_SWARM_ROTATION_SPEED = PARTICLE_ROTATION_SPEED;
+
+function homeSwarmRgb(hex) {
+  return [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+}
+
+function homeSwarmColor(stops, t) {
+  const scaled = Math.max(0, Math.min(0.999, t)) * (stops.length - 1);
+  const i = Math.floor(scaled);
+  const k = scaled - i;
+  const a = homeSwarmRgb(stops[i]);
+  const b = homeSwarmRgb(stops[i + 1]);
+  return `rgb(${a.map((v, n) => Math.round(v + (b[n] - v) * k)).join(",")})`;
+}
+
+function homeSwarmMixHex(color, base, strength) {
+  const a = homeSwarmRgb(color);
+  const b = homeSwarmRgb(base);
+  return "#" + a
+    .map((v, i) => Math.round(b[i] + (v - b[i]) * strength).toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function homeSwarmEase(t) {
+  const x = Math.max(0, Math.min(1, t));
+  return 1 - Math.pow(1 - x, 3);
+}
+
+function addHomeSwarmParticle(data) {
+  const edge = Math.random();
+  let x, y;
+  if (edge < 0.25) { x = -15; y = Math.random() * homeSwarmH; }
+  else if (edge < 0.5) { x = homeSwarmW + 15; y = Math.random() * homeSwarmH; }
+  else if (edge < 0.75) { x = Math.random() * homeSwarmW; y = -15; }
+  else { x = Math.random() * homeSwarmW; y = homeSwarmH + 15; }
+  homeSwarmParticles.push({
+    ...data,
+    x: x + (Math.random() - 0.5) * 40,
+    y: y + (Math.random() - 0.5) * 40,
+    angle: Math.random() * Math.PI * 2,
+    size: PARTICLE_SIZE,
+    weight: PARTICLE_WEIGHT,
+    ease: 0.025 + Math.random() * 0.055,
+    phase: Math.random() * Math.PI * 2,
+    pulse: 0.6 + Math.random() * 1.3,
+    waveAmp: 1.2 + Math.random() * 3.6,
+    waveAmp2: 0.6 + Math.random() * 2.2,
+    waveSpd: 0.55 + Math.random() * 1.05,
+    waveSpd2: 0.4 + Math.random() * 1.2,
+    waveDir: Math.random() < 0.5 ? -1 : 1,
+  });
+}
+
+function seedHomeSwarm() {
+  homeSwarmParticles = [];
+  const projects = activeProjects();
+  const cx = homeSwarmW / 2;
+  const cy = homeSwarmH / 2;
+  const radius = Math.min(homeSwarmW, homeSwarmH) * 0.34;
+  const projectPalettes = projects.length
+    ? projects.map((project) => JOVEY_PROJECT_SWARM_PALETTES[project.slot])
+    : HOME_SWARM_PALETTES;
+  const segmentCount = projectPalettes.length;
+  const step = (2 * Math.PI) / segmentCount;
+  const gap = Math.min((18 * Math.PI) / 180, step * 0.18);
+  const span = step - gap;
+  const start = -Math.PI / 2 - span / 2; // first arrow centred at twelve o'clock
+  // Three arrows retain the approved 396-particle model. Below or above
+  // three, density scales smoothly with project count: every added project
+  // increases the total without overcrowding its shorter arc.
+  const densityScale = Math.sqrt(3 / segmentCount);
+  const bodyCountPerArrow = Math.max(44, Math.round(76 * densityScale));
+  const headCountPerLimb = Math.max(8, Math.round(14 * densityScale));
+  const gradientStrength = projects.length
+    ? Math.max(0.4, 1 - (segmentCount - 1) * 0.085)
+    : 1;
+
+  for (let segment = 0; segment < segmentCount; segment++) {
+    const rotation = segment * step;
+    const theta0 = start + rotation;
+    const theta1 = theta0 + span;
+    const sourcePalette = projectPalettes[segment];
+    const palette = sourcePalette.map((color) =>
+      homeSwarmMixHex(color, sourcePalette[1], gradientStrength)
+    );
+    const bodyCount = bodyCountPerArrow;
+
+    // The flowing body: every particle circulates in the same direction so
+    // every project arrow reads as one consistent rotational system.
+    for (let i = 0; i < bodyCount; i++) {
+      const u = (i + Math.random() * 0.7) / bodyCount;
+      addHomeSwarmParticle({
+        type: "body",
+        segment,
+        palette,
+        theta0,
+        span,
+        radius,
+        u,
+        dir: 1,
+        speed: 0.018 + Math.random() * 0.018,
+        band: (Math.random() - 0.5) * radius * 0.16,
+        color: homeSwarmColor(palette, u),
+      });
+    }
+
+    // Two dotted limbs at each endpoint preserve the double arrowheads while
+    // the body particles continue to fly through the arc.
+    const headLength = Math.min(radius * 0.22, radius * span * 0.28);
+    const headSpread = Math.min(radius * 0.15, headLength * 0.68);
+    for (const [theta, atStart] of [[theta0, true], [theta1, false]]) {
+      const tipX = cx + Math.cos(theta) * radius;
+      const tipY = cy + Math.sin(theta) * radius;
+      const tangentX = -Math.sin(theta);
+      const tangentY = Math.cos(theta);
+      const backX = atStart ? tangentX : -tangentX;
+      const backY = atStart ? tangentY : -tangentY;
+      const sideX = -backY;
+      const sideY = backX;
+      const color = homeSwarmColor(palette, atStart ? 0 : 0.999);
+      for (const side of [-1, 1]) {
+        const particlesOnLimb = headCountPerLimb;
+        for (let i = 1; i <= particlesOnLimb; i++) {
+          const u = i / particlesOnLimb;
+          const legX = backX * headLength + sideX * side * headSpread;
+          const legY = backY * headLength + sideY * side * headSpread;
+          addHomeSwarmParticle({
+            type: "head",
+            tipX,
+            tipY,
+            legX,
+            legY,
+            headU: u,
+            color,
+          });
+        }
+      }
+    }
+  }
+}
+
+function homeSwarmTarget(p, t) {
+  const rotation = reducedMotion.matches ? 0 : t * HOME_SWARM_ROTATION_SPEED;
+  if (p.type === "head") {
+    const cx = homeSwarmW / 2;
+    const cy = homeSwarmH / 2;
+    const baseX = p.tipX + p.legX * p.headU;
+    const baseY = p.tipY + p.legY * p.headU;
+    const dx = baseX - cx;
+    const dy = baseY - cy;
+    const cos = Math.cos(rotation);
+    const sin = Math.sin(rotation);
+    const rotatedX = dx * cos - dy * sin;
+    const rotatedY = dx * sin + dy * cos;
+    // Like the locked SVG logo, arrowhead particles hold their formation and
+    // point tangent to the circular direction of the complete rotating mark.
+    const travelAngle = Math.atan2(rotatedY, rotatedX) + Math.PI / 2;
+    const normalX = -Math.sin(travelAngle);
+    const normalY = Math.cos(travelAngle);
+    const waveNormal = reducedMotion.matches
+      ? 0
+      : Math.sin(t * p.waveSpd * p.waveDir + p.phase) * p.waveAmp;
+    const waveAlong = reducedMotion.matches
+      ? 0
+      : Math.sin(t * p.waveSpd2 - p.phase * 0.7) * p.waveAmp2;
+    return {
+      x: cx + rotatedX + normalX * waveNormal + Math.cos(travelAngle) * waveAlong,
+      y: cy + rotatedY + normalY * waveNormal + Math.sin(travelAngle) * waveAlong,
+      angle: travelAngle,
+    };
+  }
+  const theta = p.theta0 + p.span * p.u + rotation;
+  const waveNormal = reducedMotion.matches
+    ? 0
+    : Math.sin(t * p.waveSpd * p.waveDir + p.phase) * p.waveAmp;
+  const waveTangent = reducedMotion.matches
+    ? 0
+    : Math.cos(t * p.waveSpd2 + p.phase * 0.8) * p.waveAmp2;
+  const r = p.radius + p.band + waveNormal;
+  return {
+    x: homeSwarmW / 2 + Math.cos(theta) * r - Math.sin(theta) * waveTangent,
+    y: homeSwarmH / 2 + Math.sin(theta) * r + Math.cos(theta) * waveTangent,
+    angle: theta + Math.PI / 2 + (p.dir < 0 ? Math.PI : 0),
+  };
+}
+
+function drawHomeSwarmParticle(p, alpha) {
+  homeSwarmCtx.save();
+  homeSwarmCtx.translate(p.x, p.y);
+  homeSwarmCtx.rotate(p.angle);
+  homeSwarmCtx.globalAlpha = alpha;
+  homeSwarmCtx.strokeStyle = p.color;
+  homeSwarmCtx.lineWidth = p.weight;
+  homeSwarmCtx.lineCap = "round";
+  homeSwarmCtx.beginPath();
+  homeSwarmCtx.moveTo(-p.size / 2, 0);
+  homeSwarmCtx.lineTo(p.size / 2, 0);
+  homeSwarmCtx.stroke();
+  homeSwarmCtx.restore();
+}
+
+function homeSwarmFrame(ms) {
+  if (!homeSwarmCtx || !homeSwarmCanvas || view !== "home" || document.hidden) {
+    homeSwarmRaf = null;
+    return;
+  }
+  const t = ms / 1000;
+  const dt = homeSwarmLastT ? Math.min(0.05, t - homeSwarmLastT) : 0;
+  homeSwarmLastT = t;
+  const dt60 = dt * 60;
+  const summoned = reducedMotion.matches ? 1 : homeSwarmEase((ms - homeSwarmStarted) / 2200);
+  homeSwarmCtx.clearRect(0, 0, homeSwarmW, homeSwarmH);
+
+  for (const p of homeSwarmParticles) {
+    if (p.type === "body" && summoned > 0.82) {
+      p.u = (p.u + p.dir * p.speed * dt + 1) % 1;
+      p.color = homeSwarmColor(p.palette, p.u);
+    }
+    const target = homeSwarmTarget(p, t);
+    const k = reducedMotion.matches ? 1 : Math.min(1, p.ease * dt60 * (0.35 + summoned * 0.65));
+    const moveX = target.x - p.x;
+    const moveY = target.y - p.y;
+    p.x += (target.x - p.x) * k;
+    p.y += (target.y - p.y) * k;
+    // Follow the shortest angular path so every dash stays aligned with its
+    // real direction of travel, including its own two-axis random wave.
+    const movementAngle = reducedMotion.matches || Math.hypot(moveX, moveY) < 0.01
+      ? target.angle
+      : Math.atan2(moveY, moveX);
+    const angleDelta = Math.atan2(Math.sin(movementAngle - p.angle), Math.cos(movementAngle - p.angle));
+    p.angle += angleDelta * Math.min(1, k * 1.7);
+    const twinkle = (PARTICLE_ALPHA_MIN + PARTICLE_ALPHA_MAX) / 2
+      + ((PARTICLE_ALPHA_MAX - PARTICLE_ALPHA_MIN) / 2) * Math.sin(t * p.pulse * 2 + p.phase);
+    // Fade through the recycle boundary so a particle disappears at the
+    // arrow front and quietly returns at the rear instead of jumping backward.
+    const recycleFade = p.type === "body"
+      ? Math.min(1, p.u / 0.075, (1 - p.u) / 0.075)
+      : 1;
+    const alpha = reducedMotion.matches
+      ? 0.72
+      : twinkle * (0.38 + summoned * 0.62) * Math.max(0, recycleFade);
+    drawHomeSwarmParticle(p, alpha);
+  }
+
+  if (!reducedMotion.matches) homeSwarmRaf = requestAnimationFrame(homeSwarmFrame);
+  else homeSwarmRaf = null;
+}
+
+function stopHomeSwarm() {
+  if (homeSwarmRaf !== null) cancelAnimationFrame(homeSwarmRaf);
+  homeSwarmRaf = null;
+  homeSwarmCanvas = null;
+  homeSwarmCtx = null;
+  homeSwarmParticles = [];
+}
+
+function setupHomeSwarm() {
+  homeSwarmCanvas = appEl.querySelector(".home-arrow-swarm");
+  if (!homeSwarmCanvas) return;
+  const rect = homeSwarmCanvas.getBoundingClientRect();
+  homeSwarmW = Math.max(1, rect.width);
+  homeSwarmH = Math.max(1, rect.height);
+  const dpr = Math.min(2, devicePixelRatio || 1);
+  homeSwarmCanvas.width = Math.round(homeSwarmW * dpr);
+  homeSwarmCanvas.height = Math.round(homeSwarmH * dpr);
+  homeSwarmCtx = homeSwarmCanvas.getContext("2d");
+  homeSwarmCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  seedHomeSwarm();
+  homeSwarmLastT = 0;
+  homeSwarmStarted = performance.now();
+  homeSwarmRaf = requestAnimationFrame(homeSwarmFrame);
+}
 
 const appEl = document.getElementById("app");
 const washEl = document.getElementById("wash");
@@ -994,11 +2323,21 @@ function mixHex(hex, base, t) {
 }
 
 function render() {
+  openSwipeShell = null;
+  swipeGesture = null;
+  stopHomeSwarm();
   appEl.innerHTML =
     view === "session" ? renderSession() :
+    view === "reflection" ? renderReflection() :
     view === "summary" ? renderSummary() :
     view === "trends" ? renderTrends() :
+    view === "project" ? renderProjectHub() :
     renderHome();
+
+  for (const heatmap of appEl.querySelectorAll(".heatmap-scroll")) {
+    heatmap.scrollLeft = heatmap.scrollWidth;
+  }
+  setupAttentionMaps();
 
   const a = state.active;
   const inSession = view === "session" && !!a;
@@ -1024,6 +2363,7 @@ function render() {
   }
 
   setupRing();
+  setupHomeSwarm();
   syncWakeLock();
 
   if (justSwitched) {
@@ -1110,10 +2450,9 @@ function tick() {
 setInterval(tick, 500);
 
 /* ---------- Attention ring (canvas, rAF) ----------
-   Jovey-field confetti dashes orbiting the counting clock. Each dash's
-   colour is allocated from the session's per-project time split via a
-   fixed shuffled permutation — as a project's share grows, dashes flip
-   to its colour one at a time. */
+   Jovey-field confetti dashes orbiting the counting clock. Each earned
+   dash keeps its project's colour and travels on an individual sine path
+   across the shared orbital band. */
 
 let rafId = null;
 let ringCanvas = null, ringCtx = null, ringSize = 0, ringR = 0;
@@ -1137,13 +2476,19 @@ function seedDot(slot, born = 0, projId = null, k = 1) {
     ang: Math.random() * 2 * Math.PI,
     band,
     depth: 0.5 + (band - 1 + RING_THICK / 2) / RING_THICK, // 0.5..1.5 parallax layer
-    size: 5 + Math.random() * 4.5,      // dash length, like the jovey field
-    weight: 1.1 + Math.random() * 0.7,  // ~thin strokes, round caps
+    size: PARTICLE_SIZE,
+    weight: PARTICLE_WEIGHT,
     phase: Math.random() * 2 * Math.PI,
     pulse: 0.6 + Math.random() * 1.3,   // twinkle rate
-    wob: Math.random() * 2 * Math.PI,
-    wobSpd: 0.4 + Math.random() * 0.8,  // radial shimmer
-    orbit: ORBIT_SPEED * (0.75 + Math.random() * 0.5),
+    // Every dot follows its own sine wave across the orbital path. Different
+    // amplitudes, frequencies and directions keep the field from moving as a
+    // single rigid wheel while preserving the calm overall circulation.
+    wavePhase: Math.random() * 2 * Math.PI,
+    waveAmp: SINE_AMP_MIN + Math.random() * (SINE_AMP_MAX - SINE_AMP_MIN),
+    waveFreq: 1.25 + Math.random() * 2.75,
+    waveSpeed: 0.35 + Math.random() * 0.65,
+    waveDir: Math.random() < 0.5 ? -1 : 1,
+    orbit: ORBIT_SPEED * (0.85 + Math.random() * 0.3),
     tilt: (Math.random() - 0.5) * 0.5,  // dash-angle jitter off the tangent
     slot,
     shade: r < 0.3 ? 0 : r < 0.7 ? 1 : 2,
@@ -1201,7 +2546,7 @@ function syncDots(dt) {
 
   let budget = dt == null ? Infinity : 1;
   const bornT = performance.now() / 1000;
-  for (const p of state.projects) {
+  for (const p of activeProjects()) {
     if (budget <= 0) break;
     const ms = projSessionMs(a, p.id, t);
     if (!ms) continue;
@@ -1239,15 +2584,24 @@ function setupRing() {
   syncRingLoop();
 }
 
-function drawDash(p, alpha, color, wobble, pop = 1) {
+function waveOffset(p, t, motion) {
+  if (!motion) return { radial: 0, lean: 0 };
+  const phase = p.ang * p.waveFreq + t * p.waveSpeed * p.waveDir + p.wavePhase;
+  const radial = Math.sin(phase) * p.waveAmp;
+  // The sine derivative gently steers the dash along its individual path.
+  const slope = Math.cos(phase) * p.waveAmp * p.waveFreq / Math.max(1, ringR * p.band);
+  return { radial, lean: Math.atan(slope) };
+}
+
+function drawDash(p, alpha, color, radialOffset, pop = 1, lean = 0) {
   const cx = ringSize / 2, cy = ringSize / 2;
-  const r = ringR * p.band + wobble;
+  const r = ringR * p.band + radialOffset;
   const depth = p.depth || 1; // deeper-band dots drift more — parallax layers
   const x = cx + Math.cos(p.ang) * r + ringTilt.x * depth;
   const y = cy + Math.sin(p.ang) * r + ringTilt.y * depth;
   ringCtx.save();
   ringCtx.translate(x, y);
-  ringCtx.rotate(p.ang + Math.PI / 2 + p.tilt); // tangent to the orbit
+  ringCtx.rotate(p.ang + Math.PI / 2 + p.tilt + lean); // tangent to its sine path
   ringCtx.globalAlpha = alpha;
   ringCtx.strokeStyle = color;
   ringCtx.lineWidth = p.weight * pop;
@@ -1272,14 +2626,19 @@ function drawRing(t, { motion, gray }) {
   const waveT = t - ringWaveT0;
   const waving = motion && waveT >= 0 && waveT < WAVE_DUR;
   for (const p of ringParticles) {
-    let wobble = motion ? Math.sin(t * p.wobSpd + p.wob) * WOBBLE : 0;
+    const sine = waveOffset(p, t, motion);
+    let radialOffset = sine.radial;
     if (waving) {
       // the swap wave: a decaying ripple travelling around the ring
-      wobble += WAVE_A * Math.exp(-waveT * 2.2) * Math.sin(p.ang * 3 - waveT * 12);
+      radialOffset += WAVE_A * Math.exp(-waveT * 2.2) * Math.sin(p.ang * 3 - waveT * 12);
     }
     let alpha = motion
-      ? Math.max(0.18, 0.55 + 0.4 * Math.sin(t * p.pulse * 2 + p.phase))
-      : 0.5;
+      ? Math.max(
+          PARTICLE_ALPHA_MIN,
+          (PARTICLE_ALPHA_MIN + PARTICLE_ALPHA_MAX) / 2
+            + ((PARTICLE_ALPHA_MAX - PARTICLE_ALPHA_MIN) / 2) * Math.sin(t * p.pulse * 2 + p.phase)
+        )
+      : (PARTICLE_ALPHA_MIN + PARTICLE_ALPHA_MAX) / 2;
     // prominence: focused project full-strength, others recessive
     const prom = 0.4 + 0.6 * p.k;
     alpha *= prom;
@@ -1290,7 +2649,7 @@ function drawRing(t, { motion, gray }) {
       alpha *= Math.max(0.2, age);
       pop *= 1 + 0.7 * (1 - age);
     }
-    drawDash(p, gray ? 0.4 : alpha, gray || CAT_FAM[p.slot][p.shade], wobble, pop);
+    drawDash(p, gray ? 0.4 : alpha, gray || CAT_FAM[p.slot][p.shade], radialOffset, pop, sine.lean);
   }
 }
 
@@ -1359,10 +2718,13 @@ function syncRingLoop() {
 
 addEventListener("resize", () => {
   if (view === "session") setupRing();
+  else if (view === "home") setupHomeSwarm();
+  else if (view === "trends" || view === "project") setupAttentionMaps();
 });
 
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) tick();
+  if (!document.hidden && view === "home" && homeSwarmRaf === null) setupHomeSwarm();
   syncRingLoop();
   syncWakeLock();
 });
@@ -1423,6 +2785,111 @@ if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
 
 /* ---------- Events ---------- */
 
+const SWIPE_DELETE_WIDTH = 92;
+const SWIPE_OPEN_THRESHOLD = 42;
+let openSwipeShell = null;
+let swipeGesture = null;
+let suppressSwipeClickUntil = 0;
+let suppressSwipeItem = null;
+
+function setSwipeOpen(shell, open) {
+  if (!shell) return;
+  const row = shell.querySelector("[data-swipe-row]");
+  const deleteButton = shell.querySelector(".swipe-delete");
+  shell.classList.remove("revealing");
+  shell.classList.toggle("open", open);
+  if (row) {
+    row.classList.remove("swiping");
+    row.style.transform = `translateX(${open ? -SWIPE_DELETE_WIDTH : 0}px)`;
+  }
+  if (deleteButton) deleteButton.tabIndex = open ? 0 : -1;
+  openSwipeShell = open ? shell : (openSwipeShell === shell ? null : openSwipeShell);
+}
+
+function closeOpenSwipe(except = null) {
+  if (openSwipeShell && openSwipeShell !== except) setSwipeOpen(openSwipeShell, false);
+}
+
+document.addEventListener("pointerdown", (e) => {
+  const row = e.target.closest("[data-swipe-row]");
+  if (!row || !e.isPrimary || (e.pointerType === "mouse" && e.button !== 0)) return;
+  // Buttons inside the row own their pointer gesture. Swipe-to-delete begins
+  // only from the non-interactive body of the card.
+  if (e.target.closest("button, input, label, a")) return;
+  const shell = row.closest(".project-swipe-shell");
+  if (!shell) return;
+  closeOpenSwipe(shell);
+  const startsOpen = shell.classList.contains("open");
+  swipeGesture = {
+    pointerId: e.pointerId,
+    row,
+    shell,
+    item: shell.closest("[data-swipe-item]"),
+    startX: e.clientX,
+    startY: e.clientY,
+    startT: performance.now(),
+    base: startsOpen ? -SWIPE_DELETE_WIDTH : 0,
+    offset: startsOpen ? -SWIPE_DELETE_WIDTH : 0,
+    axis: null,
+    moved: false,
+  };
+  try { row.setPointerCapture(e.pointerId); } catch (_) { /* capture is optional */ }
+});
+
+document.addEventListener("pointermove", (e) => {
+  const g = swipeGesture;
+  if (!g || e.pointerId !== g.pointerId) return;
+  const dx = e.clientX - g.startX;
+  const dy = e.clientY - g.startY;
+  if (!g.axis && Math.max(Math.abs(dx), Math.abs(dy)) > 11) {
+    g.axis = Math.abs(dx) > Math.abs(dy) * 1.12 ? "x" : "y";
+  }
+  if (g.axis !== "x") return;
+  if (e.cancelable) e.preventDefault();
+  g.moved = true;
+  let next = g.base + dx;
+  if (next > 0) next *= 0.16;
+  g.offset = Math.max(-SWIPE_DELETE_WIDTH, Math.min(10, next));
+  g.row.classList.add("swiping");
+  g.shell.classList.toggle("revealing", g.offset < -6);
+  g.row.style.transform = `translateX(${g.offset}px)`;
+}, { passive: false });
+
+function finishProjectSwipe(e) {
+  const g = swipeGesture;
+  if (!g || e.pointerId !== g.pointerId) return;
+  swipeGesture = null;
+  if (g.axis !== "x") return;
+  const dx = e.clientX - g.startX;
+  const quickLeft = performance.now() - g.startT < 280 && dx < -28;
+  const shouldOpen = g.offset < -SWIPE_OPEN_THRESHOLD || quickLeft;
+  setSwipeOpen(g.shell, shouldOpen);
+  suppressSwipeItem = g.item;
+  suppressSwipeClickUntil = performance.now() + 360;
+}
+
+document.addEventListener("pointerup", finishProjectSwipe);
+document.addEventListener("pointercancel", finishProjectSwipe);
+
+// Suppress the synthetic click after a drag. When a row is already open,
+// tapping the row closes it; only the revealed Delete button remains active.
+document.addEventListener("click", (e) => {
+  const item = e.target.closest("[data-swipe-item]");
+  const control = e.target.closest("button, input, label, a");
+  if (!control && item && item === suppressSwipeItem && performance.now() < suppressSwipeClickUntil) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    return;
+  }
+  if (!openSwipeShell) return;
+  if (e.target.closest(".swipe-delete")?.closest(".project-swipe-shell") === openSwipeShell) return;
+  if (e.target.closest("[data-swipe-row]")?.closest(".project-swipe-shell") === openSwipeShell) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+  }
+  closeOpenSwipe();
+}, true);
+
 document.addEventListener("click", (e) => {
   const el = e.target.closest("[data-action]");
   if (!el || el.disabled) return;
@@ -1432,18 +2899,51 @@ document.addEventListener("click", (e) => {
 });
 
 document.addEventListener("submit", (e) => {
+  const reasonForm = e.target.closest('[data-form="switch-reason"]');
+  if (reasonForm) {
+    e.preventDefault();
+    const rec = reflectionRecord();
+    const input = reasonForm.querySelector('input[name="reason"]');
+    const text = input ? input.value.trim() : "";
+    const event = rec && Array.isArray(rec.switchEvents)
+      ? rec.switchEvents.find((item) => item.id === reasonForm.dataset.eventId)
+      : null;
+    if (!event || !text) return;
+    event.reason = text;
+    event.answered = true;
+    advanceReflection(rec);
+    return;
+  }
+
+  const taskForm = e.target.closest('[data-form="add-task"]');
+  if (taskForm) {
+    e.preventDefault();
+    const p = state.projects.find((project) => project.id === taskForm.dataset.projectId && !project.archivedAt);
+    const input = taskForm.querySelector('input[name="task"]');
+    const text = input ? input.value.trim() : "";
+    if (!p || !text) return;
+    ensureProjectTasks(p).push({ id: uid(), text, done: false, createdAt: now(), completedAt: null });
+    expandedTaskProjectIds.add(p.id);
+    taskComposerProjectIds.add(p.id);
+    commit();
+    const next = document.getElementById(`task-input-${p.id}`);
+    if (next) next.focus();
+    return;
+  }
+
   const form = e.target.closest('[data-form="add"]');
   if (!form) return;
   e.preventDefault();
   const input = form.querySelector("input[name=name]");
   const name = input.value.trim();
   if (!name) return;
-  if (state.projects.length >= PROJECT_LIMIT) return;
+  const projects = activeProjects();
+  if (projects.length >= PROJECT_LIMIT) return;
   if (state.projects.some((p) => p.name.toLowerCase() === name.toLowerCase())) {
     toast("You already have a project with that name.");
     return;
   }
-  const used = new Set(state.projects.map((p) => p.slot));
+  const used = new Set(projects.map((p) => p.slot));
   let slot = 0;
   while (used.has(slot) && slot < PROJECT_LIMIT) slot++;
   const project = { id: uid(), name, slot, createdAt: now() };
@@ -1468,15 +2968,25 @@ document.addEventListener("submit", (e) => {
 });
 
 document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && openSwipeShell) {
+    closeOpenSwipe();
+    return;
+  }
   if (e.key === "Escape" && addOpen) {
     addOpen = false;
     render();
     return;
   }
+  const projectToggle = e.target.closest("[data-project-toggle]");
+  if (projectToggle && e.target === projectToggle && (e.key === "Enter" || e.key === " ")) {
+    e.preventDefault();
+    actions.toggleProjectTasks(projectToggle.dataset.id);
+    return;
+  }
   if (e.target.matches("input, textarea, select")) return;
   if (view !== "session" || !state.active) return;
-  if (e.key >= "1" && e.key <= "8") {
-    const p = state.projects[Number(e.key) - 1];
+  if (e.key >= "1" && e.key <= "9") {
+    const p = activeProjects()[Number(e.key) - 1];
     if (p) { e.preventDefault(); actions.tap(p.id); }
   } else if (e.key === " ") {
     e.preventDefault();
@@ -1489,7 +2999,9 @@ window.addEventListener("storage", (e) => {
   if (e.key !== KEY) return;
   state = load();
   if (view === "session" && !state.active) view = "home";
+  if (view === "reflection" && !state.sessions.some((s) => s.id === summaryId)) view = "home";
   if (view === "summary" && !state.sessions.some((s) => s.id === summaryId)) view = "home";
+  if (view === "project" && !state.projects.some((p) => p.id === projectHubId)) view = "home";
   render();
 });
 
