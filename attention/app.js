@@ -11,13 +11,15 @@ const KEY = "attention-switch:v1";
 const PROJECT_LIMIT = 9; // matches the nine stable Jovey color slots
 const MIN_SESSION_MS = 10_000;
 const HISTORY_PREVIEW = 8;
-const SWITCH_REASONS = [
-  "Priority changed",
-  "Finished a step",
-  "Got blocked",
-  "Interrupted",
-  "New thought",
-  "Needed variety",
+const SWITCH_FEELINGS = [
+  "Overwhelmed",
+  "Restless",
+  "Bored",
+  "Anxious",
+  "Curious",
+  "Frustrated",
+  "Energized",
+  "Relieved",
 ];
 // Attention ring — jovey-style confetti dashes orbiting the counting clock.
 // The ring holds the WHOLE SESSION'S composition: every project's earned
@@ -67,8 +69,34 @@ const mobileMotion = matchMedia("(max-width: 720px), (pointer: coarse)");
 
 /* ---------- State ---------- */
 
+const STARTER_PROJECTS = [
+  { id: "starter-mindspend", name: "Mindspend", slot: 0 },
+  { id: "starter-jovey-blog", name: "Jovey blog", slot: 1 },
+  { id: "starter-read-books", name: "Read books", slot: 2 },
+  { id: "starter-vocs-tb-ai", name: "VOCs TB AI", slot: 3 },
+  { id: "starter-feed-pro", name: "Feed pro", slot: 4 },
+  { id: "starter-attention-switching", name: "Attention switching", slot: 5 },
+];
+
+function starterProjects() {
+  const seededAt = Date.now();
+  return STARTER_PROJECTS.map((project, index) => ({
+    ...project,
+    createdAt: seededAt + index,
+    tasks: [],
+  }));
+}
+
 function defaults() {
-  return { projects: [], active: null, sessions: [], notes: [], pendingReflectionId: null, theme: "auto" };
+  return {
+    projects: starterProjects(),
+    active: null,
+    sessions: [],
+    notes: [],
+    customFeelings: [],
+    pendingReflectionId: null,
+    theme: "auto",
+  };
 }
 
 function load() {
@@ -133,6 +161,27 @@ function allNotes() {
 function ensureNotes() {
   if (!Array.isArray(state.notes)) state.notes = [];
   return state.notes;
+}
+
+function savedSwitchFeelings() {
+  const current = Array.isArray(state.customFeelings) ? state.customFeelings : [];
+  const legacy = Array.isArray(state.customReasons) ? state.customReasons : [];
+  const seen = new Set();
+  return [...current, ...legacy].filter((feeling) => {
+    if (typeof feeling !== "string" || !feeling.trim()) return false;
+    const normalized = feeling.toLocaleLowerCase();
+    if (seen.has(normalized)) return false;
+    seen.add(normalized);
+    return true;
+  }).slice(0, 12);
+}
+
+function rememberSwitchFeeling(feeling) {
+  const normalized = feeling.toLocaleLowerCase();
+  state.customFeelings = [
+    feeling,
+    ...savedSwitchFeelings().filter((item) => item.toLocaleLowerCase() !== normalized),
+  ].slice(0, 12);
 }
 
 function noteProject(note) {
@@ -536,6 +585,8 @@ const actions = {
     const event = rec.switchEvents.find((item) => item.id === id);
     if (!event) return;
     event.reason = el.dataset.reason || null;
+    event.reasonGroup = "Feeling";
+    event.reasonSource = el.dataset.source || "preset";
     event.answered = true;
     advanceReflection(rec);
   },
@@ -558,6 +609,8 @@ const actions = {
     const event = rec.switchEvents.find((item) => item.id === id);
     if (!event) return;
     event.reason = null;
+    event.reasonGroup = null;
+    event.reasonSource = null;
     event.answered = true;
     advanceReflection(rec);
   },
@@ -672,6 +725,7 @@ const actions = {
 
   startSession() {
     if (!activeProjects().length || state.active) return;
+    requestAppFullscreen();
     state.active = { id: uid(), startedAt: null, segments: [], breaks: [] };
     view = "session";
     addOpen = false;
@@ -781,6 +835,8 @@ const actions = {
         toSlot: to.slot,
         answered: false,
         reason: null,
+        reasonGroup: null,
+        reasonSource: null,
       });
     }
 
@@ -854,6 +910,7 @@ const actions = {
   quickStart(id) {
     const projects = activeProjects();
     if (state.active || !projects.length) return;
+    requestAppFullscreen();
     state.active = { id: uid(), startedAt: null, segments: [], breaks: [] };
     view = "session";
     addOpen = false;
@@ -1884,12 +1941,13 @@ function renderReflection() {
   const fromSlot = switchEventSlot(event, "from");
   const toSlot = switchEventSlot(event, "to");
   const progress = Math.max(0, Math.min(1, answered / rec.switchEvents.length));
+  const savedFeelings = savedSwitchFeelings();
 
   return `
     <div class="reflection-head">
       <span class="sec-label">Session reflection</span>
-      <h1>What moved your attention?</h1>
-      <p>One quick answer makes your switching patterns useful later.</p>
+      <h1>What were you feeling?</h1>
+      <p>Choose the feeling closest to the moment you switched.</p>
     </div>
     <div class="reflection-progress" aria-label="Switch ${step} of ${rec.switchEvents.length}">
       <span style="--f:${progress.toFixed(4)}"></span>
@@ -1902,15 +1960,19 @@ function renderReflection() {
         <span class="path-arrow" aria-hidden="true">→</span>
         <span style="--pc: var(--cat-${toSlot})">${dotHtml(toSlot)}<b>${esc(event.toName)}</b></span>
       </div>
-      <p class="reflection-question">Why did you switch?</p>
+      <p class="reflection-question">How did the switch feel?</p>
       <div class="reason-choices">
-        ${SWITCH_REASONS.map((reason) => `<button data-action="answerSwitchReason" data-id="${event.id}" data-reason="${esc(reason)}">${esc(reason)}</button>`).join("")}
-        <button class="reason-other${reflectionCustomOpen ? " active" : ""}" data-action="openCustomReason" data-id="${event.id}">Write my own…</button>
+        ${SWITCH_FEELINGS.map((feeling) => `<button data-action="answerSwitchReason" data-id="${event.id}" data-reason="${esc(feeling)}">${esc(feeling)}</button>`).join("")}
+        <button class="reason-other${reflectionCustomOpen ? " active" : ""}" data-action="openCustomReason" data-id="${event.id}">Write my own feeling…</button>
       </div>
+      ${savedFeelings.length ? `<div class="saved-reasons">
+        <span class="saved-reasons-label">Your saved feelings</span>
+        <div class="saved-reason-cards">${savedFeelings.map((feeling) => `<button data-action="answerSwitchReason" data-id="${event.id}" data-source="manual" data-reason="${esc(feeling)}">${esc(feeling)}</button>`).join("")}</div>
+      </div>` : ""}
       ${reflectionCustomOpen ? `<form class="reason-custom-form" data-form="switch-reason" data-event-id="${event.id}">
-          <label class="visually-hidden" for="switch-reason-custom">Why did your attention move?</label>
-          <input id="switch-reason-custom" name="reason" maxlength="100" autocomplete="off" placeholder="What pulled your attention?" />
-          <button type="submit">Save & continue</button>
+          <label class="visually-hidden" for="switch-reason-custom">What were you feeling?</label>
+          <input id="switch-reason-custom" name="reason" maxlength="100" autocomplete="off" placeholder="Name the feeling…" />
+          <button type="submit">Save feeling</button>
         </form>` : ""}
     </section>
     <div class="reflection-actions">
@@ -1969,7 +2031,9 @@ function renderSummary() {
             <div class="mini-path">
               <span>${dotHtml(fromSlot)}${esc(event.fromName)}</span><b aria-hidden="true">→</b><span>${dotHtml(toSlot)}${esc(event.toName)}</span>
             </div>
-            <span class="switch-why${event.reason ? "" : " missing"}">${event.reason ? esc(event.reason) : "Reason not captured"}</span>
+            <span class="switch-why${event.reason ? "" : " missing"}">${event.reason
+              ? `${event.reasonGroup ? `<small>${esc(event.reasonGroup)}</small>` : ""}<span>${esc(event.reason)}</span>`
+              : "Reason not captured"}</span>
           </div>`;
         }).join("")}</div>
       </section>`
@@ -2660,6 +2724,9 @@ function render() {
   const a = state.active;
   const inSession = view === "session" && !!a;
   document.body.classList.toggle("in-session", inSession);
+  for (const name of ["home", "session", "reflection", "summary", "trends", "project", "notes"]) {
+    document.body.classList.toggle(`view-${name}`, view === name);
+  }
 
   // Ambient wash takes the active (or paused) project's colour
   let washSlot = null;
@@ -3076,6 +3143,19 @@ function askMotionPermission() {
   } catch (_) { /* not iOS — listener already works */ }
 }
 
+// Fullscreen must be requested directly from the Start button's user gesture.
+// Unsupported browsers and denied requests simply keep the normal app view.
+function requestAppFullscreen() {
+  const root = document.documentElement;
+  if (document.fullscreenElement || document.webkitFullscreenElement) return;
+  const request = root.requestFullscreen || root.webkitRequestFullscreen;
+  if (typeof request !== "function") return;
+  try {
+    const result = request.call(root);
+    if (result && typeof result.catch === "function") result.catch(() => {});
+  } catch (_) { /* unsupported or blocked by browser policy */ }
+}
+
 /* ---------- Phone niceties: haptics + screen wake lock ---------- */
 
 function buzz(ms) {
@@ -3233,7 +3313,10 @@ document.addEventListener("submit", (e) => {
       : null;
     if (!event || !text) return;
     event.reason = text;
+    event.reasonGroup = "Feeling";
+    event.reasonSource = "manual";
     event.answered = true;
+    rememberSwitchFeeling(text);
     advanceReflection(rec);
     return;
   }

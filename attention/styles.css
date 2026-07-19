@@ -385,6 +385,7 @@ body.in-session .footer { display: none; }
 }
 .proj-row .p-name,
 .archived-row .p-name {
+  flex: 1 1 0;
   min-width: 0;
   font-weight: 600;
   overflow: hidden;
@@ -392,7 +393,7 @@ body.in-session .footer { display: none; }
   white-space: nowrap;
 }
 .proj-row .p-meta {
-  margin-left: auto;
+  flex: 0 1 auto;
   max-width: 148px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -692,7 +693,7 @@ body.in-session .footer { display: none; }
 }
 .archived-row .p-name { opacity: 0.78; }
 .archived-row .p-meta {
-  margin-left: auto;
+  flex: 0 1 auto;
   color: var(--muted);
   font-size: 0.8rem;
   white-space: nowrap;
@@ -1469,6 +1470,36 @@ body.in-session .footer { display: none; }
 .reason-choices button.active { border-color: #b8c4cf; background: var(--card); }
 .reason-choices button:active { transform: scale(0.97); }
 .reason-choices .reason-other { grid-column: 1 / -1; }
+.saved-reasons { margin-top: 14px; }
+.saved-reasons-label {
+  display: block;
+  margin: 0 2px 7px;
+  color: var(--muted);
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.saved-reason-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.saved-reason-cards button {
+  min-width: 0;
+  min-height: 44px;
+  padding: 9px 11px;
+  border: 1px solid color-mix(in srgb, var(--blue) 24%, var(--line));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--blue) 7%, var(--card));
+  font-family: var(--font-label);
+  font-size: 0.73rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+.saved-reason-cards button:hover { border-color: var(--blue); }
 .reason-custom-form {
   display: flex;
   gap: 8px;
@@ -1677,6 +1708,17 @@ body.in-session .footer { display: none; }
   color: var(--ink);
   font-size: 0.78rem;
 }
+.switch-why small {
+  display: block;
+  margin-bottom: 1px;
+  color: var(--muted);
+  font-family: var(--font-label);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.switch-why > span { display: block; }
 .switch-why.missing { color: var(--muted); font-style: italic; }
 .path-summary-row {
   display: grid;
@@ -2262,6 +2304,172 @@ body.in-session .footer { display: none; }
   z-index: 50;
 }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------- Responsive Mac and resizable-window layouts ---------- */
+@media (min-width: 640px) {
+  .shell {
+    max-width: 760px;
+    padding-left: max(30px, env(safe-area-inset-left));
+    padding-right: max(30px, env(safe-area-inset-right));
+  }
+  .topbar { padding-top: 22px; padding-bottom: 28px; }
+  .brand-mark { width: 54px; height: 54px; }
+  .brand-name { font-size: 1.12rem; }
+  .hero-copy h1 { font-size: clamp(2.55rem, 6.5vw, 3.45rem); }
+  .hero-copy p { max-width: 560px; font-size: 1.02rem; }
+  .swarm-stage { height: min(58vw, 410px); min-height: 340px; }
+  .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .hub-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .notes-wall { columns: 3; column-gap: 16px; }
+  .session-note-list { columns: 3; column-gap: 14px; }
+}
+
+@media (min-width: 900px) {
+  .shell {
+    width: 100%;
+    max-width: 1180px;
+    padding-left: max(38px, env(safe-area-inset-left));
+    padding-right: max(38px, env(safe-area-inset-right));
+  }
+  main { padding-bottom: 64px; }
+  .topbar { padding: 24px 0 34px; }
+  .brand-mark { width: 58px; height: 58px; }
+  .brand-name { font-size: 1.18rem; }
+  .brand-tag { font-size: 0.74rem; }
+  .footer { padding-bottom: 30px; }
+
+  /* Home becomes a desktop workspace: attention visual left, projects right. */
+  body.view-home main {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(410px, 0.95fr);
+    grid-template-areas:
+      "hero    projects"
+      "today   projects"
+      "day     projects"
+      "swarm   projects"
+      "start   projects"
+      "notes   projects"
+      "history history";
+    column-gap: clamp(34px, 5vw, 68px);
+    align-items: start;
+  }
+  body.view-home main > .hero-copy { grid-area: hero; margin-top: 22px; }
+  body.view-home main > .today-strip { grid-area: today; width: fit-content; margin-bottom: 20px; }
+  body.view-home main > .day-card { grid-area: day; }
+  body.view-home main > .swarm-stage {
+    grid-area: swarm;
+    height: clamp(390px, 42vw, 500px);
+    min-height: 390px;
+    margin: -12px 0 8px;
+  }
+  body.view-home main > .section[aria-label="Your projects"] {
+    grid-area: projects;
+    position: sticky;
+    top: 22px;
+    max-height: calc(100vh - 44px);
+    margin: 0;
+    padding: 22px 18px 24px;
+    overflow-y: auto;
+    border: 1px solid var(--line);
+    border-radius: 26px;
+    background: color-mix(in srgb, var(--card) 88%, var(--bg));
+    box-shadow: 0 24px 56px -46px rgba(18, 19, 23, 0.5);
+    overscroll-behavior-y: contain;
+    scrollbar-width: thin;
+  }
+  body.view-home main > .start-wrap { grid-area: start; margin: 8px 0 28px; }
+  body.view-home main > .notes-wall-link { grid-area: notes; margin: -12px 0 34px; }
+  body.view-home main > .section[aria-label="Past sessions"] {
+    grid-area: history;
+    margin-top: 30px;
+  }
+  body.view-home .hero-copy h1 {
+    max-width: 610px;
+    font-size: clamp(3.15rem, 5.4vw, 4.65rem);
+  }
+  body.view-home .hero-copy p { max-width: 530px; font-size: 1.08rem; }
+  body.view-home .sess-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  /* The live timer uses two stable panes instead of a long phone column. */
+  body.in-session .shell { max-width: 1180px; }
+  body.in-session .topbar {
+    opacity: 0.72;
+    transform: none;
+    padding-bottom: 16px;
+  }
+  body.view-session main {
+    display: grid;
+    grid-template-columns: minmax(320px, 0.92fr) minmax(380px, 1.08fr);
+    grid-template-areas:
+      "dial label"
+      "dial grid"
+      "dial capture"
+      "dial dock"
+      "dial hints";
+    grid-template-rows: auto auto auto auto auto;
+    column-gap: clamp(38px, 6vw, 76px);
+    align-items: start;
+  }
+  body.view-session .dial-wrap {
+    grid-area: dial;
+    position: sticky;
+    top: 92px;
+    align-self: start;
+    min-height: 520px;
+    padding: 18px 0;
+  }
+  body.view-session .dial { width: min(39vw, 470px); }
+  body.view-session .big-clock { font-size: clamp(4.2rem, 7vw, 5.6rem); }
+  body.view-session .focus-label { font-size: 1.05rem; }
+  body.view-session .grid-label { grid-area: label; margin: 22px 0 12px; }
+  body.view-session .proj-grid {
+    grid-area: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-bottom: 18px;
+  }
+  body.view-session .proj-card,
+  body.view-session .add-card { min-height: 64px; }
+  body.view-session .session-capture { grid-area: capture; margin-bottom: 16px; padding: 15px; }
+  body.view-session .session-capture-feed { max-height: 290px; }
+  body.view-session .controls-bar { grid-area: dock; position: static; margin: 0; }
+  body.view-session .key-hints { grid-area: hints; display: block; }
+
+  /* Reading and analysis views gain width without becoming hard to scan. */
+  body.view-reflection main { width: 100%; max-width: 680px; margin: 0 auto; }
+  body.view-summary main,
+  body.view-trends main,
+  body.view-project main { width: 100%; max-width: 1020px; margin: 0 auto; }
+  body.view-summary .sum-head,
+  body.view-trends .sum-head { max-width: 720px; }
+  body.view-summary .tiles,
+  body.view-trends .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  body.view-summary .tile,
+  body.view-trends .tile { min-height: 118px; padding: 20px 22px; }
+  body.view-summary .tile b,
+  body.view-trends .tile b { font-size: 1.9rem; }
+  body.view-summary .sum-section,
+  body.view-trends .sum-section,
+  body.view-project .sum-section,
+  body.view-project .hub-section {
+    padding: 22px 24px;
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background: color-mix(in srgb, var(--card) 92%, var(--bg));
+  }
+  body.view-trends .bars { padding: 20px 18px 14px; }
+  body.view-trends .bar-stack { height: 150px; }
+  body.view-project .project-hub-head h1 { font-size: clamp(3rem, 5vw, 4.25rem); }
+  body.view-project .hub-stats > div { min-height: 96px; padding: 18px 20px; }
+  body.view-project .hub-stats b { font-size: 1.55rem; }
+  body.view-notes main { width: 100%; }
+  body.view-notes .notes-head { max-width: 720px; margin-top: 18px; }
+  body.view-notes .notes-head h1 { font-size: clamp(3.3rem, 6vw, 4.8rem); }
+  body.view-notes .notes-wall { columns: 4; column-gap: 18px; }
+  body.view-notes .post-it { margin-bottom: 18px; }
+  .attention-map-card { max-width: 780px; margin-left: auto; margin-right: auto; }
+  .heat-week { grid-template-rows: repeat(7, 12px); }
+  .heat-cell { width: 12px; height: 12px; }
+}
 
 /* ---------- Landscape phone: dial left, switcher right ---------- */
 @media (orientation: landscape) and (max-height: 540px) {

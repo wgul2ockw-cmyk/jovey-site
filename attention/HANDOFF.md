@@ -19,6 +19,14 @@ This release adds session-safe capture:
   note captured in that session. Tasks can be completed and notes deleted in
   place.
 - Completed-session summaries include the notes captured in that session.
+- Starting a session requests browser fullscreen when the platform supports it;
+  unsupported or denied requests fall back to the normal app view.
+- Launching an installed copy requests manifest-level fullscreen, with
+  standalone display as the platform fallback.
+- Fresh local storage is seeded with six mock projects for the current product
+  demo; existing saved project lists remain unchanged.
+- Switch reflection asks for the feeling behind each move in one step. Manual
+  feelings are retained locally as reusable tappable cards.
 
 ## Product model
 
@@ -46,7 +54,8 @@ The app is intentionally framework-free:
 - `app.js` — state, rendering, event delegation, session timing, trends,
   particle animation, tasks, notes, and persistence.
 - `styles.css` — Jovey theme, phone-first responsive layout, session UI,
-  attention visualizations, and Post-it wall.
+  attention visualizations, Post-it wall, and Mac/window layouts at 640px and
+  900px breakpoints.
 - `icon.svg` — animated particle logo. Its 2.7px display stroke is intentionally
   bolder than the 1.35px in-app visualization stroke. The formation renders at
   108% size and reuses its 396 source particles in a second inner layer, giving
@@ -54,7 +63,7 @@ The app is intentionally framework-free:
   placement, colors, and motion remain identical between layers.
 - `manifest.json` — installable web-app metadata.
 - `sw.js` — offline stale-while-revalidate cache. Current cache generation:
-  `attention-switch-v48`.
+  `attention-switch-v50`.
 - `README.md` — product behavior and detailed particle-model documentation in
   the standalone source folder.
 
@@ -77,6 +86,7 @@ Top-level state:
   active: null,
   sessions: [],
   notes: [],
+  customFeelings: [],
   pendingReflectionId: null,
   theme: "auto"
 }
@@ -90,6 +100,9 @@ Important records:
 
 // Project task
 { id, text, done, createdAt, completedAt }
+
+// Reflected attention switch
+{ id, fromId, toId, answered, reasonGroup, reason, reasonSource }
 
 // Session note
 {
@@ -164,6 +177,9 @@ run:
 3. Confirm both actions leave `active.segments` and the switch count unchanged.
 4. Reload and confirm the running session, task, and note survive.
 5. Check portrait and short landscape layouts on a phone-sized viewport.
+6. Resize a desktop window across 480px, 760px, and 1200px widths. Home should
+   move from one column to a two-pane workspace at 900px, sessions should place
+   the dial beside their controls, and no view should gain horizontal scroll.
 
 ## Deployment and rollback
 
