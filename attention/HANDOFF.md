@@ -15,6 +15,9 @@ This release adds session-safe capture:
   path, or switch count.
 - The home view links to a dedicated **Notes wall**, where ideas appear as
   color-matched Post-its.
+- The running session shows all open tasks across active projects plus every
+  note captured in that session. Tasks can be completed and notes deleted in
+  place.
 - Completed-session summaries include the notes captured in that session.
 
 ## Product model
@@ -47,7 +50,7 @@ The app is intentionally framework-free:
 - `icon.svg` — animated particle logo.
 - `manifest.json` — installable web-app metadata.
 - `sw.js` — offline stale-while-revalidate cache. Current cache generation:
-  `attention-switch-v40`.
+  `attention-switch-v41`.
 - `README.md` — product behavior and detailed particle-model documentation in
   the standalone source folder.
 
@@ -110,6 +113,9 @@ and color slot so they remain understandable if a project is later deleted.
   for legacy active sessions, ensure the session has an ID.
 - Task and note capture must never modify `active.segments`, close/open breaks,
   call `actions.tap`, or increment `switchCount()`.
+- `renderSession()` must keep saved open tasks and current-session notes visible
+  after their capture forms close; saving without visual feedback is a
+  regression.
 - Timing is timestamp-based (`Date.now()`), so background tabs and page reloads
   do not accumulate timer drift.
 - Project colors use nine stable Jovey slots. Do not derive analytics identity

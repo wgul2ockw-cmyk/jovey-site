@@ -1772,6 +1772,48 @@ function renderSession() {
   const projectOptions = projects
     .map((project) => `<option value="${project.id}"${captureProject && project.id === captureProject.id ? " selected" : ""}>${esc(project.name)}</option>`)
     .join("");
+  const openSessionTasks = projects
+    .flatMap((project) => projectTasks(project)
+      .filter((task) => !task.done)
+      .map((task) => ({ project, task })))
+    .sort((aItem, bItem) => (bItem.task.createdAt || 0) - (aItem.task.createdAt || 0));
+  const currentSessionNotes = allNotes()
+    .filter((note) => note.sessionId === a.id)
+    .sort((aNote, bNote) => bNote.createdAt - aNote.createdAt);
+  const taskFeed = openSessionTasks.length
+    ? `<div class="session-capture-group">
+        <div class="session-capture-group-head"><b>Open tasks</b><span>${openSessionTasks.length}</span></div>
+        <ul class="project-task-list session-capture-items">
+          ${openSessionTasks.map(({ project, task }) => `<li class="project-task session-capture-task" style="--pc: var(--cat-${project.slot})">
+            <label>
+              <input type="checkbox" data-action="toggleTask" data-id="${project.id}" data-task-id="${task.id}" aria-label="Complete ${esc(task.text)}" />
+              <span class="task-checkbox" aria-hidden="true"></span>
+              <span class="session-task-copy"><span class="task-text">${esc(task.text)}</span><small>${dotHtml(project.slot)}${esc(project.name)}</small></span>
+            </label>
+          </li>`).join("")}
+        </ul>
+      </div>`
+    : "";
+  const noteFeed = currentSessionNotes.length
+    ? `<div class="session-capture-group">
+        <div class="session-capture-group-head"><b>Session notes</b><span>${currentSessionNotes.length}</span></div>
+        <div class="session-capture-items session-capture-notes">
+          ${currentSessionNotes.map((note) => {
+            const project = noteProject(note);
+            const slot = noteSlot(note);
+            const projectName = project ? project.name : note.projectName;
+            return `<article class="session-capture-note" style="--pc: var(--cat-${slot})">
+              <span class="session-capture-note-icon">${ICONS.note}</span>
+              <span><p>${esc(note.text)}</p><small>${projectName ? `${dotHtml(slot)}${esc(projectName)} · ` : ""}${fmtTime(note.createdAt)}</small></span>
+              <button data-action="deleteNote" data-id="${note.id}" aria-label="Delete note">×</button>
+            </article>`;
+          }).join("")}
+        </div>
+      </div>`
+    : "";
+  const captureFeed = taskFeed || noteFeed
+    ? `<div class="session-capture-feed" aria-live="polite">${taskFeed}${noteFeed}</div>`
+    : "";
   const captureForm = sessionCaptureMode === "task"
     ? `<form class="session-capture-form" data-form="session-task">
         <label for="session-task-project">Add task to</label>
@@ -1805,6 +1847,7 @@ function renderSession() {
       </div>
     </div>
     ${captureForm}
+    ${captureFeed}
   </section>`;
 
   return `
@@ -3205,7 +3248,14 @@ document.addEventListener("submit", (e) => {
       : null;
     const text = input ? input.value.trim() : "";
     if (!state.active || !project || !text) return;
-    ensureProjectTasks(project).push({ id: uid(), text, done: false, createdAt: now(), completedAt: null });
+    ensureProjectTasks(project).push({
+      id: uid(),
+      text,
+      done: false,
+      createdAt: now(),
+      completedAt: null,
+      sessionId: state.active.id || null,
+    });
     sessionCaptureMode = null;
     save();
     render();

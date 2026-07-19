@@ -1264,6 +1264,98 @@ body.in-session .footer { display: none; }
 }
 .session-note-context .dot { width: 8px; height: 8px; }
 .session-note-context b { color: var(--ink); font-weight: 600; }
+.session-capture-feed {
+  max-height: 300px;
+  margin-top: 12px;
+  padding-top: 11px;
+  overflow-y: auto;
+  border-top: 1px solid color-mix(in srgb, var(--cat-2) 22%, var(--line));
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+}
+.session-capture-group + .session-capture-group { margin-top: 11px; }
+.session-capture-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 24px;
+  padding: 0 6px;
+  color: var(--muted);
+  font-family: var(--font-label);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.session-capture-group-head span {
+  min-width: 23px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  text-align: center;
+}
+.session-capture-items { margin-top: 3px; }
+.session-capture-task label {
+  min-height: 47px;
+  padding: 7px 6px;
+  background: color-mix(in srgb, var(--pc) 4%, rgba(255, 255, 255, 0.68));
+}
+.session-task-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+.session-task-copy small,
+.session-capture-note small {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.62rem;
+}
+.session-task-copy small .dot,
+.session-capture-note small .dot { width: 6px; height: 6px; }
+.session-capture-notes { display: flex; flex-direction: column; gap: 4px; }
+.session-capture-note {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 9px;
+  min-height: 49px;
+  padding: 8px 6px;
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--pc) 6%, rgba(255, 255, 255, 0.68));
+}
+.session-capture-note-icon {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px 8px 8px 3px;
+  background: color-mix(in srgb, var(--pc) 22%, white);
+  color: color-mix(in srgb, var(--pc) 76%, var(--ink));
+}
+.session-capture-note-icon .icon { width: 14px; height: 14px; }
+.session-capture-note p {
+  color: var(--ink);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.session-capture-note > button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: var(--muted);
+  font-size: 1.05rem;
+}
+.session-capture-note > button:hover { background: rgba(255, 255, 255, 0.72); color: var(--ink); }
 
 @media (max-width: 380px) {
   .session-capture-head { align-items: flex-start; flex-direction: column; }
@@ -2194,6 +2286,7 @@ body.in-session .footer { display: none; }
   body.in-session .session-capture-head small { display: none; }
   body.in-session .session-capture-form { margin-top: 7px; padding-top: 7px; }
   body.in-session .session-capture-form textarea { min-height: 54px; }
+  body.in-session .session-capture-feed { max-height: 118px; margin-top: 7px; padding-top: 6px; }
   body.in-session .controls-bar { grid-area: dock; position: static; }
   body.in-session .dial { width: min(72vh, 300px); }
   body.in-session .key-hints { display: none; }
