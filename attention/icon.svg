@@ -1,14 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
-  <title>Attention Switch — 396-particle swarm logo</title>
-  <desc>The exact website model: 228 thin arc dashes and 168 thin arrowhead dashes in one organic band.</desc>
+  <title>Attention Switch — bold 792-particle swarm logo</title>
+  <desc>A larger, denser website model: 396 source particles rendered in two concentric layers for 792 visible arc and arrowhead dashes.</desc>
   <style>
     .logo-system{transform-origin:160px 160px;animation:formation-turn 42s linear infinite}
     .particle{stroke-linecap:round;vector-effect:non-scaling-stroke}
-    @keyframes formation-turn{to{transform:rotate(360deg)}}
+    .particle line{stroke-width:2.7}
+    .density-layer{opacity:.62;pointer-events:none}
+    @keyframes formation-turn{from{transform:rotate(0deg) scale(1.08)}to{transform:rotate(360deg) scale(1.08)}}
     @media(prefers-reduced-motion:reduce){.logo-system{animation-duration:180s}.particle{opacity:.85}}
   </style>
   <g class="logo-system">
-    <g data-arrow="1">
+    <g id="arrow-1" data-arrow="1">
       <g class="particle" data-kind="body" data-particle="1">
         <animateMotion path="M81.39 98.59 A99.75 99.75 0 0 1 238.61 98.59" dur="13.99s" begin="0s" repeatCount="indefinite" rotate="auto"/>
         <animate attributeName="opacity" values="0;.9;.9;0" keyTimes="0;.065;.935;1" dur="13.99s" begin="0s" repeatCount="indefinite"/>
@@ -1030,7 +1032,7 @@
         </line>
       </g>
     </g>
-    <g data-arrow="2">
+    <g id="arrow-2" data-arrow="2">
       <g class="particle" data-kind="body" data-particle="133">
         <animateMotion path="M259.25 119.9 A107.04 107.04 0 0 1 174.9 266" dur="13.37s" begin="0s" repeatCount="indefinite" rotate="auto"/>
         <animate attributeName="opacity" values="0;.9;.9;0" keyTimes="0;.065;.935;1" dur="13.37s" begin="0s" repeatCount="indefinite"/>
@@ -2052,7 +2054,7 @@
         </line>
       </g>
     </g>
-    <g data-arrow="3">
+    <g id="arrow-3" data-arrow="3">
       <g class="particle" data-kind="body" data-particle="265">
         <animateMotion path="M144.98 266.85 A107.9 107.9 0 0 1 59.96 119.58" dur="12.46s" begin="0s" repeatCount="indefinite" rotate="auto"/>
         <animate attributeName="opacity" values="0;.9;.9;0" keyTimes="0;.065;.935;1" dur="12.46s" begin="0s" repeatCount="indefinite"/>
@@ -3073,6 +3075,11 @@
         <animate attributeName="opacity" values=".28;.9;.48;.78;.28" dur="2.07s" begin="-0.35s" repeatCount="indefinite"/>
         </line>
       </g>
+    </g>
+    <g class="density-layer" transform="translate(160 160) scale(.965) translate(-160 -160)" aria-hidden="true">
+      <use href="#arrow-1"/>
+      <use href="#arrow-2"/>
+      <use href="#arrow-3"/>
     </g>
   </g>
 </svg>

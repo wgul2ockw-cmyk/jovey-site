@@ -47,10 +47,14 @@ The app is intentionally framework-free:
   particle animation, tasks, notes, and persistence.
 - `styles.css` — Jovey theme, phone-first responsive layout, session UI,
   attention visualizations, and Post-it wall.
-- `icon.svg` — animated particle logo.
+- `icon.svg` — animated particle logo. Its 2.7px display stroke is intentionally
+  bolder than the 1.35px in-app visualization stroke. The formation renders at
+  108% size and reuses its 396 source particles in a second inner layer, giving
+  792 visible dashes while keeping the source animation compact. Arrow
+  placement, colors, and motion remain identical between layers.
 - `manifest.json` — installable web-app metadata.
 - `sw.js` — offline stale-while-revalidate cache. Current cache generation:
-  `attention-switch-v41`.
+  `attention-switch-v48`.
 - `README.md` — product behavior and detailed particle-model documentation in
   the standalone source folder.
 
