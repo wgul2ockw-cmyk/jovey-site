@@ -4,8 +4,9 @@
 
 Attention Switch is a device-local, static web app published at
 `https://jovey.co/attention/`. The production source lives in the Jovey site
-repository under `attention/`. It has no backend, account system, analytics,
-database, build step, or third-party runtime dependency.
+repository under `attention/`. It has no backend, account system, database, or
+build step. Optional Cloudflare Web Analytics visitor tracking is loaded only
+when its site token is configured in `index.html`; it does not access app data.
 
 This release adds session-safe capture:
 

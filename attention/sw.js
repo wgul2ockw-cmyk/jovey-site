@@ -1,8 +1,8 @@
 /* Attention Switch — offline cache (stale-while-revalidate) */
 "use strict";
 
-const CACHE = "attention-switch-v52";
-const ASSETS = ["./", "./index.html", "./styles.css", "./app.js", "./manifest.json", "./icon.svg"];
+const CACHE = "attention-switch-v54";
+const ASSETS = ["./", "./index.html", "./styles.css", "./analytics.js", "./app.js", "./manifest.json", "./icon.svg"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)));
