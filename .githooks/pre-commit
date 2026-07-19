@@ -1,0 +1,25 @@
+#!/bin/sh
+# jovey-site pre-commit — two safety nets, both from the audit:
+#   1. bump attention/sw.js cache when a cached asset changes (HANDOFF.md invariant)
+#   2. rebuild sitemap.xml when pages change (it had drifted to miss 6 posts + /attention/)
+# Enable once with:  git config core.hooksPath .githooks
+set -e
+ROOT="$(git rev-parse --show-toplevel)"
+staged="$(git diff --cached --name-only)"
+
+# 1) cache bump — any attention asset except sw.js itself and *.md docs
+assets="$(printf '%s\n' "$staged" | grep '^attention/' | grep -vE '^attention/(sw\.js|.*\.md)$' || true)"
+if [ -n "$assets" ]; then
+  python3 "$ROOT/scripts/bump_sw_cache.py" >&2 && git add "$ROOT/attention/sw.js"
+fi
+
+# 2) sitemap — any page add/edit/remove
+if printf '%s\n' "$staged" | grep -qE '^(index\.html|about/|map/|attention/index\.html|blog/|growth/)'; then
+  python3 "$ROOT/scripts/gen_sitemap.py" >&2 && git add "$ROOT/sitemap.xml"
+fi
+
+# 3) syntax gate for the app
+if printf '%s\n' "$staged" | grep -qE '^attention/(app|sw)\.js$'; then
+  node --check "$ROOT/attention/app.js" && node --check "$ROOT/attention/sw.js"
+fi
+exit 0
