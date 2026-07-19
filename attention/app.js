@@ -68,7 +68,7 @@ const mobileMotion = matchMedia("(max-width: 720px), (pointer: coarse)");
 /* ---------- State ---------- */
 
 function defaults() {
-  return { projects: [], active: null, sessions: [], pendingReflectionId: null, theme: "auto" };
+  return { projects: [], active: null, sessions: [], notes: [], pendingReflectionId: null, theme: "auto" };
 }
 
 function load() {
@@ -96,6 +96,7 @@ let editingColorId = null;
 let showArchivedProjects = false;
 let expandedTaskProjectIds = new Set();
 let taskComposerProjectIds = new Set();
+let sessionCaptureMode = null;
 
 function save() {
   localStorage.setItem(KEY, JSON.stringify(state));
@@ -123,6 +124,26 @@ function projectTasks(project) {
 function ensureProjectTasks(project) {
   if (!Array.isArray(project.tasks)) project.tasks = [];
   return project.tasks;
+}
+
+function allNotes() {
+  return Array.isArray(state.notes) ? state.notes : [];
+}
+
+function ensureNotes() {
+  if (!Array.isArray(state.notes)) state.notes = [];
+  return state.notes;
+}
+
+function noteProject(note) {
+  return note.projectId
+    ? state.projects.find((project) => project.id === note.projectId) || null
+    : null;
+}
+
+function noteSlot(note) {
+  const project = noteProject(note);
+  return project ? project.slot : (note.projectSlot ?? 2);
 }
 
 function switchEventsFor(rec) {
@@ -267,6 +288,8 @@ const ICONS = {
   chevron: svg('<path d="m9 18 6-6-6-6"/>'),
   shuffle: svg('<path d="M2 18h4.5c1.5 0 2.8-.7 3.7-1.9L15 9.5c.9-1.2 2.2-1.9 3.7-1.9H22M18.5 4.5 22 7.6l-3.5 3.1M2 7.6h4.5c1.1 0 2.2.4 3 1.2M18.5 21.4l3.5-3.1-3.5-3.1M13.4 17.1c.9.8 1.9 1.2 3 1.2H22"/>'),
   spark: svg('<path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/>'),
+  note: svg('<path d="M5 3h11l3 3v15H5z"/><path d="M16 3v4h4M8 11h8M8 15h8M8 19h5"/>'),
+  task: svg('<rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 2.2 2.2L16 8.5"/>'),
 };
 
 /* ---------- Aggregates ---------- */
@@ -470,7 +493,35 @@ const actions = {
   goHome() {
     projectHubId = null;
     selectedAttentionPathKey = null;
+    sessionCaptureMode = null;
     view = state.active ? "session" : "home";
+    render();
+  },
+
+  openNotes() {
+    sessionCaptureMode = null;
+    view = "notes";
+    render();
+    scrollTo(0, 0);
+  },
+
+  deleteNote(id) {
+    const note = allNotes().find((item) => item.id === id);
+    if (!note || !confirm("Delete this note?")) return;
+    state.notes = allNotes().filter((item) => item.id !== id);
+    commit();
+  },
+
+  openSessionCapture(_id, el) {
+    if (!state.active) return;
+    sessionCaptureMode = el.dataset.mode === "task" ? "task" : "note";
+    render();
+    const target = document.getElementById(sessionCaptureMode === "task" ? "session-task-text" : "session-note-text");
+    if (target) target.focus();
+  },
+
+  closeSessionCapture() {
+    sessionCaptureMode = null;
     render();
   },
 
@@ -621,9 +672,10 @@ const actions = {
 
   startSession() {
     if (!activeProjects().length || state.active) return;
-    state.active = { startedAt: null, segments: [], breaks: [] };
+    state.active = { id: uid(), startedAt: null, segments: [], breaks: [] };
     view = "session";
     addOpen = false;
+    sessionCaptureMode = null;
     askMotionPermission();
     commit();
   },
@@ -733,7 +785,7 @@ const actions = {
     }
 
     const rec = {
-      id: uid(),
+      id: a.id || uid(),
       startedAt: a.startedAt,
       endedAt: t,
       focusMs: focus,
@@ -754,6 +806,7 @@ const actions = {
     state.pendingReflectionId = switchEvents.length ? rec.id : null;
     view = switchEvents.length ? "reflection" : "summary";
     addOpen = false;
+    sessionCaptureMode = null;
     commit();
   },
 
@@ -801,9 +854,10 @@ const actions = {
   quickStart(id) {
     const projects = activeProjects();
     if (state.active || !projects.length) return;
-    state.active = { startedAt: null, segments: [], breaks: [] };
+    state.active = { id: uid(), startedAt: null, segments: [], breaks: [] };
     view = "session";
     addOpen = false;
+    sessionCaptureMode = null;
     askMotionPermission();
     save();
     const p = projects.find((x) => x.id === id) ?? projects[0];
@@ -1321,6 +1375,7 @@ function renderHome() {
   const projects = activeProjects();
   const archived = archivedProjects();
   const st = streakDays();
+  const noteCount = allNotes().length;
 
   const todayHtml = t.count
     ? `<div class="today-strip">
@@ -1507,7 +1562,45 @@ function renderHome() {
       </button>
       <p class="cta-hint">${projects.length ? "Then tap a project to begin focusing." : "Add a project first."}</p>
     </div>
+    <button class="notes-wall-link" data-action="openNotes" aria-label="Open all notes, ${noteCount} saved">
+      <span class="notes-wall-icon">${ICONS.note}</span>
+      <span><b>Notes wall</b><small>Ideas captured without switching</small></span>
+      <strong>${noteCount}</strong>${ICONS.chevron}
+    </button>
     ${historyHtml}
+  `;
+}
+
+/* ---------- Notes wall ---------- */
+
+function noteCardHtml(note, { showSessionLink = true } = {}) {
+  const project = noteProject(note);
+  const slot = noteSlot(note);
+  const projectName = project ? project.name : note.projectName;
+  const sessionExists = state.sessions.some((session) => session.id === note.sessionId);
+  return `<article class="post-it" style="--pc: var(--cat-${slot})">
+    <button class="post-it-delete" data-action="deleteNote" data-id="${note.id}" aria-label="Delete note">×</button>
+    ${projectName ? `<span class="post-it-project">${dotHtml(slot)}${esc(projectName)}</span>` : '<span class="post-it-project">Session idea</span>'}
+    <p>${esc(note.text)}</p>
+    <footer>
+      <time datetime="${new Date(note.createdAt).toISOString()}">${fmtDay(note.createdAt)} · ${fmtTime(note.createdAt)}</time>
+      ${showSessionLink && sessionExists ? `<button data-action="openSession" data-id="${note.sessionId}">Open session</button>` : ""}
+    </footer>
+  </article>`;
+}
+
+function renderNotes() {
+  const notes = [...allNotes()].sort((a, b) => b.createdAt - a.createdAt);
+  return `
+    <div class="hub-nav"><button class="pill pill-quiet" data-action="goHome">← Home</button></div>
+    <div class="notes-head">
+      <span class="sec-label">All captured ideas</span>
+      <h1>Notes wall</h1>
+      <p>${notes.length ? `${notes.length} ${notes.length === 1 ? "idea" : "ideas"}, saved without interrupting attention.` : "Ideas you capture during a session will gather here."}</p>
+    </div>
+    ${notes.length
+      ? `<section class="notes-wall" aria-label="All session notes">${notes.map((note) => noteCardHtml(note)).join("")}</section>`
+      : `<div class="empty-card notes-empty">During a session, tap <b>Note</b>, write the idea, and keep focusing. It won’t add an attention switch.</div>`}
   `;
 }
 
@@ -1671,10 +1764,54 @@ function renderSession() {
          </form>`
       : `<button class="add-card" data-action="openAdd" aria-label="Add a project to this session">${ICONS.plus}<span>Add project</span></button>`;
 
+  const captureProject = activeProj
+    || pausedProj
+    || (lastSeg ? state.projects.find((project) => project.id === lastSeg.p) : null)
+    || projects[0]
+    || null;
+  const projectOptions = projects
+    .map((project) => `<option value="${project.id}"${captureProject && project.id === captureProject.id ? " selected" : ""}>${esc(project.name)}</option>`)
+    .join("");
+  const captureForm = sessionCaptureMode === "task"
+    ? `<form class="session-capture-form" data-form="session-task">
+        <label for="session-task-project">Add task to</label>
+        <select id="session-task-project" name="project">${projectOptions}</select>
+        <label class="visually-hidden" for="session-task-text">New task</label>
+        <input id="session-task-text" name="task" type="text" maxlength="80" autocomplete="off" placeholder="What needs doing?" required />
+        <div class="session-capture-actions">
+          <button class="pill pill-dark" type="submit">Add task</button>
+          <button class="pill pill-quiet" type="button" data-action="closeSessionCapture">Cancel</button>
+        </div>
+      </form>`
+    : sessionCaptureMode === "note"
+      ? `<form class="session-capture-form note-form" data-form="session-note">
+          <div class="session-note-context">
+            ${captureProject ? `${dotHtml(captureProject.slot)}<span>While focusing on <b>${esc(captureProject.name)}</b></span>` : "Session idea"}
+          </div>
+          <label class="visually-hidden" for="session-note-text">Write an idea</label>
+          <textarea id="session-note-text" name="note" maxlength="500" placeholder="Write the idea before it disappears…" required></textarea>
+          <div class="session-capture-actions">
+            <button class="pill pill-dark" type="submit">Save note</button>
+            <button class="pill pill-quiet" type="button" data-action="closeSessionCapture">Cancel</button>
+          </div>
+        </form>`
+      : "";
+  const capturePanel = `<section class="session-capture" aria-label="Capture without switching">
+    <div class="session-capture-head">
+      <div><span class="sec-label">Capture without switching</span><small>Timer keeps running. This won’t count as a switch.</small></div>
+      <div class="session-capture-tabs">
+        <button class="${sessionCaptureMode === "task" ? "active" : ""}" data-action="openSessionCapture" data-mode="task" aria-expanded="${sessionCaptureMode === "task"}">${ICONS.task}<span>Task</span></button>
+        <button class="${sessionCaptureMode === "note" ? "active" : ""}" data-action="openSessionCapture" data-mode="note" aria-expanded="${sessionCaptureMode === "note"}">${ICONS.note}<span>Note</span></button>
+      </div>
+    </div>
+    ${captureForm}
+  </section>`;
+
   return `
     ${dial}
     <p class="grid-label sec-label">Tap where your attention goes</p>
     <div class="proj-grid">${cards}${addTile}</div>
+    ${capturePanel}
     <div class="controls-bar">
       <button class="pill pill-ghost" data-action="toggleBreak" ${started ? "" : "disabled"}>
         ${brk ? ICONS.play : ICONS.pause}${brk
@@ -1795,6 +1932,16 @@ function renderSummary() {
       </section>`
     : "";
 
+  const sessionNotes = allNotes()
+    .filter((note) => note.sessionId === rec.id)
+    .sort((a, b) => a.createdAt - b.createdAt);
+  const sessionNotesHtml = sessionNotes.length
+    ? `<section class="sum-section" aria-label="Ideas captured during this session">
+        <div class="chart-head"><h2 class="sec-label">Session notes</h2><span class="chart-max">${sessionNotes.length} ${sessionNotes.length === 1 ? "idea" : "ideas"}</span></div>
+        <div class="session-note-list">${sessionNotes.map((note) => noteCardHtml(note, { showSessionLink: false })).join("")}</div>
+      </section>`
+    : "";
+
   // Variable rewards: a flow word + whatever records this session happened to set
   const flow = flowRating(rec);
   const moments = momentsFor(rec);
@@ -1819,6 +1966,7 @@ function renderSummary() {
       <div class="strip-scale"><span>${fmtTime(rec.startedAt)}</span><span>${fmtTime(rec.endedAt)}</span></div>
     </section>
     ${reflectionsHtml}
+    ${sessionNotesHtml}
     <section class="sum-section" aria-label="Per-project breakdown">
       <h2 class="sec-label">Where it went</h2>
       ${shareBar}
@@ -2458,6 +2606,7 @@ function render() {
     view === "summary" ? renderSummary() :
     view === "trends" ? renderTrends() :
     view === "project" ? renderProjectHub() :
+    view === "notes" ? renderNotes() :
     renderHome();
 
   for (const heatmap of appEl.querySelectorAll(".heatmap-scroll")) {
@@ -3046,6 +3195,57 @@ document.addEventListener("submit", (e) => {
     return;
   }
 
+  const sessionTaskForm = e.target.closest('[data-form="session-task"]');
+  if (sessionTaskForm) {
+    e.preventDefault();
+    const projectSelect = sessionTaskForm.querySelector('select[name="project"]');
+    const input = sessionTaskForm.querySelector('input[name="task"]');
+    const project = projectSelect
+      ? state.projects.find((item) => item.id === projectSelect.value && !item.archivedAt)
+      : null;
+    const text = input ? input.value.trim() : "";
+    if (!state.active || !project || !text) return;
+    ensureProjectTasks(project).push({ id: uid(), text, done: false, createdAt: now(), completedAt: null });
+    sessionCaptureMode = null;
+    save();
+    render();
+    toast(`Task added to ${project.name}.`);
+    announce(`Task added to ${project.name}. Your attention stayed where it was.`);
+    return;
+  }
+
+  const sessionNoteForm = e.target.closest('[data-form="session-note"]');
+  if (sessionNoteForm) {
+    e.preventDefault();
+    const a = state.active;
+    const input = sessionNoteForm.querySelector('textarea[name="note"]');
+    const text = input ? input.value.trim() : "";
+    if (!a || !text) return;
+    if (!a.id) a.id = uid();
+    const current = openSeg(a);
+    const last = a.segments[a.segments.length - 1];
+    const reference = current || last;
+    const project = reference
+      ? state.projects.find((item) => item.id === reference.p) || null
+      : null;
+    ensureNotes().unshift({
+      id: uid(),
+      text,
+      createdAt: now(),
+      sessionId: a.id,
+      sessionStartedAt: a.startedAt,
+      projectId: project ? project.id : null,
+      projectName: project ? project.name : null,
+      projectSlot: project ? project.slot : 2,
+    });
+    sessionCaptureMode = null;
+    save();
+    render();
+    toast("Note saved. No attention switch added.");
+    announce("Note saved. Your attention path and switch count did not change.");
+    return;
+  }
+
   const taskForm = e.target.closest('[data-form="add-task"]');
   if (taskForm) {
     e.preventDefault();
@@ -3105,6 +3305,11 @@ document.addEventListener("keydown", (e) => {
   }
   if (e.key === "Escape" && addOpen) {
     addOpen = false;
+    render();
+    return;
+  }
+  if (e.key === "Escape" && sessionCaptureMode) {
+    sessionCaptureMode = null;
     render();
     return;
   }
