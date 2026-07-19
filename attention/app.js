@@ -69,7 +69,7 @@ const mobileMotion = matchMedia("(max-width: 720px), (pointer: coarse)");
 
 /* ---------- State ---------- */
 
-const STARTER_PROJECTS = [
+const LEGACY_STARTER_PROJECTS = [
   { id: "starter-mindspend", name: "Mindspend", slot: 0 },
   { id: "starter-jovey-blog", name: "Jovey blog", slot: 1 },
   { id: "starter-read-books", name: "Read books", slot: 2 },
@@ -78,18 +78,46 @@ const STARTER_PROJECTS = [
   { id: "starter-attention-switching", name: "Attention switching", slot: 5 },
 ];
 
-function starterProjects() {
-  const seededAt = Date.now();
-  return STARTER_PROJECTS.map((project, index) => ({
-    ...project,
-    createdAt: seededAt + index,
-    tasks: [],
-  }));
+function removeUntouchedStarterProjects(stored) {
+  if (stored.active) return stored;
+
+  const referencedIds = new Set();
+  for (const session of Array.isArray(stored.sessions) ? stored.sessions : []) {
+    for (const project of Array.isArray(session.perProject) ? session.perProject : []) {
+      if (project.id) referencedIds.add(project.id);
+    }
+    for (const segment of Array.isArray(session.segments) ? session.segments : []) {
+      if (segment.id || segment.p) referencedIds.add(segment.id || segment.p);
+    }
+    for (const event of Array.isArray(session.switchEvents) ? session.switchEvents : []) {
+      if (event.fromId) referencedIds.add(event.fromId);
+      if (event.toId) referencedIds.add(event.toId);
+    }
+  }
+  for (const note of Array.isArray(stored.notes) ? stored.notes : []) {
+    if (note.projectId) referencedIds.add(note.projectId);
+  }
+
+  const projects = stored.projects.filter((project) => {
+    const starter = LEGACY_STARTER_PROJECTS.find((item) => item.id === project.id);
+    if (!starter) return true;
+    const untouched = project.name === starter.name
+      && project.slot === starter.slot
+      && !project.archivedAt
+      && (!Array.isArray(project.tasks) || project.tasks.length === 0)
+      && !referencedIds.has(project.id);
+    return !untouched;
+  });
+
+  if (projects.length === stored.projects.length) return stored;
+  const migrated = { ...stored, projects };
+  localStorage.setItem(KEY, JSON.stringify(migrated));
+  return migrated;
 }
 
 function defaults() {
   return {
-    projects: starterProjects(),
+    projects: [],
     active: null,
     sessions: [],
     notes: [],
@@ -102,7 +130,7 @@ function defaults() {
 function load() {
   try {
     const s = JSON.parse(localStorage.getItem(KEY));
-    if (s && Array.isArray(s.projects)) return { ...defaults(), ...s };
+    if (s && Array.isArray(s.projects)) return { ...defaults(), ...removeUntouchedStarterProjects(s) };
   } catch (_) { /* corrupted storage — start fresh */ }
   return defaults();
 }

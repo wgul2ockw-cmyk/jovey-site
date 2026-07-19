@@ -23,8 +23,9 @@ This release adds session-safe capture:
   unsupported or denied requests fall back to the normal app view.
 - Launching an installed copy requests manifest-level fullscreen, with
   standalone display as the platform fallback.
-- Fresh local storage is seeded with six mock projects for the current product
-  demo; existing saved project lists remain unchanged.
+- Fresh local storage starts empty. A compatibility cleanup removes only
+  untouched legacy mock projects; any starter project with user activity or
+  customization is preserved.
 - Switch reflection asks for the feeling behind each move in one step. Manual
   feelings are retained locally as reusable tappable cards.
 
@@ -63,7 +64,7 @@ The app is intentionally framework-free:
   placement, colors, and motion remain identical between layers.
 - `manifest.json` — installable web-app metadata.
 - `sw.js` — offline stale-while-revalidate cache. Current cache generation:
-  `attention-switch-v50`.
+  `attention-switch-v52`.
 - `README.md` — product behavior and detailed particle-model documentation in
   the standalone source folder.
 
