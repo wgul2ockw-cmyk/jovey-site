@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="ENNEAGAME">
+  <defs>
+    <linearGradient id="eg-gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E8C97A"/>
+      <stop offset="1" stop-color="#C9A84C"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" fill="#080709"/>
+  <rect width="128" height="128" fill="#12101A" opacity="0.85"/>
+  <g fill="none" stroke="url(#eg-gold)" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="64" cy="64" r="40" stroke-width="2.4" opacity="0.9"/>
+    <polygon points="64,24 98.64,84 29.36,84" stroke-width="2.2" opacity="0.75"/>
+    <polygon points="89.71,33.36 77.68,101.59 103.39,57.05 38.29,33.36 50.32,101.59 24.61,57.05" stroke-width="2.2" opacity="0.75"/>
+  </g>
+  <g fill="url(#eg-gold)">
+    <circle cx="64" cy="24" r="4.2"/>
+    <circle cx="89.71" cy="33.36" r="3.2"/>
+    <circle cx="103.39" cy="57.05" r="3.2"/>
+    <circle cx="98.64" cy="84" r="3.2"/>
+    <circle cx="77.68" cy="101.59" r="3.2"/>
+    <circle cx="50.32" cy="101.59" r="3.2"/>
+    <circle cx="29.36" cy="84" r="3.2"/>
+    <circle cx="24.61" cy="57.05" r="3.2"/>
+    <circle cx="38.29" cy="33.36" r="3.2"/>
+  </g>
+</svg>
