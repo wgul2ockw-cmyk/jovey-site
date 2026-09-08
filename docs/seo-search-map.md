@@ -10,7 +10,7 @@ This release adds a useful project directory and two guides, makes Jovey and its
 
 ## Keyword-to-page map
 
-Priority is based on product relevance and intent, not measured search volume. All current ranks, volume, and difficulty are **unavailable**: no Search Console, Ahrefs, or Semrush dataset was connected. Query variants in a row share one destination; they do not need separate near-duplicate pages.
+Priority is based on product relevance and intent, not measured search volume. At planning time no Search Console, Ahrefs, or Semrush dataset was connected; the query families below are editorial targets, not a list of measured rankings. The owner’s Search Console property was subsequently accessed in the browser during release verification. Search volume and keyword difficulty remain unmeasured. Query variants in a row share one destination; they do not need separate near-duplicate pages.
 
 | Search query / family | Intent | Priority | Primary Jovey destination |
 | --- | --- | --- | --- |
@@ -54,13 +54,13 @@ Broad Enneagram tests belong primarily on enneagame.app. Broad budget tracking a
 
 ## Measurement and remaining work
 
-After deployment, use the verified jovey.co Search Console property to submit `https://jovey.co/sitemap.xml` and inspect the homepage, project hub, both new guides, MindSpend story, and Attention app. A sitemap submission is not guaranteed indexing. Ownership credentials must come from the actual Search Console property; do not invent verification tokens or submit guessed credentials.
+Release verification: the update was published through PR #15, and all 18 public pages plus six supporting resources returned HTTP 200 with contents matching the tested release. The updated `https://jovey.co/sitemap.xml` was submitted through the verified jovey.co domain property on September 8, 2026. Search Console reported **Success**, a last-read date of September 8, and **18 discovered pages**. Inspect the homepage, project hub, both new guides, MindSpend story, and Attention app as Google processes the update. A sitemap submission is not guaranteed indexing. Ownership credentials must come from the actual Search Console property; do not invent verification tokens or submit guessed credentials.
 
 Save the prior 28 days of clicks, impressions, CTR and average position, then compare subsequent 28-day periods by page, brand queries, project queries, language and device. Filter brand queries with a case-insensitive expression such as `jovey|enneagame|attention switch|mindspend|aznr|thitipong`. Separate the Attention app from its guide because their intents differ. Changes in impressions may reflect demand or indexing rather than a ranking improvement.
 
 Next content investments should follow actual query data: expand the thin Vitality hub when real articles are available; add independently authored project examples; only add English pages when they contain a complete translation and can have reciprocal hreflang. Search result samples included an unrelated mindspend.app product, so preserve mindspend.co as the explicitly named Jovey destination.
 
-Access observed before implementation: Jovey and MindSpend returned HTTP 200 directly. ENNEAGAME returned HTTP 403 from this environment, so its live app and unverified deep links were not claimed as tested. The Jovey production homepage and existing project descriptions support the ENNEAGAME relationship. Keyword positions, backlink profiles, competitor traffic and field performance remain unmeasured.
+Access observed before implementation: Jovey and MindSpend returned HTTP 200 directly. ENNEAGAME returned HTTP 403 from this environment, so its live app and unverified deep links were not claimed as tested. The Jovey production homepage and existing project descriptions support the ENNEAGAME relationship. A private aggregate performance baseline was read from Search Console during release verification; it is not published in this repository. Per-target keyword rankings, backlink profiles, competitor traffic and field performance were not established by this work.
 
 ## Primary guidance
 
