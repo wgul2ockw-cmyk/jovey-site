@@ -3,10 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jovey — Every Journey's Companion, Every Soul's Completion</title>
-<meta name="description" content="Jovey — เพื่อนร่วมทางในการเติบโต ทั้งภายนอกและภายใน. Every Journey's Companion, Every Soul's Completion. Personal, Spiritual & Vitality Growth.">
-<meta name="keywords" content="Jovey, Jovey.co, personal growth, spiritual growth, vitality growth, เติบโต, จิตวิญญาณ, เพื่อนคู่ใจ">
-<meta name="robots" content="index, follow">
+<title>Jovey — ENNEAGAME, Attention Switch &amp; MindSpend</title>
+<meta name="description" content="Jovey รวมบทความและเครื่องมือเพื่อการเติบโต: ENNEAGAME สำรวจนพลักษณ์, Attention Switch จับเวลาความสนใจ และ MindSpend เข้าใจพฤติกรรมการใช้เงิน">
+<meta name="robots" content="index, follow, max-image-preview:large">
 <link rel="canonical" href="https://jovey.co/">
 <link rel="icon" href="assets/logo.png" type="image/png">
 <link rel="apple-touch-icon" href="assets/logo.png">
@@ -14,25 +13,120 @@
 <!-- Open Graph / social share -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Jovey">
-<meta property="og:title" content="Jovey — Every Journey's Companion, Every Soul's Completion">
-<meta property="og:description" content="เพื่อนร่วมทางในการเติบโต ทั้งภายนอกและภายใน — Personal, Spiritual & Vitality Growth.">
+<meta property="og:title" content="Jovey — ENNEAGAME, Attention Switch &amp; MindSpend">
+<meta property="og:description" content="Jovey รวมบทความและเครื่องมือเพื่อการเติบโต: ENNEAGAME สำรวจนพลักษณ์, Attention Switch จับเวลาความสนใจ และ MindSpend เข้าใจพฤติกรรมการใช้เงิน">
 <meta property="og:url" content="https://jovey.co/">
-<meta property="og:image" content="https://jovey.co/assets/orb-rainbow.png">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Jovey — Every Journey's Companion, Every Soul's Completion">
-<meta name="twitter:description" content="เพื่อนร่วมทางในการเติบโต ทั้งภายนอกและภายใน — Personal, Spiritual & Vitality Growth.">
-<meta name="twitter:image" content="https://jovey.co/assets/orb-rainbow.png">
+<meta property="og:image" content="https://jovey.co/assets/jovey-projects-og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Jovey — ENNEAGAME, Attention Switch &amp; MindSpend">
+<meta name="twitter:description" content="Jovey รวมบทความและเครื่องมือเพื่อการเติบโต: ENNEAGAME สำรวจนพลักษณ์, Attention Switch จับเวลาความสนใจ และ MindSpend เข้าใจพฤติกรรมการใช้เงิน">
+<meta name="twitter:image" content="https://jovey.co/assets/jovey-projects-og.png">
 
 <!-- structured data: helps Google understand the brand -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "Jovey",
-  "url": "https://jovey.co/",
-  "logo": "https://jovey.co/assets/logo.png",
-  "slogan": "Every Journey's Companion, Every Soul's Completion.",
-  "subjectOf": {"@type":"WebPage","url":"https://jovey.co/mindspend/","name":"MindSpend — a Jovey project"}
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://jovey.co/#organization",
+      "name": "Jovey",
+      "alternateName": [
+        "Jovey Co.",
+        "Jovey.co"
+      ],
+      "url": "https://jovey.co/",
+      "logo": "https://jovey.co/assets/logo.png",
+      "slogan": "Every Journey’s Companion, Every Soul’s Completion.",
+      "founder": {
+        "@type": "Person",
+        "@id": "https://jovey.co/about/#person",
+        "name": "Thitipong Nonnoi",
+        "alternateName": "Aznr",
+        "url": "https://jovey.co/about/"
+      },
+      "subjectOf": {
+        "@type": "CollectionPage",
+        "url": "https://jovey.co/projects/",
+        "name": "Jovey Projects"
+      }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://jovey.co/#website",
+      "name": "Jovey",
+      "alternateName": [
+        "Jovey Co.",
+        "Jovey.co"
+      ],
+      "url": "https://jovey.co/",
+      "inLanguage": "th",
+      "publisher": {
+        "@id": "https://jovey.co/#organization"
+      }
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://jovey.co/#webpage",
+      "url": "https://jovey.co/",
+      "name": "Jovey — ENNEAGAME, Attention Switch & MindSpend",
+      "description": "Jovey รวมบทความและเครื่องมือเพื่อการเติบโต: ENNEAGAME สำรวจนพลักษณ์, Attention Switch จับเวลาความสนใจ และ MindSpend เข้าใจพฤติกรรมการใช้เงิน",
+      "isPartOf": {
+        "@id": "https://jovey.co/#website"
+      },
+      "about": {
+        "@id": "https://jovey.co/#organization"
+      },
+      "mentions": [
+        {
+          "@id": "https://enneagame.app/#app"
+        },
+        {
+          "@id": "https://jovey.co/attention/#app"
+        },
+        {
+          "@id": "https://mindspend.co/#app"
+        }
+      ]
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://enneagame.app/#app",
+      "name": "ENNEAGAME",
+      "alternateName": "Enneagame",
+      "url": "https://enneagame.app/",
+      "applicationCategory": "GameApplication",
+      "operatingSystem": "Web browser",
+      "creator": {
+        "@id": "https://jovey.co/#organization"
+      },
+      "description": "เกมสำรวจตัวเองผ่านแบบทดสอบนพลักษณ์ (Enneagram) ในเส้นทางของ Jovey"
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://jovey.co/attention/#app",
+      "name": "Attention Switch",
+      "url": "https://jovey.co/attention/",
+      "applicationCategory": "ProductivityApplication",
+      "operatingSystem": "Web browser",
+      "creator": {
+        "@id": "https://jovey.co/#organization"
+      },
+      "description": "เครื่องมือจับเวลารายโปรเจกต์และบันทึกการสลับความสนใจของ Jovey"
+    },
+    {
+      "@type": "MobileApplication",
+      "@id": "https://mindspend.co/#app",
+      "name": "MindSpend",
+      "url": "https://mindspend.co/",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "iOS",
+      "creator": {
+        "@id": "https://jovey.co/#organization"
+      },
+      "description": "แอปบันทึกรายรับรายจ่ายและทบทวนพฤติกรรมการใช้เงินในเส้นทางของ Jovey"
+    }
+  ]
 }
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -384,7 +478,19 @@
     color: var(--muted);
     font-size: 13px;
   }
+  .hero h1 { max-width:100%; overflow-wrap:anywhere; }
+  .hero-brand { display:block; font:600 clamp(16px,2vw,20px)/1.6 'Anuphan',sans-serif; margin-bottom:24px; color:var(--blue); }
+  .brand-intro { max-width:720px; margin:28px auto 0; font-size:clamp(16px,2vw,19px); line-height:1.85; }
+  .brand-intro a, .brand-questions a { text-underline-offset:4px; }
+  .brand-questions h3 { font-size:22px; margin:28px 0 12px; }
+  .brand-questions p { font-size:17px; line-height:1.9; max-width:800px; }
+  @media(max-width:760px) { nav { flex-wrap:wrap; } nav .links { flex-wrap:wrap; justify-content:flex-end; row-gap:14px; } }
 </style>
+<meta property="og:locale" content="th_TH">
+<meta property="og:image:alt" content="Jovey — ENNEAGAME, Attention Switch และ MindSpend">
+<meta name="twitter:image:alt" content="Jovey — ENNEAGAME, Attention Switch และ MindSpend">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 </head>
 <body>
 
@@ -400,14 +506,15 @@
       <a class="plain" href="#growth">Growth</a>
       <a class="plain" href="about/">About</a>
       <a class="plain" href="blog/">Blog</a>
-      <a class="plain" href="map/">Map</a>
+      <a class="plain" href="/projects/">Projects</a>
       <a class="pill small" href="https://mindspend.co/" target="_blank" rel="noopener">MindSpend <svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
     </div>
   </nav>
 
   <section class="hero" id="top">
     <div class="orb"><img src="assets/orb-rainbow.png" alt=""></div>
-    <h1>&ldquo;Every Journey&rsquo;s Companion,<br>Every Soul&rsquo;s Completion.&rdquo;</h1>
+    <h1><span class="hero-brand">Jovey · เติบโตไปด้วยกัน</span>&ldquo;Every Journey&rsquo;s Companion,<br>Every Soul&rsquo;s Completion.&rdquo;</h1>
+    <p class="brand-intro">Jovey คือพื้นที่สำหรับการเติบโตและเข้าใจตัวเอง ผ่าน <a href="/projects/enneagame/">ENNEAGAME</a>, <a href="/projects/attention-switch/">Attention Switch</a> และ <a href="/mindspend/">MindSpend</a></p>
     <p class="thai">
       ทุกการเดินทางของทุกจิตวิญญาณล้วนมีจุดจบ<br>
       ผม ในฐานะเพื่อนร่วมทางคนนึง<br>
@@ -416,7 +523,7 @@
       ขอบคุณโชคชะตาที่ทำให้เราได้เดินทางมาเจอกัน ณ ปัจจุบัน
     </p>
     <div class="ctas">
-      <a class="pill big" href="about/">About Us</a>
+      <a class="pill big" href="/projects/">สำรวจโครงการของ Jovey</a>
       <a class="pill big ghost" href="https://mindspend.co/" target="_blank" rel="noopener">MindSpend <svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
     </div>
   </section>
@@ -466,8 +573,9 @@
       <div class="ms-icon"><img src="attention/icon.svg" alt="Attention Switch"></div>
       <div class="ms-body">
         <span class="sec-label">A Focus Companion</span>
-        <h3>Attention Switch</h3>
+        <h3>Attention Switch — จับเวลาความสนใจ</h3>
         <p>แอปจับเวลาความสนใจ — เริ่มเซสชัน แตะโปรเจกต์ที่กำลังทำ แล้วเวลาก็เริ่มเดิน สลับงานเมื่อไหร่ก็แตะอีกครั้ง จบวันมาดูกันครับ ว่าเวลาและความสนใจของเราไปอยู่ที่ไหนบ้าง</p>
+        <p><a href="/projects/attention-switch/">วิธีใช้ Attention Switch และอ่านสรุปการสลับงาน</a></p>
         <a class="pill big" href="attention/">เปิด Attention Switch <svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
       </div>
     </div>
@@ -478,13 +586,19 @@
       <div class="ms-icon"><img src="assets/enneagame-icon.svg" alt="ENNEAGAME — แบบทดสอบนพลักษณ์"></div>
       <div class="ms-body">
         <span class="sec-label">A Mirror for the Self</span>
-        <h3>ENNEAGAME</h3>
-        <p>เกมสำรวจตัวเอง — แบบทดสอบนพลักษณ์ (Enneagram) ที่ปรับคำถามตามคำตอบของคุณไปเรื่อยๆ จนเจอลักษณ์ที่ใช่ แล้วเปิดดวงประจำวันเฉพาะลักษณ์ พร้อมหอคัมภีร์ให้อ่านต่อ ในวันที่อยากรู้จักตัวเองให้ลึกขึ้นอีกนิด</p>
+        <h3>ENNEAGAME — แบบทดสอบนพลักษณ์</h3>
+        <p>เกมสำรวจตัวเอง — แบบทดสอบนพลักษณ์ (Enneagram) ที่ปรับคำถามตามคำตอบของคุณไปเรื่อยๆ เพื่อช่วยสำรวจลักษณ์ที่อาจใกล้กับคุณ แล้วเปิดดวงประจำวันเฉพาะลักษณ์ พร้อมหอคัมภีร์ให้อ่านต่อ ในวันที่อยากรู้จักตัวเองให้ลึกขึ้นอีกนิด</p>
+        <p><a href="/projects/enneagame/">รู้จัก ENNEAGAME และแนวทางอ่านผลนพลักษณ์</a></p>
         <a class="pill big" href="https://enneagame.app/" target="_blank" rel="noopener">เปิด ENNEAGAME <svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
       </div>
     </div>
   </section>
 
+  <section class="block brand-questions" aria-labelledby="jovey-questions"><div class="sec-head"><span class="sec-label">Get to know Jovey</span><h2 class="sec-title" id="jovey-questions">เริ่มเดินทางกับ Jovey</h2></div>
+    <h3>Jovey คืออะไร</h3><p>Jovey คือพื้นที่แบ่งปันเรื่องราวและเครื่องมือเพื่อการเติบโตของ Aznr (Thitipong Nonnoi) ครอบคลุม Personal Growth, Spiritual Growth และ Vitality Growth อ่านความเป็นมาที่<a href="/about/">เกี่ยวกับ Jovey</a></p>
+    <h3>ENNEAGAME, Attention Switch และ MindSpend เกี่ยวข้องกันอย่างไร</h3><p>ทั้งสามเป็นโครงการในเส้นทางของ Jovey: ENNEAGAME สำรวจตัวเองผ่านนพลักษณ์, Attention Switch ช่วยบันทึกเวลาและการสลับงาน และ MindSpend ชวนทบทวนพฤติกรรมการใช้เงิน แต่ละแอปทำงานแยกกัน เลือกเริ่มจาก<a href="/projects/">เครื่องมือที่ตรงกับเรื่องที่อยากเข้าใจ</a></p>
+    <h3>อยากอ่านก่อนใช้แอป เริ่มตรงไหน</h3><p>อ่าน<a href="/blog/">บทความ Jovey</a> หรือเปิด<a href="/map/">แผนที่บทความ</a>เพื่อเลือกเรื่องตามความสนใจ ตั้งแต่การเล่าเรื่อง การเรียนรู้สู่การเปลี่ยนแปลง ไปจนถึงการอยู่กับปัจจุบัน</p>
+  </section>
   <footer>
     <img src="assets/logo.png" alt="Jovey logo">
     <div class="tagline">Every Journey's Companion, Every Soul's Completion.</div>
@@ -494,6 +608,7 @@
       <a href="about/">About</a>
       <a href="blog/">Blog</a>
       <a href="map/">Map</a>
+      <a href="/projects/">Projects</a>
       <a href="https://mindspend.co/" target="_blank" rel="noopener">MindSpend <svg class="link-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
     </div>
     <div class="copy">© 2026 Jovey Co.</div>

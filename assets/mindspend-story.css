@@ -4,3 +4,5 @@
 @media(max-width:700px){.guide-nav{align-items:flex-start}.guide-nav .links{gap:10px 16px;justify-content:flex-end;max-width:190px}.guide-hero{grid-template-columns:1fr;gap:16px}.guide-mark{width:110px;grid-row:1}.guide-shell{padding:22px 20px 48px}.contents ul{columns:1}.related{grid-template-columns:1fr}.lead{font-size:18px}h1{font-size:36px;overflow-wrap:anywhere}th,td{padding:10px}.guide-nav{padding:18px 20px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
 @media print{.guide-nav,.actions,.guide-mark,.related{display:none}.guide-shell{padding:0;max-width:none}body{background:white;font-size:12pt}a{color:inherit}.guide-hero{display:block}details{break-inside:avoid}h1{font-size:28pt}.guide-body section{break-inside:auto}}
+/* Let project navigation and footer links wrap at enlarged text sizes. */
+.guide-nav{flex-wrap:wrap}.guide-nav .links{max-width:100%}.guide-footer a{display:inline-block;max-width:100%;overflow-wrap:anywhere}
