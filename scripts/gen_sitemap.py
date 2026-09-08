@@ -17,12 +17,14 @@ import os
 import sys
 import subprocess
 import datetime
+from html.parser import HTMLParser
 
 BASE = "https://jovey.co"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # (url path, changefreq, priority). Blog posts + growth are discovered dynamically.
 SECTIONS = [
+    ("/projects/", "monthly", "0.9", "projects/index.html"),
     ("/mindspend/", "monthly", "0.7", "mindspend/index.html"),
     ("/", "monthly", "1.0", "index.html"),
     ("/about/", "monthly", "0.8", "about/index.html"),
@@ -34,6 +36,11 @@ SECTIONS = [
 
 def git_date(relpath):
     try:
+        dirty = subprocess.run(
+            ["git", "-C", ROOT, "status", "--porcelain", "--", relpath],
+            capture_output=True, text=True, timeout=10)
+        if dirty.stdout.strip():
+            return datetime.date.today().isoformat()
         out = subprocess.run(
             ["git", "-C", ROOT, "log", "-1", "--format=%cs", "--", relpath],
             capture_output=True, text=True, timeout=10)
@@ -65,10 +72,19 @@ def build():
     urls = list(SECTIONS)
     urls += discover("growth", "monthly", "0.8")
     urls += discover("blog", "monthly", "0.7")  # individual posts
+    urls += discover("projects", "monthly", "0.8")
     # de-dupe keeping first (SECTIONS win over discovery, e.g. /blog/)
     seen, ordered = set(), []
     for u in urls:
         if u[0] in seen:
+            continue
+        page = os.path.join(ROOT, u[3])
+        if not os.path.isfile(page):
+            continue
+        parser = Indexability()
+        with open(page, encoding="utf-8") as f:
+            parser.feed(f.read())
+        if parser.noindex or parser.redirect or parser.canonical != BASE + u[0]:
             continue
         seen.add(u[0])
         ordered.append(u)
@@ -86,6 +102,23 @@ def build():
         ]
     lines.append("</urlset>")
     return "\n".join(lines) + "\n", len(ordered)
+
+
+class Indexability(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.noindex = False
+        self.redirect = False
+        self.canonical = None
+
+    def handle_starttag(self, tag, attrs):
+        a = dict(attrs)
+        if tag == 'meta':
+            if a.get('name', '').lower() in ('robots', 'googlebot'):
+                self.noindex |= 'noindex' in a.get('content', '').lower()
+            self.redirect |= a.get('http-equiv', '').lower() == 'refresh'
+        if tag == 'link' and a.get('rel') == 'canonical':
+            self.canonical = a.get('href')
 
 
 def main():

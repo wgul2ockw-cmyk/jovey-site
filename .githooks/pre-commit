@@ -14,7 +14,7 @@ if [ -n "$assets" ]; then
 fi
 
 # 2) sitemap — any page add/edit/remove
-if printf '%s\n' "$staged" | grep -qE '^(index\.html|about/|map/|attention/index\.html|blog/|growth/)'; then
+if printf '%s\n' "$staged" | grep -qE '^(index\.html|about/|map/|attention/index\.html|blog/|growth/|projects/|mindspend/|scripts/gen_sitemap\.py)'; then
   python3 "$ROOT/scripts/gen_sitemap.py" >&2 && git add "$ROOT/sitemap.xml"
 fi
 

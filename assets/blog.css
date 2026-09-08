@@ -596,3 +596,10 @@ button.pill { cursor: pointer; border: 0; -webkit-appearance: none; appearance: 
 .map-launch .map-ico { width: 18px; height: 18px; }
 .map-launch .pill.ghost { color: var(--ink); }
 .map-launch .pill.ghost:hover { border-color: #cdd5df; color: var(--blue); }
+
+/* Project discovery remains readable with wrapped mobile navigation. */
+.project-bridge { padding-top:36px; padding-bottom:40px; line-height:1.9; }
+.project-bridge h2 { font-size:24px; margin-bottom:14px; }
+.project-bridge p { font-size:17px; max-width:850px; }
+.project-bridge a { text-underline-offset:4px; }
+@media(max-width:760px) { nav { flex-wrap:wrap; } nav .links { flex-wrap:wrap; justify-content:flex-end; row-gap:14px; } }
