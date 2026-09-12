@@ -1,12 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
   <title>Attention Switch — particle swarm logo</title>
-  <desc>Frozen 792-dash swarm in two concentric layers; the whole formation rotates as a single CSS transform.</desc>
+  <desc>Static 792-dash swarm in two concentric layers, with no animation or continuous repainting.</desc>
   <style>
-    .logo-system{transform-origin:160px 160px;animation:formation-turn 42s linear infinite}
+    .logo-system{transform-origin:160px 160px;transform:scale(1.08)}
     #swarm line{stroke-linecap:round;stroke-width:2.7;vector-effect:non-scaling-stroke}
     .density-layer{opacity:.62;pointer-events:none}
-    @keyframes formation-turn{from{transform:rotate(0deg) scale(1.08)}to{transform:rotate(360deg) scale(1.08)}}
-    @media(prefers-reduced-motion:reduce){.logo-system{animation:none;transform:scale(1.08)}}
   </style>
   <g class="logo-system">
     <g id="swarm">
