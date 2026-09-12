@@ -24,13 +24,13 @@ Priority is based on product relevance and intent, not measured search volume. A
 | Enneagame คืออะไร | Product information | High | /projects/enneagame/ |
 | แบบทดสอบนพลักษณ์ Jovey | Product discovery | High | /projects/enneagame/ |
 | วิธีอ่านผล ENNEAGAME | Product help | High | /projects/enneagame/ |
-| Jovey Attention | Product navigation | High | /projects/attention-switch/ |
-| Attention Switch by Jovey | Product navigation | High | /attention/ |
-| Attention Switch วิธีใช้ | Product help | High | /projects/attention-switch/ |
-| แอปจับเวลาความสนใจ | Tool discovery | High | /projects/attention-switch/ |
-| จับเวลารายโปรเจกต์ | Tool discovery | High | /projects/attention-switch/ |
-| บันทึกการสลับงาน | Tool discovery | High | /projects/attention-switch/ |
-| Attention Switch time tracker | Tool use | High | /attention/ |
+| Jovey Attention | Product navigation | High | /projects/attention-go/ |
+| Attention Go by Jovey | Product navigation | High | /attention/ |
+| Attention Go วิธีใช้ | Product help | High | /projects/attention-go/ |
+| แอปจับเวลาความสนใจ | Tool discovery | High | /projects/attention-go/ |
+| จับเวลารายโปรเจกต์ | Tool discovery | High | /projects/attention-go/ |
+| บันทึกการสลับงาน | Tool discovery | High | /projects/attention-go/ |
+| Attention Go time tracker | Tool use | High | /attention/ |
 | Jovey MindSpend | Product navigation | High | /mindspend/ |
 | MindSpend by Jovey | Product information | High | /mindspend/ |
 | MindSpend พฤติกรรมการใช้เงิน | Product information | High | /mindspend/ |
@@ -56,7 +56,7 @@ Broad Enneagram tests belong primarily on enneagame.app. Broad budget tracking a
 
 Release verification: the update was published through PR #15, and all 18 public pages plus six supporting resources returned HTTP 200 with contents matching the tested release. The updated `https://jovey.co/sitemap.xml` was submitted through the verified jovey.co domain property on September 8, 2026. Search Console reported **Success**, a last-read date of September 8, and **18 discovered pages**. Inspect the homepage, project hub, both new guides, MindSpend story, and Attention app as Google processes the update. A sitemap submission is not guaranteed indexing. Ownership credentials must come from the actual Search Console property; do not invent verification tokens or submit guessed credentials.
 
-Save the prior 28 days of clicks, impressions, CTR and average position, then compare subsequent 28-day periods by page, brand queries, project queries, language and device. Filter brand queries with a case-insensitive expression such as `jovey|enneagame|attention switch|mindspend|aznr|thitipong`. Separate the Attention app from its guide because their intents differ. Changes in impressions may reflect demand or indexing rather than a ranking improvement.
+Save the prior 28 days of clicks, impressions, CTR and average position, then compare subsequent 28-day periods by page, brand queries, project queries, language and device. Filter brand queries with a case-insensitive expression such as `jovey|enneagame|attention (go|switch)|mindspend|aznr|thitipong`. Separate the Attention app from its guide because their intents differ. Changes in impressions may reflect demand or indexing rather than a ranking improvement.
 
 Next content investments should follow actual query data: expand the thin Vitality hub when real articles are available; add independently authored project examples; only add English pages when they contain a complete translation and can have reciprocal hreflang. Search result samples included an unrelated mindspend.app product, so preserve mindspend.co as the explicitly named Jovey destination.
 

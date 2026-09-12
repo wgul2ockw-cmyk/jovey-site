@@ -1,8 +1,8 @@
-# Attention Switch — Engineering Handoff
+# Attention Go — Engineering Handoff
 
 ## Current status
 
-Attention Switch is a device-local, static web app published at
+Attention Go is a device-local, static web app published at
 `https://jovey.co/attention/`. The production source lives in the Jovey site
 repository under `attention/`. It has no backend, account system, database, or
 build step. Optional Cloudflare Web Analytics visitor tracking is loaded only
@@ -66,7 +66,7 @@ The app is intentionally framework-free:
   painting on the website, app header, and favicon.
 - `manifest.json` — installable web-app metadata.
 - `sw.js` — offline stale-while-revalidate cache. Current cache generation:
-  `attention-switch-v59`.
+  `attention-go-v60`.
 - `README.md` — product behavior and detailed particle-model documentation in
   the standalone source folder.
 
@@ -74,6 +74,12 @@ There is no compilation step. Files in `attention/` are served directly by
 GitHub Pages.
 
 ## Persistence
+
+The Attention Go rename keeps the app at `/attention/` and retains the original
+storage key below, so existing installations, projects, notes, and sessions
+continue to work. Do not rename this key as part of branding changes.
+The product guide is now at `/projects/attention-go/`; the previous
+`/projects/attention-switch/` address redirects there, preserving query and hash.
 
 All durable data is JSON in `localStorage` under:
 
@@ -189,7 +195,7 @@ run:
 Production is the `main` branch of
 `https://github.com/wgul2ockw-cmyk/jovey-site.git`. The deployable files are
 under `attention/`; unrelated Jovey site files must not be staged with an
-Attention Switch release.
+Attention Go release.
 
 Deployment procedure:
 

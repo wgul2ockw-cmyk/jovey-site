@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# sync_attention.sh — bridge the standalone Attention Switch working copy into the repo.
+# sync_attention.sh — bridge the standalone Attention Go working copy into the repo.
 #
-# The app currently lives in two byte-identical places, kept in sync BY HAND:
-#   source:  ~/Downloads/Attention switch/   (not even a git repo)
+# Legacy source location (its folder name is retained for compatibility):
+#   legacy:  ~/Downloads/Attention switch/   (not even a git repo)
 #   deploy:  jovey-site/attention/            (served at jovey.co/attention/)
 #
 # Going forward, prefer editing jovey-site/attention/ directly — the pre-commit hook then

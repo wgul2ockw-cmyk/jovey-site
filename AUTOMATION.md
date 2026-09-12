@@ -20,7 +20,7 @@ Shared toolkit at **`~/llm-wiki-kit/`** (scripts central → one fix upgrades al
   **/dashboard /lint /ingest /review**, plus **/recall** in Fammed.
 - Run across all: `python3 ~/llm-wiki-kit/scripts/dashboard.py --all` · `… lint.py --all`
 
-### Family C — jovey-site + Attention Switch (this repo)
+### Family C — jovey-site + Attention Go (this repo)
 - `scripts/gen_sitemap.py` — rebuilds `sitemap.xml` from the tree (**was 7 URLs → now 14**,
   all 6 posts + `/attention/`, git `lastmod`).
 - `scripts/new_post.py` — one-command new post (page + OG/JSON-LD + blog card + sitemap).

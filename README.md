@@ -8,7 +8,7 @@ cursor background. Hosted on GitHub Pages at **https://jovey.co**.
 No build step — edit `index.html` and push to `main` to publish.
 
 The site includes articles, growth hubs, a project directory at `/projects/`,
-project guides, and the Attention Switch app at `/attention/`.
+project guides, and the Attention Go app at `/attention/`.
 
 Before publishing public-page changes, run:
 

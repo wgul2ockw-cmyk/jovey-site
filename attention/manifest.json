@@ -1,6 +1,6 @@
 {
-  "name": "Attention Switch",
-  "short_name": "Attention",
+  "name": "Attention Go",
+  "short_name": "Attention Go",
   "description": "Track where your attention goes — time per project and the number of switches between them.",
   "start_url": ".",
   "display": "fullscreen",

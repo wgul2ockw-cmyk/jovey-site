@@ -6,7 +6,7 @@ HANDOFF.md's hard invariant: "whenever an asset changes, bump the cache name in 
 installed PWAs serve stale code. That bump is pure discipline and easy to forget — this
 automates it (see the pre-commit hook in .githooks/pre-commit, which calls this).
 
-    attention-switch-v50  ->  attention-switch-v51
+    attention-go-v50  ->  attention-go-v51
 
 Usage:
     python3 scripts/bump_sw_cache.py [path/to/sw.js]   # default: attention/sw.js
@@ -17,7 +17,7 @@ import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PAT = re.compile(r'(attention-switch-v)(\d+)')
+PAT = re.compile(r'(attention-go-v)(\d+)')
 
 
 def main():
@@ -28,7 +28,7 @@ def main():
         text = f.read()
     m = PAT.search(text)
     if not m:
-        print(f"✗ no 'attention-switch-vN' found in {path}", file=sys.stderr)
+        print(f"✗ no 'attention-go-vN' found in {path}", file=sys.stderr)
         sys.exit(1)
     cur = int(m.group(2))
     nxt = cur + 1

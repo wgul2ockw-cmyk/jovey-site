@@ -8,7 +8,7 @@ just removes hand-work.
 |---|---|
 | `new_post.py` | Scaffold a blog post in one command: `blog/<slug>/index.html` (full head + Open Graph + JSON-LD), the `assets/blog/<slug>/` folder, a newest-first card in `blog/index.html`, and a sitemap entry. You add the cover image and write the body. |
 | `gen_sitemap.py` | Rebuild `sitemap.xml` from what actually exists (all posts + sections + `/attention/`), with `lastmod` from git. Fixes hand-maintained drift. |
-| `bump_sw_cache.py` | Increment the `attention-switch-vN` cache in `attention/sw.js` (HANDOFF.md's "bump on every asset change" invariant). |
+| `bump_sw_cache.py` | Increment the `attention-go-vN` cache in `attention/sw.js` (HANDOFF.md's "bump on every asset change" invariant). |
 | `sync_attention.sh` | Bridge the standalone `~/Downloads/Attention switch/` working copy into `attention/` and bump the cache. Prefer editing `attention/` directly going forward. |
 
 ## Examples

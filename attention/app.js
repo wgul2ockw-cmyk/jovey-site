@@ -1,5 +1,5 @@
 /* ============================================================
-   Attention Switch — app logic (Jovey theme)
+   Attention Go — app logic (Jovey theme)
    Timing is timestamp-based (Date.now), so clocks stay accurate
    across reloads and backgrounded tabs. State persists to
    localStorage on every mutation.
@@ -7,6 +7,7 @@
 
 "use strict";
 
+// Keep the original storage key so the Attention Go rename preserves all saved data.
 const KEY = "attention-switch:v1";
 const PROJECT_LIMIT = 9; // matches the nine stable Jovey color slots
 const MIN_SESSION_MS = 10_000;
@@ -2796,7 +2797,7 @@ function render() {
 function tick() {
   const a = state.active;
   if (!a) {
-    if (document.title !== "Attention Switch") document.title = "Attention Switch";
+    if (document.title !== "Attention Go") document.title = "Attention Go";
     return;
   }
   const t = now();
@@ -2852,11 +2853,11 @@ function tick() {
 
   if (seg) {
     const p = state.projects.find((x) => x.id === seg.p);
-    document.title = `${fmtClock(projSessionMs(a, seg.p, t))} · ${p ? p.name : ""} — Attention Switch`;
+    document.title = `${fmtClock(projSessionMs(a, seg.p, t))} · ${p ? p.name : ""} — Attention Go`;
   } else if (brk) {
-    document.title = "On a break — Attention Switch";
+    document.title = "On a break — Attention Go";
   } else {
-    document.title = "Session ready — Attention Switch";
+    document.title = "Session ready — Attention Go";
   }
 }
 
