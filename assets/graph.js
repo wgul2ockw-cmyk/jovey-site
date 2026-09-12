@@ -30,6 +30,7 @@
      Edit here to add posts. `cats` are the pillar ids (same as blog data-cats);
      `series` groups posts under a shared hub; `related` are thematic wikilinks.  */
   var POSTS = [
+    { id: 'pure-water-and-truth', en: 'Pure Water & Truth', th: 'น้ำบริสุทธิ์ มนุษย์ดื่มไม่ได้', cats: ['personal', 'spiritual'] },
     { id: 'transformative-learning',   en: 'Transformative Learning',    th: 'พลังแห่งการเรียนรู้สู่การเปลี่ยนแปลง', cats: ['personal', 'spiritual'], series: 'theory' },
     { id: 'three-part-structure',      en: 'Three-part Structure',       th: 'การเล่าเรื่องด้วย Three-part structure', cats: ['personal'],              series: 'theory' },
     { id: 'the-devil-we-share',        en: 'The Devil We Share',         th: 'ปีศาจ ของเราเป็นตัวเดียวกันไหม',        cats: ['personal'] },
@@ -39,6 +40,8 @@
   ];
   // thematic post↔post links (the "wiki" backbone) — [a, b]
   var RELATED = [
+    ['pure-water-and-truth', 'transformative-learning'],
+    ['pure-water-and-truth', 'the-power-of-now'],
     ['destiny-and-the-present', 'the-power-of-now'],       // ปัจจุบัน · the present moment
     ['the-power-of-now', '10-romanticize-your-process'],    // presence within the process
     ['transformative-learning', 'the-devil-we-share']       // reframing meaning · Rethink
