@@ -420,12 +420,6 @@
     transform: translateY(-4px);
     box-shadow: 0 30px 48px -28px rgba(40, 40, 60, 0.35);
   }
-  /* Attention stays still while its links are being read or used. */
-  .ms-card[data-field-static], .ms-card[data-field-static]:hover {
-    transition: none;
-    transform: none;
-    box-shadow: none;
-  }
   .ms-icon {
     flex: 0 0 auto;
     width: clamp(96px, 14vw, 148px);
@@ -575,8 +569,8 @@
   </section>
 
   <section class="block" id="attention">
-    <div class="ms-card" data-field-static>
-      <div class="ms-icon"><img src="attention/icon.svg" alt="Attention Switch"></div>
+    <div class="ms-card">
+      <div class="ms-icon"><img src="assets/attention-switch-logo.webp" alt="Attention Switch" width="148" height="148" decoding="async"></div>
       <div class="ms-body">
         <span class="sec-label">A Focus Companion</span>
         <h3>Attention Switch — จับเวลาความสนใจ</h3>
@@ -630,7 +624,7 @@
   //   • no spin — dashes hold fixed angles and point toward the cursor; gentle shimmer
   //   • hovering a card MORPHS the ring into that card's rounded-rect shape
   //     (same trailing physics); leaving eases it back to a cursor-following ring
-  //   • Attention's hover outline is painted once, with no animation loop
+  //   • eased follow (no spring) → smooth and never overshoots; responsive; 60fps via rAF
   const canvas = document.getElementById('field');
   const ctx = canvas.getContext('2d');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -707,7 +701,7 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     baseRadius = Math.min(W, H) * RING_FRAC;
     seed();
-    updateMotion();
+    if (reduceMotion.matches) drawStatic();   // reduced-motion: repaint the static ring
   }
 
   window.addEventListener('resize', resize);
@@ -716,15 +710,7 @@
     mouse.x = e.touches[0].clientX;
     mouse.y = e.touches[0].clientY;
   }, { passive: true });
-  window.addEventListener('pointerleave', () => {
-    mouse.x = -99999; mouse.y = -99999;
-    hoverEl = null;
-    updateMotion();
-  });
-  window.addEventListener('scroll', () => {
-    // The canvas is fixed: reposition a still outline only when the page moves.
-    if (hoverEl?.hasAttribute('data-field-static')) updateMotion();
-  }, { passive: true });
+  window.addEventListener('pointerleave', () => { mouse.x = -99999; mouse.y = -99999; });
 
   // hovering a homepage card morphs the ring into that card's rounded-rect shape;
   // leaving hands it back to the cursor. Cards are static → bind once.
@@ -735,40 +721,20 @@
       el.addEventListener('mouseenter', () => {
         hoverEl = el;
         hoverCR = parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0;
-        updateMotion();
       });
-      el.addEventListener('mouseleave', () => {
-        if (hoverEl === el) {
-          hoverEl = null;
-          updateMotion();
-        }
-      });
+      el.addEventListener('mouseleave', () => { if (hoverEl === el) hoverEl = null; });
     });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bindCards);
   else bindCards();
 
-  // One still ring, or Attention's outline: no cursor-follow, wobble, or loop.
-  function drawStatic(card = null) {
-    let centerX = cx, centerY = cy;
-    if (card) {
-      const r = card.getBoundingClientRect();
-      centerX = r.left + r.width / 2;
-      centerY = r.top + r.height / 2;
-      cardA = r.width / 2 + CARD_MARGIN;
-      cardB = r.height / 2 + CARD_MARGIN;
-      cardR = hoverCR + CARD_MARGIN;
-      morph = 1;
-    }
+  // reduced-motion: paint one calm, centred ring — no cursor-follow, no wobble, no loop
+  function drawStatic() {
     ctx.clearRect(0, 0, W, H);
     for (const p of particles) {
-      const ca = Math.cos(p.ang), sa = Math.sin(p.ang);
-      const reach = card ? rrDist(ca, sa, cardA, cardB, cardR) * p.radius / baseRadius : p.radius;
-      const x = centerX + ca * reach;
-      const y = centerY + sa * reach;
-      const ang = Math.atan2(centerY - y, centerX - x);
-      p.fx = centerX; p.fy = centerY;
-      p.x = x; p.y = y;
+      const x = cx + Math.cos(p.ang) * p.radius;
+      const y = cy + Math.sin(p.ang) * p.radius;
+      const ang = Math.atan2(cy - y, cx - x);
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(ang);
@@ -785,25 +751,9 @@
   }
 
   let lastT = performance.now() / 1000;
-  let frameId = 0;
-
-  function updateMotion() {
-    // A single owner prevents duplicate loops after hover/media/visibility changes.
-    cancelAnimationFrame(frameId);
-    frameId = 0;
-    if (document.hidden) return;
-    if (reduceMotion.matches) { drawStatic(); return; }
-    if (hoverEl?.hasAttribute('data-field-static')) { drawStatic(hoverEl); return; }
-    lastT = performance.now() / 1000;
-    frameId = requestAnimationFrame(tick);
-  }
 
   function tick() {
-    frameId = 0;
-    if (document.hidden || reduceMotion.matches || hoverEl?.hasAttribute('data-field-static')) {
-      updateMotion();
-      return;
-    }
+    if (reduceMotion.matches) { drawStatic(); return; }  // reduced-motion: static, stop looping
     const t = performance.now() / 1000;
     // frames → time: identical feel on 60Hz and 120Hz displays,
     // and no giant jump when the tab resumes from background
@@ -879,13 +829,16 @@
       ctx.stroke();
       ctx.restore();
     }
-    frameId = requestAnimationFrame(tick);
+    requestAnimationFrame(tick);
   }
 
   resize();
+  if (!reduceMotion.matches) tick();
   // react if the user flips the OS "reduce motion" setting mid-session
-  reduceMotion.addEventListener('change', updateMotion);
-  document.addEventListener('visibilitychange', updateMotion);
+  reduceMotion.addEventListener('change', () => {
+    if (reduceMotion.matches) drawStatic();   // running loop self-halts next frame
+    else tick();                              // resume the animation
+  });
 })();
 </script>
 
