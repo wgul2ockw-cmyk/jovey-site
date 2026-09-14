@@ -1,0 +1,95 @@
+/* Editorial emphasis for this essay, using the shared Jovey reading sheet. */
+.post--pure-water .prose {
+  font-size: clamp(17px, 1.3vw, 18px);
+  line-height: 2;
+}
+
+.post--pure-water .prose p {
+  margin-bottom: 28px;
+}
+
+.post--pure-water .prose .lead {
+  margin-bottom: 32px;
+  font-size: clamp(21px, 2.5vw, 26px);
+  font-weight: 500;
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+
+.post--pure-water .prose strong {
+  color: var(--blue);
+  font-weight: 600;
+}
+
+.post--pure-water .truth-refrain {
+  padding-left: clamp(18px, 3vw, 28px);
+  border-left: 2px solid var(--line);
+  color: var(--muted);
+}
+
+.post--pure-water .truth-refrain span {
+  display: block;
+  margin-top: 4px;
+}
+
+.post--pure-water .truth-confession {
+  margin: clamp(32px, 5vw, 48px) 0;
+  padding: clamp(25px, 4vw, 38px);
+  border-left: 3px solid var(--blue);
+  font-size: clamp(22px, 2.7vw, 29px);
+  line-height: 1.75;
+  text-wrap: pretty;
+}
+
+.post--pure-water .prose .sweetness {
+  color: #93611f;
+  font-weight: 600;
+  background: linear-gradient(transparent 65%, #f7eaca 65%);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.post--pure-water .reflection-questions {
+  margin-top: 32px;
+}
+
+.post--pure-water .reflection-questions span {
+  display: block;
+  border-left: 2px solid #d4e1e9;
+  margin-top: 14px;
+  padding-left: clamp(16px, 3vw, 24px);
+}
+
+.post--pure-water .prose .truth-closing {
+  margin: clamp(36px, 6vw, 52px) 0;
+  padding-top: clamp(26px, 4vw, 36px);
+  border-top: 1px solid var(--line);
+  font-size: clamp(20px, 2.3vw, 24px);
+  line-height: 1.9;
+  text-wrap: pretty;
+}
+
+.post--pure-water .truth-closing strong {
+  display: block;
+  margin-top: 12px;
+}
+
+.post--pure-water .prose .truth-credits {
+  border-top: 1px solid var(--line);
+  padding-top: 24px;
+  margin-bottom: 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.9;
+}
+
+.post--pure-water .truth-credits strong {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+@media (max-width: 480px) {
+  .post--pure-water .post-body {
+    padding: 28px 22px;
+  }
+}
