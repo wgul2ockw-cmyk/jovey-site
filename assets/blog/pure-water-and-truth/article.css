@@ -23,7 +23,6 @@
 
 .post--pure-water .truth-refrain {
   padding-left: clamp(18px, 3vw, 28px);
-  border-left: 2px solid var(--line);
   color: var(--muted);
 }
 
@@ -35,7 +34,6 @@
 .post--pure-water .truth-confession {
   margin: clamp(32px, 5vw, 48px) 0;
   padding: clamp(25px, 4vw, 38px);
-  border-left: 3px solid var(--blue);
   font-size: clamp(22px, 2.7vw, 29px);
   line-height: 1.75;
   text-wrap: pretty;
@@ -55,7 +53,6 @@
 
 .post--pure-water .reflection-questions span {
   display: block;
-  border-left: 2px solid #d4e1e9;
   margin-top: 14px;
   padding-left: clamp(16px, 3vw, 24px);
 }
