@@ -1,0 +1,7 @@
+/* Article-specific emphasis within the shared Jovey reading layout. */
+.post--plastic-flowers .prose { font-size: clamp(17px, 1.3vw, 18px); line-height: 2; }
+.post--plastic-flowers .prose p { margin-bottom: 28px; }
+.post--plastic-flowers .prose .lead { font-size: clamp(20px, 2.4vw, 24px); font-weight: 500; line-height: 1.8; }
+.post--plastic-flowers .prose strong { color: var(--blue); font-weight: 600; }
+.post--plastic-flowers .prose .flower-closing { margin: 36px 0 0; padding-top: 28px; border-top: 1px solid var(--line); font-size: clamp(20px, 2.3vw, 24px); line-height: 1.9; text-wrap: pretty; }
+@media (max-width: 480px) { .post--plastic-flowers .post-body { padding: 28px 22px; } }

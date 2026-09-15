@@ -30,6 +30,7 @@
      Edit here to add posts. `cats` are the pillar ids (same as blog data-cats);
      `series` groups posts under a shared hub; `related` are thematic wikilinks.  */
   var POSTS = [
+    { id: 'ai-and-plastic-flowers', en: 'AI & Plastic Flowers', th: 'AI generated ก็เหมือนกับดอกไม้พลาสติก', cats: ['personal', 'spiritual'] },
     { id: 'pure-water-and-truth', en: 'Pure Water & Truth', th: 'น้ำบริสุทธิ์ มนุษย์ดื่มไม่ได้', cats: ['personal', 'spiritual'] },
     { id: 'transformative-learning',   en: 'Transformative Learning',    th: 'พลังแห่งการเรียนรู้สู่การเปลี่ยนแปลง', cats: ['personal', 'spiritual'], series: 'theory' },
     { id: 'three-part-structure',      en: 'Three-part Structure',       th: 'การเล่าเรื่องด้วย Three-part structure', cats: ['personal'],              series: 'theory' },
@@ -40,6 +41,8 @@
   ];
   // thematic post↔post links (the "wiki" backbone) — [a, b]
   var RELATED = [
+    ['ai-and-plastic-flowers', 'pure-water-and-truth'],
+    ['ai-and-plastic-flowers', '10-romanticize-your-process'],
     ['pure-water-and-truth', 'transformative-learning'],
     ['pure-water-and-truth', 'the-power-of-now'],
     ['destiny-and-the-present', 'the-power-of-now'],       // ปัจจุบัน · the present moment
