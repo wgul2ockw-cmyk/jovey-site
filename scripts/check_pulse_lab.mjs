@@ -1,9 +1,9 @@
 // Functional browser simulation. Does not establish actual phone camera/BP accuracy.
 import fs from 'node:fs';import assert from 'node:assert/strict';
-import {predictVector} from '../pulse-lab/releases/S15-JOVEY-20261026/ppg-model.mjs';
+import {predictVector} from '../pulse-lab/releases/S16-JOVEY-20261026/ppg-model.mjs';
 const html=fs.readFileSync('pulse-lab/index.html','utf8'),elements=new Map(),events=new Map();
 let frameCallback=null,currentIntensity=120,covered=false,cameraStopped=false,drawCount=0,playVisible=false,motionRequests=0,torchMode='hang',mediaResolver=null,playMode='reject',mediaRequests=0,torchCalls=0,presentedCount=0;
-const downloads=[];let loadedModel=null;let clock=0,timerId=0;const timers=new Map(),realTimeout=globalThis.setTimeout;
+const requestedAssets=[],downloads=[];let loadedModel=null;let clock=0,timerId=0;const timers=new Map(),realTimeout=globalThis.setTimeout;
 const pause=()=>new Promise(resolve=>realTimeout(resolve,0));
 Object.defineProperty(globalThis,'performance',{value:{now:()=>clock},configurable:true});
 function requireWindowReceiver(receiver){if(receiver!==undefined&&receiver!==null&&receiver!==globalThis)throw new TypeError('Illegal invocation: Window API receiver')}
@@ -20,16 +20,15 @@ elements.get('#channelSelect').value='rgb';elements.get('#traceMode').value='ac'
 let track={label:'Mock rear camera',getSettings:()=>({frameRate:30,torch:true}),getCapabilities:()=>({torch:[true,false]}),applyConstraints:()=>{torchCalls++;return torchMode==='hang'?new Promise(()=>{}):Promise.resolve()},stop(){cameraStopped=true}};
 const mockStream=()=>({getVideoTracks:()=>[track],getTracks:()=>[track]});
 Object.defineProperty(globalThis,'navigator',{value:{userAgent:'Software smoke test',mediaDevices:{getUserMedia:()=>{mediaRequests++;return new Promise(resolve=>{mediaResolver=resolve})},enumerateDevices:()=>new Promise(()=>{})}},configurable:true});
-globalThis.fetch=async url=>{if(noOxygen&&url.includes('/spo2/'))throw Error('Test oxygen load failure');if(noModel&&url==='./model.json')throw Error('Test model load failure');if(url.startsWith('/api/'))return{ok:false,headers:{get:()=>''}};const value=JSON.parse(fs.readFileSync('pulse-lab/'+url.replace('./','')));if(url==='./model.json')loadedModel=value;return{ok:true,headers:{get:()=> 'application/json'},json:async()=>value}};
-if(process.argv.includes('--standalone')){const {runInThisContext}=await import('node:vm');const portable=fs.readFileSync('pulse-lab/Pulse_Lab_S15_Jovey.html','utf8');const script=portable.match(/<script id="pulse-lab-portable">([\s\S]*?)<\/script>/);assert(script);runInThisContext(script[1]);}else await import('../pulse-lab/releases/S15-JOVEY-20261026/app.mjs');await pause();
-assert.match(elements.get('#oxygenTraining').textContent,noOxygen?/could not load/:/6 participants/);
-if(!noOxygen){elements.get('#oxygenDemo').onclick();assert.match(elements.get('#oxygenValue').textContent,/%/);assert.match(elements.get('#oxygenResultNote').textContent,/Stored held-out result/);assert.match(elements.get('#resultNote').textContent,/not your oxygen level/)}
+globalThis.fetch=async url=>{requestedAssets.push(url);if(noOxygen&&url.includes('/spo2/'))throw Error('Test oxygen load failure');if(noModel&&url==='./model.json')throw Error('Test model load failure');if(url.startsWith('/api/'))return{ok:false,headers:{get:()=>''}};const value=JSON.parse(fs.readFileSync('pulse-lab/'+url.replace('./','')));if(url==='./model.json')loadedModel=value;return{ok:true,headers:{get:()=> 'application/json'},json:async()=>value}};
+if(process.argv.includes('--standalone')){const {runInThisContext}=await import('node:vm');const portable=fs.readFileSync('pulse-lab/Pulse_Lab_Jovey.html','utf8');const script=portable.match(/<script id="pulse-lab-portable">([\s\S]*?)<\/script>/);assert(script);runInThisContext(script[1]);}else await import('../pulse-lab/releases/S16-JOVEY-20261026/app.mjs');await pause();
+assert.match(elements.get('#oxygenTraining').textContent,/under development/i);assert.equal(elements.get('#oxygenCapture').textContent,'SpO₂ · Under development');assert(!html.includes('id="oxygenDemo"'));assert(!requestedAssets.some(url=>url.includes('/spo2/')),'Oxygen model assets must not load');
 assert.match(elements.get('#trainingStatus').textContent,noModel?/Model could not load/:/173 participants/);
 assert(!html.includes('id="record"'),'No manual recording button in automatic flow');assert(html.indexOf('id="video"')<html.indexOf('id="plot"'),'Large video precedes waveform');
 if(!noModel)elements.get('#sampleDemo').onclick();
 const model=JSON.parse(fs.readFileSync('pulse-lab/model.json')),example=JSON.parse(fs.readFileSync('pulse-lab/examples.json'))[0],expected=predictVector(model,example.features);
 if(!noModel){assert.equal(elements.get('#coldBp').textContent,`${expected[0].toFixed(1)}/${expected[1].toFixed(1)}`);assert(elements.get('#calibrate').disabled)}
-if(process.argv.includes('--standalone')){assert(globalThis.__PULSE_LAB_ASSETS__['./model.json']);assert.equal(typeof elements.get('#start').onclick,'function');console.log('PASS: standalone HTML boots embedded models, renders source examples and wires camera controls');process.exit(0)}
+if(process.argv.includes('--standalone')){assert(globalThis.__PULSE_LAB_ASSETS__['./model.json']);assert(!Object.keys(globalThis.__PULSE_LAB_ASSETS__).some(url=>url.includes('/spo2/')),'Standalone export must not embed oxygen weights');assert.equal(elements.get('#oxygenValue').textContent,'Under development');assert.equal(typeof elements.get('#start').onclick,'function');console.log('PASS: standalone HTML boots BP model, keeps oxygen under development and wires camera controls');process.exit(0)}
 // Unexpected errors before getUserMedia must produce visible feedback and allow retry.
 const workingClearTimeout=globalThis.clearTimeout;globalThis.clearTimeout=()=>{throw new TypeError('Injected early startup failure')};
 await elements.get('#start').onclick();assert.match(elements.get('#startupError').textContent,/Injected early startup failure/);assert(!elements.get('#startupError').classList.contains('hidden'));assert(!elements.get('#start').disabled);assert.equal(mediaRequests,0);
@@ -48,68 +47,71 @@ covered=false;advance(90000);assert(!cameraStopped,'Continuous capture must not 
 elements.get('#cancelCapture').onclick();assert(cameraStopped);
 URL.createObjectURL=blob=>{downloads.push(blob);return 'blob:test'};URL.revokeObjectURL=()=>{};
 const restart=async()=>{cameraStopped=false;covered=true;const pending=elements.get('#rescan').onclick();mediaResolver(mockStream());await pending;await pause()};
-// Accumulate BP/HR while whole-frame blue is clipped, then lose contact.
+// Clipped oxygen input must not delay a valid BP report.
 torchMode='resolve';track={...track};clipOxygen=true;
-let earlyPulseSeen=false,glitchSaved=null;await restart();for(let i=0;i<620&&!cameraStopped;i++){
+let earlyPulseSeen=false,glitchSaved=null,completedAt=null;await restart();
+for(let i=0;i<1000&&!cameraStopped;i++){
   currentIntensity=110+12*Math.sin(i/30*1.2*2*Math.PI);
   if(i===420){glitchSaved=elements.get('#timer').textContent;covered=false}
   if(i===421)covered=true;
   emit(i/30);
-  if(i===420||i===421){assert(elements.get('#cameraSelect').disabled,'A one-frame contact glitch must not restart capture');assert.equal(elements.get('#timer').textContent,glitchSaved,'Brief contact glitch preserves progress')}
-  if(i<300&&Number(elements.get('#livePulse').textContent)>0)earlyPulseSeen=true;if(i%30===0)await pause();
+  if(i===420||i===421){assert(elements.get('#cameraSelect').disabled,'A one-frame contact glitch must not restart capture');assert.equal(elements.get('#timer').textContent,glitchSaved)}
+  if(i<300&&Number(elements.get('#livePulse').textContent)>0)earlyPulseSeen=true;
+  if(cameraStopped)completedAt=i/30;if(i%30===0)await pause();
 }
-assert(earlyPulseSeen,'Pulse must appear before the first complete accepted segment');
-if(!noOxygen)assert(!cameraStopped);assert(Number(elements.get('#livePulse').textContent)>=71);assert(Number(elements.get('#livePulse').textContent)<=73);
-if(!cameraStopped){const saved=elements.get('#timer').textContent;assert.notEqual(saved,'0 beats collected');covered=false;for(let i=620;i<680;i++)emit(i/30);assert.equal(elements.get('#pulseSource').textContent,'· saved estimate','A retained pulse is not labeled live');assert.equal(elements.get('#timer').textContent,saved,'Confirmed loss of contact preserves saved progress');}
-covered=true;for(let i=680;i<1650&&!cameraStopped;i++){currentIntensity=110+12*Math.sin(i/30*1.2*2*Math.PI);emit(i/30);if(i%30===0)await pause()}
-if(!noOxygen){
-  assert(!cameraStopped,'BP/HR readiness must not cut off pending SpO2');
-  assert.match(elements.get('#oxygenCapture').textContent,/Blue camera channel too dark/);
-  if(!noModel)assert.match(elements.get('#captureHint').textContent,/BP \+ pulse ready/);
-  assert(!elements.get('#partialReport').classList.contains('hidden'),'Available report remains accessible when BP is ready');
-  elements.get('#partialReport').onclick();
-}
-assert(cameraStopped,'Available report or all loaded models complete');assert(!elements.get('#result').classList.contains('hidden'));assert.match(elements.get('#summaryDuration').textContent,/accepted beats/);assert.match(elements.get('#summaryPulse').textContent,/7[123] bpm/);assert.match(elements.get('#meanWaveCaption').textContent,/Median normalized pulse/);
-elements.get('#downloadReport').onclick();const partialHTML=await downloads.at(-1).text();assert(partialHTML.includes('Median normalized pulse'));
-if(!noOxygen){
-  assert.match(elements.get('#oxygenResultNote').textContent,/Blue camera channel too dark/);
-  assert.match(elements.get('#oxygenDiagnostic').textContent,/100.0% dark/);
-  assert(partialHTML.includes('100.0% dark'));
-  elements.get('#exportScan').onclick();const partial=JSON.parse(await downloads.at(-1).text());
-  assert.equal(partial.oxygen.prediction,null);assert.equal(partial.completionTrigger,'requested_available_report');
-  assert(partial.oxygen.audit.some(x=>x.code==='rgb_clipping'&&x.exposure.channels[2].darkMax===1));
-}
-clipOxygen=false;
-if(noModel){assert.equal(elements.get('#coldBp').textContent,'— / —');assert.match(elements.get('#modelDataNote').textContent,/model unavailable/)}
+assert(earlyPulseSeen,'A live pulse appears before the first complete segment');
+if(noModel){assert(!cameraStopped,'No automatic BP report without its model');assert(!elements.get('#partialReport').classList.contains('hidden'));elements.get('#partialReport').onclick()}
+else assert(cameraStopped&&completedAt<1000/30,'BP must finish automatically despite unusable oxygen input');
+assert(!elements.get('#result').classList.contains('hidden'));
+assert.match(elements.get('#summaryPulse').textContent,/7[123] bpm/);
+assert.equal(elements.get('#oxygenValue').textContent,'Under development');assert.equal(elements.get('#oxygenRange').textContent,'');
+elements.get('#exportScan').onclick();const automatic=JSON.parse(await downloads.at(-1).text());
+assert.equal(automatic.oxygen.status,'under_development');assert.equal(automatic.oxygen.prediction,null);assert.equal(automatic.oxygen.segments.length,0);
+assert.deepEqual(automatic.completionPolicy.requiredMeasurements,['bp']);assert.equal(automatic.completionPolicy.version,'bp-ready-oxygen-development-v5');
+if(noModel){assert(!automatic.prediction);assert.equal(elements.get('#coldBp').textContent,'— / —')}
 else {
-  assert.match(elements.get('#modelDataNote').textContent,/BP from/);
+  assert.equal(automatic.completionTrigger,'bp_signal_ready');assert(automatic.prediction&&automatic.analysis.ready);
+  assert(automatic.analysis.stability.ready&&automatic.analysis.bpStability.ready);
+  assert(automatic.pulse.beatCount>=automatic.collectionPolicy.targetBeats);
+  assert(automatic.analysis.selected.snippetCount>=automatic.collectionPolicy.targetSnippets);
+  assert.equal(automatic.prediction.phoneValidated,false,'Signal acceptance is not clinical certainty');
+  assert(automatic.oxygen.liveExposure.blocked,'Oxygen really was unusable when BP completed');
+}
+elements.get('#downloadReport').onclick();const savedHTML=await downloads.at(-1).text();
+assert(savedHTML.includes('Median normalized pulse'));assert(savedHTML.includes('<h2>Oxygen saturation (SpO₂)</h2><p><strong>Under development</strong>'));
+assert(!savedHTML.includes('<h2>Experimental SpO₂</h2>'));
+clipOxygen=false;
+if(!noModel){
+  // Pairing preserves the original BP estimate.
   const frozen=elements.get('#coldBp').textContent;elements.get('#calibrate').onclick();elements.get('#sys').value='121';elements.get('#dia').value='79';elements.get('#trustedCheck').checked=true;elements.get('#personalize').onclick();assert.equal(elements.get('#personalBp').textContent,frozen);
-  // A signal outside the BP training range keeps scanning; an explicit pulse report is available.
+  // Repeatable pulse alone is insufficient if the BP feature-domain gate fails.
   loadedModel.training_feature_min=Array(25).fill(-.01);loadedModel.training_feature_max=Array(25).fill(.01);
-  await restart();for(let i=0;i<1500;i++){currentIntensity=110+12*Math.sin(i/30*1.2*2*Math.PI);emit(i/30)}
-  assert(!cameraStopped);assert(!elements.get('#partialReport').classList.contains('hidden'));elements.get('#partialReport').onclick();assert(cameraStopped);assert.equal(elements.get('#coldBp').textContent,'— / —');assert.match(elements.get('#summaryPulse').textContent,/7[123] bpm/);
+  await restart();let keptCount=null;
+  for(let i=0;i<1500;i++){
+    currentIntensity=110+12*Math.sin(i/30*1.2*2*Math.PI);
+    if(i===620){keptCount=elements.get('#timer').textContent;assert.notEqual(keptCount,'0 beats collected');covered=false}
+    if(i===680)covered=true;emit(i/30);
+    if(i===679){assert.equal(elements.get('#timer').textContent,keptCount);assert.equal(elements.get('#pulseSource').textContent,'· saved estimate')}
+  }
+  assert(!cameraStopped,'Failed BP model gates must keep collecting');assert(!elements.get('#partialReport').classList.contains('hidden'));
+  elements.get('#partialReport').onclick();assert(cameraStopped);assert.equal(elements.get('#coldBp').textContent,'— / —');
+  elements.get('#exportScan').onclick();const failed=JSON.parse(await downloads.at(-1).text());assert(!failed.prediction);assert(!failed.analysis.ready);assert.equal(failed.oxygen.prediction,null);
+  loadedModel.training_feature_min=model.training_feature_min;loadedModel.training_feature_max=model.training_feature_max;
+  // Even usable source RGB must never turn oxygen estimation back on.
+  replayOxygen=true;await restart();
+  for(let i=0;i<1200&&!cameraStopped;i++){currentIntensity=110+12*Math.sin(i/30*1.2*2*Math.PI);emit(i/30);if(i%30===0)await pause()}
+  assert(cameraStopped);assert.equal(elements.get('#oxygenValue').textContent,'Under development');
+  elements.get('#exportScan').onclick();const withRGB=JSON.parse(await downloads.at(-1).text());
+  assert(withRGB.prediction);assert.equal(withRGB.oxygen.prediction,null);assert(withRGB.sessionSamples.some(s=>s.oxygenWhole&&s.oxygenRegions.length===10));
+  replayOxygen=false;
+  // Saturated optical input cannot create a BP result.
+  await restart();for(let i=0;i<900;i++){currentIntensity=300;emit(i/30);if(i%30===0)await pause()}
+  assert(!cameraStopped);assert(elements.get('#partialReport').classList.contains('hidden'));elements.get('#cancelCapture').onclick();
 }
-// Replay real source RGB through the new capture channel and full scan/report path.
-if(!noOxygen){
-  // Restore the real BP feature bounds after the domain-rejection scenario.
-  if(loadedModel){loadedModel.training_feature_min=model.training_feature_min;loadedModel.training_feature_max=model.training_feature_max}
-  replayOxygen=true;torchMode='resolve';track={...track};await restart();
-  for(let i=0;i<1700&&!cameraStopped;i++){currentIntensity=110+12*Math.sin(i/30*1.2*2*Math.PI);emit(i/30);if(i%30===0)await pause()}
-  assert(cameraStopped,`All loaded models should complete: ${elements.get('#oxygenCapture').textContent}`);
-  assert.match(elements.get('#oxygenValue').textContent,/%/);
-  elements.get('#exportScan').onclick();const exported=JSON.parse(await downloads.at(-1).text());
-  assert.equal(exported.completionPolicy.version,'continuous-compatible-snippets-v4');
-  if(!noModel)assert(exported.prediction,'Successful automatic report includes BP');
-  assert(exported.oxygen.rgb.ready);assert(['r','g','b'].every(c=>exported.oxygen.rgb.channels[c].stability.ready));
-  assert(exported.oxygen.waveformSegments.length>=3);
-  assert(!elements.get('#rgbMeanPanel').classList.contains('hidden'));assert.match(elements.get('#rgbMeanCaption').textContent,/Synchronized RGB/);
-  assert(exported.sessionSamples.some(s=>s.oxygenWhole&&s.oxygenRegions.length===10));
-  assert(exported.oxygen.prediction.segments>=3);assert.equal(exported.oxygen.prediction.phoneValidated,false);
-  elements.get('#downloadReport').onclick();const report=await downloads.at(-1).text();assert(report.includes('Experimental SpO₂'));assert(report.includes('Synchronized RGB waveforms'));assert(report.includes('whole-frame training data'));assert(report.includes('6.37'));replayOxygen=false;
-}
+assert(!requestedAssets.some(url=>url.includes('/spo2/')),'Oxygen weights are never requested during scans');
 // Loss of visibility stops hardware and retains a clearly partial summary.
 await restart();for(let i=0;i<400;i++){currentIntensity=110+12*Math.sin(i/30*1.2*2*Math.PI);emit(i/30)}
 assert.notEqual(elements.get('#livePulse').textContent,'—');document.hidden=true;events.get('visibilitychange')();assert(cameraStopped);assert(!elements.get('#result').classList.contains('hidden'));document.hidden=false;
 // Explicit cancellation still invalidates an in-flight permission request.
 cameraStopped=false;const pending=elements.get('#start').onclick();elements.get('#cancelCapture').onclick();mediaResolver(mockStream());await pending;assert(cameraStopped);assert.equal(elements.get('#video').srcObject,null);assert(!elements.get('#start').classList.contains('hidden'));
-console.log(JSON.stringify({status:'passed',model:noModel?'unavailable':'loaded',checks:['SpO2 model load/failure and stored held-out demo','simultaneous RGB display, per-colour stability and snippet provenance','real RGB to SpO2 scan, JSON and HTML export','Window receiver and startup recovery','permission-popup survival','continuous capture without an arbitrary deadline','early pulse and accepted beat summary','one-frame contact glitch does not reset capture','saved snippets survive confirmed finger loss with separate groups','BP/HR readiness waits for SpO2; explicit available report remains accessible','blue clipping diagnosis in live view, audit, JSON and HTML','automatic report includes every loaded model','median waveform and download','original BP and cuff flow','BP-domain failure keeps scanning with explicit pulse report','no-model pulse report','visibility interruption','cancellation']}));
+console.log(JSON.stringify({status:'passed',model:noModel?'unavailable':'loaded',checks:['BP reports automatically without waiting for RGB oxygen readiness','existing waveform and model gates remain required','failed or missing BP model never invents BP','oxygen under development on screen, JSON and HTML','oxygen weights are not loaded','RGB extraction retained','continuous collection and contact recovery','camera startup, flash, visibility and cancel','standalone export and cuff pairing'],limitation:'Simulated camera frames; not phone or clinical validation'}));

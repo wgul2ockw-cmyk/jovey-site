@@ -2,18 +2,18 @@
 
 Live path: https://jovey.co/pulse-lab/
 
-This is the exported S15 phone-camera PPG scanner, ported to Jovey's static
+This is the S16 phone-camera PPG scanner, based on the exported S15 acquisition code, ported to Jovey's static
 GitHub Pages site on 26 October 2026. It retains continuous synchronized RGB
 collection, accepted-snippet retention, compatible acquisition groups, and the
-existing browser-side BP, pulse and experimental SpO₂ models. No model was
+existing browser-side BP and pulse models. Oxygen saturation is under development; its weights are not loaded and no oxygen estimate is reported. BP finishes as soon as its existing signal and model gates pass. No model was
 retrained or recalibrated by this port.
 
 ## Run or reuse
 
 - Hosted app: keep this entire `pulse-lab/` directory together under an HTTPS
   origin. The page loads its local modules and model files with relative URLs.
-- Single-file export: `Pulse_Lab_S15_Jovey.html` embeds all 16 JavaScript modules
-  and the five model/benchmark/example JSON assets. No network model loading is
+- Single-file export: `Pulse_Lab_Jovey.html` embeds all 16 JavaScript modules
+  and the three BP model/benchmark/example JSON assets. No network model loading is
   required. Documentation links point to the public Jovey copies.
 - Phone camera access requires a supported browser and secure context. For
   desktop development, serve the directory on localhost; use HTTPS on a phone.
@@ -31,7 +31,6 @@ python3 scripts/export_pulse_lab.py
 node scripts/check_pulse_lab.mjs --standalone
 node scripts/check_pulse_lab.mjs
 node scripts/check_pulse_lab.mjs --no-model
-node scripts/check_pulse_lab.mjs --no-oxygen
 python3 scripts/gen_sitemap.py
 python3 scripts/check_seo.py
 python3 scripts/check_mindspend.py
@@ -55,3 +54,14 @@ licensed public dataset; it is not a new clinical recording.
 
 The checks above validate packaging and software behavior, not the accuracy
 of BP, pulse or SpO₂ on a user's phone. Outputs remain research estimates.
+
+## S16 reporting rule
+
+Automatic completion requires the loaded BP model, at least 12 accepted beat
+intervals, two BP-eligible nonoverlapping snippets, morphology convergence and
+the existing timing, clipping and training-domain gates. These provisional
+engineering checks do not quantify the probability that BP is correct.
+A failed gate keeps scanning; a manually requested partial report contains no
+BP number when those checks fail. RGB collection and export remain available
+for development, but oxygen status is always `under_development` with a null
+prediction in scan reports. Historical oxygen research files remain accessible.

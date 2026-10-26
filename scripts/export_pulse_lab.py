@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the portable S15 HTML without third-party build dependencies.
+"""Build the current portable Pulse Lab HTML without third-party dependencies.
 
 This deliberately supports only the named imports and declaration exports used
 by the checked-in Pulse Lab modules. Unsupported syntax and cycles fail closed.
@@ -13,12 +13,13 @@ import re
 
 ROOT = Path(__file__).resolve().parent.parent
 APP = ROOT / 'pulse-lab'
-RELEASE = APP / 'releases' / 'S15-JOVEY-20261026'
-OUTPUT = APP / 'Pulse_Lab_S15_Jovey.html'
+ENTRY = re.search(r'<script type="module" src="\./releases/([^"/]+)/app\.mjs"></script>', (APP / 'index.html').read_text())
+assert ENTRY, 'Current release entrypoint is missing'
+RELEASE = APP / 'releases' / ENTRY[1]
+OUTPUT = APP / 'Pulse_Lab_Jovey.html'
 IMPORT = re.compile(r"^import\s*\{([^}]+)\}\s*from\s*['\"](\./[^'\"]+)['\"];?\s*$", re.M)
 EXPORT = re.compile(r'^export\s+(?:async\s+)?(?:const|function|class)\s+(\w+)', re.M)
-ASSETS = ['model.json', 'benchmark.json', 'examples.json',
-          'spo2/S2-20261005/model.json', 'spo2/S2-20261005/examples.json']
+ASSETS = ['model.json', 'benchmark.json', 'examples.json']
 
 
 def build():
@@ -57,7 +58,7 @@ def build():
               + '\n'.join(compiled.values()) + '\n})();')
     bundle = re.sub(r'</script', r'<\\/script', bundle, flags=re.I)
     html = (APP / 'index.html').read_text()
-    html, replaced = re.subn(r'<script type="module" src="\./releases/S15-JOVEY-20261026/app\.mjs"></script>',
+    html, replaced = re.subn(re.escape(ENTRY[0]),
                             lambda _: '<script id="pulse-lab-portable">\n' + bundle + '\n</script>', html)
     assert replaced == 1, 'Expected exactly one hosted module entrypoint'
     # Documentation links work when the export is copied to any directory.
@@ -66,10 +67,12 @@ def build():
     html = html.replace('</head>', '<!-- Dataset attribution\n' + license_text + '\n-->\n</head>')
     OUTPUT.write_text(html)
     manifest = {
-        'build': 'S15-JOVEY-20261026',
+        'build': RELEASE.name,
         'source_commit': '4e171d16dfc4c52e8dd178729d134f82f80b467d',
         'source_build': 'S15-20261005',
         'models_retrained': False,
+        'oxygen_status': 'under_development',
+        'automatic_completion': 'bp_signal_ready',
         'standalone': OUTPUT.name,
         'module_count': len(compiled),
         'assets': {name: hashlib.sha256((APP / name).read_bytes()).hexdigest() for name in ASSETS},
