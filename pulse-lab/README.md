@@ -8,27 +8,26 @@ collection, accepted-snippet retention, compatible acquisition groups, and the
 existing browser-side BP and pulse models. Oxygen saturation is under development; its weights are not loaded and no oxygen estimate is reported. BP finishes as soon as its existing signal and model gates pass. No model was
 retrained or recalibrated by this port.
 
-## Run or reuse
+## Run
 
 - Hosted app: keep this entire `pulse-lab/` directory together under an HTTPS
   origin. The page loads its local modules and model files with relative URLs.
-- Single-file export: `Pulse_Lab_Jovey.html` embeds all 16 JavaScript modules
-  and the three BP model/benchmark/example JSON assets. No network model loading is
-  required. Documentation links point to the public Jovey copies.
 - Phone camera access requires a supported browser and secure context. For
   desktop development, serve the directory on localhost; use HTTPS on a phone.
-  Merely opening an HTML attachment may not grant camera/flash access.
 - Camera frames and scan results are held in the current tab. Saving reports
   or exporting JSON downloads files explicitly. This port has no hospital EMR,
   patient-ID collection, automatic upload, analytics, or personalization service.
+
+The standalone app download has been retired. Personal scan reports and JSON
+exports remain available. The hosted app's browser code is still accessible;
+removing the download does not provide copy protection. The header's Jovey link
+returns to the homepage at https://jovey.co/.
 
 ## Build and check
 
 From the Jovey repository root:
 
 ```sh
-python3 scripts/export_pulse_lab.py
-node scripts/check_pulse_lab.mjs --standalone
 node scripts/check_pulse_lab.mjs
 node scripts/check_pulse_lab.mjs --no-model
 python3 scripts/gen_sitemap.py
@@ -36,10 +35,8 @@ python3 scripts/check_seo.py
 python3 scripts/check_mindspend.py
 ```
 
-Edit the release modules and regenerate the standalone export together. The
-small exporter accepts only the named-import/declaration-export syntax used by
-these modules; it rejects unknown import forms and cycles. `export-manifest.json`
-records the upstream source commit and asset hashes for comparison.
+Edit the hosted page and its release modules directly. The checks exercise
+the hosted scanner, including its personal scan-report exports.
 
 ## Evidence and limitations
 
@@ -47,8 +44,8 @@ Source: Pulse Lab S15, commit `4e171d16dfc4c52e8dd178729d134f82f80b467d`.
 Model weights are unchanged. BP uses a public infrared-probe baseline; the
 SpO₂ model uses the public UW Ubicomp smartphone dataset. See `report.html` and
 `spo2/report.html` for the existing source-data evaluation and limitations.
-The UW MIT attribution is retained in `spo2/S2-20261005/hoffman-LICENSE.txt` and
-embedded in the single-file export. The BP source dataset is CC0 as documented
+The UW MIT attribution is retained in `spo2/S2-20261005/hoffman-LICENSE.txt`.
+The BP source dataset is CC0 as documented
 in its evaluation report. The small RGB test fixture derives from the same
 licensed public dataset; it is not a new clinical recording.
 

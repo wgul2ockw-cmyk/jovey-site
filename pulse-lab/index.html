@@ -22,7 +22,7 @@
 </script>
 </head>
 <body><main class="shell">
-<header class="top"><h1 class="brand" style="margin:0">◉ pulse<span style="color:var(--mint)">/</span>lab</h1><a href="https://jovey.co/projects/" class="jovey-back">← Jovey</a><span class="tag">RESEARCH</span></header>
+<header class="top"><h1 class="brand" style="margin:0">◉ pulse<span style="color:var(--mint)">/</span>lab</h1><a href="https://jovey.co/" class="jovey-back">← Jovey</a><span class="tag">RESEARCH</span></header>
 <div class="stepper hidden"><i class="step"></i><i class="step"></i><i class="step"></i><i class="step"></i></div>
 <section id="setup" class="hidden"></section>
 <section id="capture">
@@ -36,7 +36,7 @@
 <div class="scan-progress"><div class="row"><span id="captureHint" aria-live="polite">Collecting clean signal · automatic report</span><span id="timer"></span></div><div class="progress" aria-label="Collected signal progress, not measurement readiness"><i id="bar"></i></div><p class="small" id="collectionCount"></p></div>
 <div class="actions"><button id="resumeCamera" class="hidden">Resume camera</button><button id="retryCamera" class="hidden">Retry camera</button><button id="partialReport" class="secondary hidden">Show available report</button><button id="cancelCapture" class="secondary hidden">Cancel</button></div>
 <p id="torchMessage" class="small hidden" role="status"></p><p id="oxygenCapture" role="status">SpO₂ · Under development</p>
-<p id="startupError" class="startup-error hidden" role="alert"></p><details class="diagnostics"><summary>Details</summary><p>Camera frames and results stay in this tab. Save or export a report to keep a copy.</p><p><a href="./Pulse_Lab_Jovey.html" download>Download standalone HTML</a></p><p id="startupStage">S16-JOVEY-20261026</p><button id="exportStartup" class="secondary">Export camera diagnostic</button>
+<p id="startupError" class="startup-error hidden" role="alert"></p><details class="diagnostics"><summary>Details</summary><p>Camera frames and results stay in this tab. Save or export a report to keep a copy.</p><p id="startupStage">S16-JOVEY-20261026</p><button id="exportStartup" class="secondary">Export camera diagnostic</button>
 <p class="small">* Flash status is reported by the browser, not verified by a light sensor.</p><p id="elapsedInfo"></p><p id="signalMetrics"></p><p id="oxygenMetrics" class="small"></p><p id="frameStatus"></p><p id="captureStatus"></p><p id="activeCamera"></p>
 <div class="settings"><div class="field"><label for="cameraSelect">Lens</label><select id="cameraSelect"></select></div><button id="torchOff" class="secondary" disabled>Turn flash off</button></div>
 <div class="settings"><div class="field"><label for="channelSelect">Channel</label><select id="channelSelect"><option value="rgb">RGB together</option><option value="auto">BP / pulse selected channel</option><option value="r">Red</option><option value="g">Green</option><option value="b">Blue</option></select></div><div class="field"><label for="traceMode">Trace</label><select id="traceMode"><option value="ac">Pulse variation</option><option value="raw">Raw brightness</option></select></div></div>

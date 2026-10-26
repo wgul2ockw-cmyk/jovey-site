@@ -15,6 +15,5 @@ jobs:
           python-version: '3.12'
       - run: python3 scripts/check_seo.py
       - run: python3 scripts/check_mindspend.py
-      - run: python3 scripts/export_pulse_lab.py && git diff --exit-code -- pulse-lab/Pulse_Lab_Jovey.html pulse-lab/export-manifest.json
-      - run: node scripts/check_pulse_lab.mjs --standalone && node scripts/check_pulse_lab.mjs
+      - run: node scripts/check_pulse_lab.mjs
       - run: node --check attention/app.js && node --check attention/sw.js

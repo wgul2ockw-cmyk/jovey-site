@@ -10,8 +10,8 @@ No build step — edit `index.html` and push to `main` to publish.
 The site includes articles, growth hubs, a project directory at `/projects/`,
 project guides, and the Attention Go app at `/attention/`.
 
-Pulse Lab's research scanner is hosted at `/pulse-lab/`, with a self-contained
-HTML export available from its Details panel. See [port documentation](pulse-lab/README.md).
+Pulse Lab's research scanner is hosted at `/pulse-lab/`. See
+[port documentation](pulse-lab/README.md).
 
 Before publishing public-page changes, run:
 
