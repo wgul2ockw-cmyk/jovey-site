@@ -1,0 +1,536 @@
+{
+  "model_id": "ppgbp-generalized-v0.1",
+  "trained_at": "2026-10-03",
+  "seed": 20261003,
+  "dataset": {
+    "name": "PPG-BP",
+    "article": 5459299,
+    "version": 5,
+    "license": "CC0",
+    "doi": "10.6084/m9.figshare.5459299",
+    "source": "https://figshare.com/articles/dataset/PPG-BP_Database_zip/5459299",
+    "participants": 219,
+    "segments": 657,
+    "sampling_hz": 1000,
+    "segment_seconds": 2.1,
+    "reference_labels_per_subject": 1,
+    "device": "905 nm transmission probe",
+    "phone_data": false
+  },
+  "split_counts": {
+    "train": 129,
+    "validation": 44,
+    "test": 44
+  },
+  "final_fit_participants": 173,
+  "features": [
+    "skew",
+    "kurtosis",
+    "q10",
+    "q25",
+    "q50",
+    "q75",
+    "q90",
+    "diff_rms",
+    "diff_abs",
+    "diff_skew",
+    "autocorr",
+    "period_s",
+    "power_0_5_1",
+    "power_1_2",
+    "power_2_3",
+    "power_3_4",
+    "power_4_6",
+    "power_6_9",
+    "spectral_peak_hz",
+    "spectral_entropy",
+    "up_fraction",
+    "crossings",
+    "peak_count",
+    "mean_peak_width",
+    "mean_rise_fraction"
+  ],
+  "profile_features": [
+    "age",
+    "sex_male",
+    "bmi"
+  ],
+  "excluded_features": [
+    "BP-derived hypertension class",
+    "reference heart rate",
+    "diagnoses with uncertain temporal availability",
+    "subject ID",
+    "current cuff BP"
+  ],
+  "preprocessing": "Shared JavaScript bin averaging to 30 Hz (63 samples), linear detrending, 3-tap smoothing, polarity normalization, morphology and spectral summaries. Not simulated camera optics.",
+  "selection": "Four candidates per feature set; validation MAE averaged across SBP/DBP on subject-averaged predictions. Refit selected model on train+validation, then test once.",
+  "evaluation_unit": "Participant: average predictions from 2\u20133 unique clips; one cuff label. Segment metrics secondary. Training weights give every participant equal total weight.",
+  "validation": {
+    "signal_only": [
+      {
+        "model": "rf_depth_6_leaf_12",
+        "mean_sbp_dbp_mae": 10.3608494109142
+      },
+      {
+        "model": "rf_depth_6_leaf_5",
+        "mean_sbp_dbp_mae": 10.372910458671784
+      },
+      {
+        "model": "ridge_alpha_10",
+        "mean_sbp_dbp_mae": 10.413156907321083
+      },
+      {
+        "model": "ridge_alpha_100",
+        "mean_sbp_dbp_mae": 10.68206054368858
+      }
+    ],
+    "profile_only": [
+      {
+        "model": "ridge_alpha_10",
+        "mean_sbp_dbp_mae": 11.069248559526445
+      },
+      {
+        "model": "ridge_alpha_100",
+        "mean_sbp_dbp_mae": 11.505017016718284
+      },
+      {
+        "model": "rf_depth_6_leaf_12",
+        "mean_sbp_dbp_mae": 12.284617460682233
+      },
+      {
+        "model": "rf_depth_6_leaf_5",
+        "mean_sbp_dbp_mae": 12.373384434905288
+      }
+    ],
+    "signal_plus_profile": [
+      {
+        "model": "ridge_alpha_10",
+        "mean_sbp_dbp_mae": 9.318303416714828
+      },
+      {
+        "model": "rf_depth_6_leaf_5",
+        "mean_sbp_dbp_mae": 9.851106313947172
+      },
+      {
+        "model": "rf_depth_6_leaf_12",
+        "mean_sbp_dbp_mae": 9.870104477987432
+      },
+      {
+        "model": "ridge_alpha_100",
+        "mean_sbp_dbp_mae": 10.063455237076456
+      }
+    ]
+  },
+  "test": {
+    "signal_only": {
+      "selected": "rf_depth_6_leaf_12",
+      "participant_average": {
+        "sbp": {
+          "mae": 13.45342194343695,
+          "bias": 1.7315669106044809,
+          "error_sd": 18.618283636686886,
+          "rmse": 18.4867686924465,
+          "within_5": 0.3409090909090909,
+          "within_10": 0.4772727272727273,
+          "within_15": 0.6363636363636364,
+          "mae_ci95": [
+            9.909508743910779,
+            17.594558399581
+          ]
+        },
+        "dbp": {
+          "mae": 9.123344071810324,
+          "bias": 1.1633058935023413,
+          "error_sd": 11.238026331887994,
+          "rmse": 11.170327462684607,
+          "within_5": 0.2727272727272727,
+          "within_10": 0.6136363636363636,
+          "within_15": 0.8409090909090909,
+          "mae_ci95": [
+            7.379364827706926,
+            11.002911149299587
+          ]
+        }
+      },
+      "segment": {
+        "sbp": {
+          "mae": 14.092535175251593,
+          "bias": 1.835000691453619,
+          "error_sd": 19.174998211107674,
+          "rmse": 19.189608180707292,
+          "within_5": 0.26717557251908397,
+          "within_10": 0.48091603053435117,
+          "within_15": 0.6259541984732825
+        },
+        "dbp": {
+          "mae": 9.214705917316977,
+          "bias": 1.2766227625814535,
+          "error_sd": 11.270386300361263,
+          "rmse": 11.29963461563171,
+          "within_5": 0.31297709923664124,
+          "within_10": 0.6183206106870229,
+          "within_15": 0.8320610687022901
+        }
+      }
+    },
+    "profile_only": {
+      "selected": "ridge_alpha_10",
+      "participant_average": {
+        "sbp": {
+          "mae": 12.28496883437365,
+          "bias": 0.7450099870512946,
+          "error_sd": 16.464474194748053,
+          "rmse": 16.293344225804866,
+          "within_5": 0.3409090909090909,
+          "within_10": 0.5227272727272727,
+          "within_15": 0.6818181818181818,
+          "mae_ci95": [
+            9.305039422266303,
+            15.718069026369275
+          ]
+        },
+        "dbp": {
+          "mae": 8.963590689636975,
+          "bias": 0.752785652318599,
+          "error_sd": 11.463985123059501,
+          "rmse": 11.357938008344236,
+          "within_5": 0.36363636363636365,
+          "within_10": 0.6590909090909091,
+          "within_15": 0.8181818181818182,
+          "mae_ci95": [
+            7.01365368825751,
+            11.110535401783753
+          ]
+        }
+      },
+      "segment": {
+        "sbp": {
+          "mae": 12.343412114022279,
+          "bias": 0.7860321945891142,
+          "error_sd": 16.394201626502838,
+          "rmse": 16.35041330854393,
+          "within_5": 0.33587786259541985,
+          "within_10": 0.5190839694656488,
+          "within_15": 0.6793893129770993
+        },
+        "dbp": {
+          "mae": 8.945385434412252,
+          "bias": 0.8451617193139745,
+          "error_sd": 11.370001930142925,
+          "rmse": 11.358010183272103,
+          "within_5": 0.366412213740458,
+          "within_10": 0.6641221374045801,
+          "within_15": 0.816793893129771
+        }
+      }
+    },
+    "signal_plus_profile": {
+      "selected": "ridge_alpha_10",
+      "participant_average": {
+        "sbp": {
+          "mae": 12.039856712699345,
+          "bias": -0.04563040306026813,
+          "error_sd": 15.890896370524802,
+          "rmse": 15.709346432363615,
+          "within_5": 0.22727272727272727,
+          "within_10": 0.5227272727272727,
+          "within_15": 0.7045454545454546,
+          "mae_ci95": [
+            9.15429030076362,
+            15.285338536841332
+          ]
+        },
+        "dbp": {
+          "mae": 8.932155659664515,
+          "bias": 0.9259499326421069,
+          "error_sd": 11.368825935961608,
+          "rmse": 11.276971305391827,
+          "within_5": 0.3181818181818182,
+          "within_10": 0.6590909090909091,
+          "within_15": 0.8409090909090909,
+          "mae_ci95": [
+            7.003409349414543,
+            11.070188072574387
+          ]
+        }
+      },
+      "segment": {
+        "sbp": {
+          "mae": 12.836718222338838,
+          "bias": -0.0007209345575458119,
+          "error_sd": 16.530289085410377,
+          "rmse": 16.467075527061624,
+          "within_5": 0.24427480916030533,
+          "within_10": 0.5038167938931297,
+          "within_15": 0.6259541984732825
+        },
+        "dbp": {
+          "mae": 9.249674257951,
+          "bias": 1.0093381715157452,
+          "error_sd": 11.506501344406738,
+          "rmse": 11.506852435332286,
+          "within_5": 0.3053435114503817,
+          "within_10": 0.6259541984732825,
+          "within_15": 0.8320610687022901
+        }
+      }
+    },
+    "training_median": {
+      "participant_average": {
+        "sbp": {
+          "mae": 16.545454545454547,
+          "bias": 0.5454545454545454,
+          "error_sd": 21.382947504369692,
+          "rmse": 21.14559915529384,
+          "within_5": 0.22727272727272727,
+          "within_10": 0.45454545454545453,
+          "within_15": 0.5681818181818182,
+          "mae_ci95": [
+            12.863068181818182,
+            20.773863636363632
+          ]
+        },
+        "dbp": {
+          "mae": 9.272727272727273,
+          "bias": -0.045454545454545456,
+          "error_sd": 11.820271404145224,
+          "rmse": 11.685266558596537,
+          "within_5": 0.3409090909090909,
+          "within_10": 0.6136363636363636,
+          "within_15": 0.8181818181818182,
+          "mae_ci95": [
+            7.25,
+            11.523295454545453
+          ]
+        }
+      }
+    }
+  },
+  "comparisons": {
+    "signal_only_versus_training_median": {
+      "improvement_mmHg": [
+        3.0920326020175977,
+        0.14938320091694832
+      ],
+      "ci95": [
+        [
+          0.4733849487927587,
+          5.57357439335253
+        ],
+        [
+          -0.8506892031152504,
+          1.1372784999764523
+        ]
+      ]
+    },
+    "signal_plus_profile_versus_profile_only": {
+      "improvement_mmHg": [
+        0.2451121216743049,
+        0.031435029972459845
+      ],
+      "ci95": [
+        [
+          -1.8162894468124535,
+          2.324698405053271
+        ],
+        [
+          -1.1242672084137082,
+          1.1988187813504798
+        ]
+      ]
+    }
+  },
+  "subgroups": {
+    "sbp_below_120": {
+      "participants": 16,
+      "signal_only": {
+        "sbp": {
+          "mae": 17.175335693826533,
+          "bias": 17.175335693826533,
+          "error_sd": 15.645523877793464,
+          "rmse": 22.90143385288516,
+          "within_5": 0.1875,
+          "within_10": 0.3125,
+          "within_15": 0.5
+        },
+        "dbp": {
+          "mae": 8.22992073087544,
+          "bias": 7.535238230904712,
+          "error_sd": 7.718765644336397,
+          "rmse": 10.61298493952875,
+          "within_5": 0.375,
+          "within_10": 0.625,
+          "within_15": 0.875
+        }
+      }
+    },
+    "sbp_120_139": {
+      "participants": 17,
+      "signal_only": {
+        "sbp": {
+          "mae": 5.761531946787759,
+          "bias": 1.2107484870577556,
+          "error_sd": 8.308615502788713,
+          "rmse": 8.150965180857634,
+          "within_5": 0.6470588235294118,
+          "within_10": 0.7647058823529411,
+          "within_15": 0.9411764705882353
+        },
+        "dbp": {
+          "mae": 6.9501759654030835,
+          "bias": 2.84820861532498,
+          "error_sd": 8.086033675998479,
+          "rmse": 8.345664669293866,
+          "within_5": 0.35294117647058826,
+          "within_10": 0.8235294117647058,
+          "within_15": 0.9411764705882353
+        }
+      }
+    },
+    "sbp_140_plus": {
+      "participants": 11,
+      "signal_only": {
+        "sbp": {
+          "mae": 19.927195574055386,
+          "bias": -19.927195574055386,
+          "error_sd": 10.716258902332049,
+          "rmse": 22.39400570471581,
+          "within_5": 0.09090909090909091,
+          "within_10": 0.2727272727272727,
+          "within_15": 0.36363636363636365
+        },
+        "dbp": {
+          "mae": 13.781401459435896,
+          "bias": -10.708899894627002,
+          "error_sd": 11.14651682185234,
+          "rmse": 15.087424863360203,
+          "within_5": 0.0,
+          "within_10": 0.2727272727272727,
+          "within_15": 0.6363636363636364
+        }
+      }
+    }
+  },
+  "versions": {
+    "python": "3.12.14",
+    "numpy": "2.3.5",
+    "pandas": "2.2.3",
+    "sklearn": "1.8.0"
+  },
+  "limitations": [
+    "44 held-out participants in one source dataset; wide uncertainty",
+    "Source data were quality-selected before publication",
+    "No phone-camera validation or KKH external validation",
+    "One BP label per participant; no longitudinal personalization or BP-change claim",
+    "No labs, medications, EMR refresh or multi-site training",
+    "Contact pressure, pigmentation, camera exposure and temperature transfer untested",
+    "Camera output is an experimental extrapolation; engineering quality gate is unvalidated"
+  ],
+  "data_audit": {
+    "duplicate_groups": [
+      [
+        {
+          "subject": 23,
+          "segment": 3,
+          "file": "23_3.txt"
+        },
+        {
+          "subject": 24,
+          "segment": 1,
+          "file": "24_1.txt"
+        }
+      ],
+      [
+        {
+          "subject": 66,
+          "segment": 1,
+          "file": "66_1.txt"
+        },
+        {
+          "subject": 66,
+          "segment": 2,
+          "file": "66_2.txt"
+        }
+      ],
+      [
+        {
+          "subject": 146,
+          "segment": 1,
+          "file": "146_1.txt"
+        },
+        {
+          "subject": 146,
+          "segment": 2,
+          "file": "146_2.txt"
+        }
+      ],
+      [
+        {
+          "subject": 148,
+          "segment": 1,
+          "file": "148_1.txt"
+        },
+        {
+          "subject": 148,
+          "segment": 2,
+          "file": "148_2.txt"
+        }
+      ],
+      [
+        {
+          "subject": 185,
+          "segment": 2,
+          "file": "185_2.txt"
+        },
+        {
+          "subject": 185,
+          "segment": 3,
+          "file": "185_3.txt"
+        }
+      ],
+      [
+        {
+          "subject": 216,
+          "segment": 1,
+          "file": "216_1.txt"
+        },
+        {
+          "subject": 216,
+          "segment": 2,
+          "file": "216_2.txt"
+        }
+      ],
+      [
+        {
+          "subject": 403,
+          "segment": 1,
+          "file": "403_1.txt"
+        },
+        {
+          "subject": 403,
+          "segment": 2,
+          "file": "403_2.txt"
+        }
+      ]
+    ],
+    "excluded_ambiguous_participants": [
+      23,
+      24
+    ],
+    "eligible_participants": 217,
+    "eligible_segments": 645,
+    "rule": "Exclude all participants sharing an exact waveform across IDs; retain first copy for exact repeats within an ID. Applied before splits and fitting.",
+    "length_anomalies": [
+      {
+        "file": "231_1.txt",
+        "samples": 4200,
+        "used": 2100
+      },
+      {
+        "file": "231_2.txt",
+        "samples": 4200,
+        "used": 2100
+      }
+    ]
+  }
+}

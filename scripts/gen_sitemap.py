@@ -24,6 +24,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # (url path, changefreq, priority). Blog posts + growth are discovered dynamically.
 SECTIONS = [
+    ("/pulse-lab/", "monthly", "0.6", "pulse-lab/index.html"),
     ("/projects/", "monthly", "0.9", "projects/index.html"),
     ("/mindspend/", "monthly", "0.7", "mindspend/index.html"),
     ("/", "monthly", "1.0", "index.html"),

@@ -1,0 +1,513 @@
+{
+  "model_id": "spo2-hoffman-rescnn-20261005",
+  "feature_version": "rgb-acdc-rescnn-v1",
+  "seed": 20261005,
+  "created_at": "2026-10-05T02:57:23.677975+00:00",
+  "dataset_url": "https://github.com/ubicomplab/oximetry-phone-cam-data",
+  "dataset_commit": "c483ae8fe4cd32b0b9ce412d07299b05279fc58f",
+  "data_license": "MIT",
+  "participants": 6,
+  "windows": 1908,
+  "fps": 30,
+  "window_seconds": 6,
+  "label": "Arithmetic mean of six 1 Hz Masimo SpO2 5 observations, aligned by recording start as documented by the dataset. No reference-guided lag fitting.",
+  "label_range": [
+    70.0,
+    100.0
+  ],
+  "audit": [
+    {
+      "subject": "100001",
+      "hand": "Left",
+      "frames": 32727,
+      "accepted": 159,
+      "invalid_label": 21,
+      "invalid_rgb": 0
+    },
+    {
+      "subject": "100001",
+      "hand": "Right",
+      "frames": 32713,
+      "accepted": 159,
+      "invalid_label": 21,
+      "invalid_rgb": 0
+    },
+    {
+      "subject": "100002",
+      "hand": "Left",
+      "frames": 33631,
+      "accepted": 185,
+      "invalid_label": 0,
+      "invalid_rgb": 0
+    },
+    {
+      "subject": "100002",
+      "hand": "Right",
+      "frames": 33730,
+      "accepted": 186,
+      "invalid_label": 0,
+      "invalid_rgb": 0
+    },
+    {
+      "subject": "100003",
+      "hand": "Left",
+      "frames": 32001,
+      "accepted": 176,
+      "invalid_label": 0,
+      "invalid_rgb": 0
+    },
+    {
+      "subject": "100003",
+      "hand": "Right",
+      "frames": 32009,
+      "accepted": 176,
+      "invalid_label": 0,
+      "invalid_rgb": 0
+    },
+    {
+      "subject": "100004",
+      "hand": "Left",
+      "frames": 30529,
+      "accepted": 168,
+      "invalid_label": 0,
+      "invalid_rgb": 0
+    },
+    {
+      "subject": "100004",
+      "hand": "Right",
+      "frames": 30438,
+      "accepted": 168,
+      "invalid_label": 0,
+      "invalid_rgb": 0
+    },
+    {
+      "subject": "100005",
+      "hand": "Left",
+      "frames": 27781,
+      "accepted": 142,
+      "invalid_label": 11,
+      "invalid_rgb": 0
+    },
+    {
+      "subject": "100005",
+      "hand": "Right",
+      "frames": 27874,
+      "accepted": 142,
+      "invalid_label": 11,
+      "invalid_rgb": 0
+    },
+    {
+      "subject": "100006",
+      "hand": "Left",
+      "frames": 25000,
+      "accepted": 123,
+      "invalid_label": 14,
+      "invalid_rgb": 0
+    },
+    {
+      "subject": "100006",
+      "hand": "Right",
+      "frames": 25098,
+      "accepted": 124,
+      "invalid_label": 14,
+      "invalid_rgb": 0
+    }
+  ],
+  "folds": [
+    {
+      "test_subject": "100001",
+      "epoch_validation_subject": "100002",
+      "epoch_training_subjects": [
+        "100003",
+        "100004",
+        "100005",
+        "100006"
+      ],
+      "epochs": 12,
+      "train_windows": 1590,
+      "test_windows": 318,
+      "metrics": {
+        "cnn": {
+          "n": 318,
+          "mae": 14.816671959259224,
+          "rmse": 16.7966123119218,
+          "bias": 14.776433476861918,
+          "absolute_error_p90": 26.137930297851565
+        },
+        "ratio_ridge": {
+          "n": 318,
+          "mae": 7.559506974130307,
+          "rmse": 8.629447244721757,
+          "bias": -2.5978495279947915,
+          "absolute_error_p90": 13.27304840087891
+        },
+        "constant": {
+          "n": 318,
+          "mae": 7.751572375027639,
+          "rmse": 8.877485488786462,
+          "bias": -0.72222223821676,
+          "absolute_error_p90": 14.0
+        }
+      },
+      "refit_training_subjects": [
+        "100002",
+        "100003",
+        "100004",
+        "100005",
+        "100006"
+      ]
+    },
+    {
+      "test_subject": "100002",
+      "epoch_validation_subject": "100003",
+      "epoch_training_subjects": [
+        "100001",
+        "100004",
+        "100005",
+        "100006"
+      ],
+      "epochs": 86,
+      "train_windows": 1537,
+      "test_windows": 371,
+      "metrics": {
+        "cnn": {
+          "n": 371,
+          "mae": 7.728065398182831,
+          "rmse": 8.776272472735755,
+          "bias": -7.4706956087097005,
+          "absolute_error_p90": 13.14834976196289
+        },
+        "ratio_ridge": {
+          "n": 371,
+          "mae": 7.497671081049423,
+          "rmse": 8.541386430712555,
+          "bias": -5.944877192659198,
+          "absolute_error_p90": 13.218231201171875
+        },
+        "constant": {
+          "n": 371,
+          "mae": 6.339622641509434,
+          "rmse": 7.440499680057701,
+          "bias": -0.9128482129695923,
+          "absolute_error_p90": 11.0
+        }
+      },
+      "refit_training_subjects": [
+        "100001",
+        "100003",
+        "100004",
+        "100005",
+        "100006"
+      ]
+    },
+    {
+      "test_subject": "100003",
+      "epoch_validation_subject": "100004",
+      "epoch_training_subjects": [
+        "100001",
+        "100002",
+        "100005",
+        "100006"
+      ],
+      "epochs": 7,
+      "train_windows": 1556,
+      "test_windows": 352,
+      "metrics": {
+        "cnn": {
+          "n": 352,
+          "mae": 4.865989457477223,
+          "rmse": 8.102693080724546,
+          "bias": 1.1351913647218184,
+          "absolute_error_p90": 10.793104553222662
+        },
+        "ratio_ridge": {
+          "n": 352,
+          "mae": 5.58508597720753,
+          "rmse": 7.514662647193445,
+          "bias": 2.333304686979814,
+          "absolute_error_p90": 13.845406341552737
+        },
+        "constant": {
+          "n": 352,
+          "mae": 6.589015267112038,
+          "rmse": 8.457745806271719,
+          "bias": 2.9583335356278853,
+          "absolute_error_p90": 14.833335876464844
+        }
+      },
+      "refit_training_subjects": [
+        "100001",
+        "100002",
+        "100004",
+        "100005",
+        "100006"
+      ]
+    },
+    {
+      "test_subject": "100004",
+      "epoch_validation_subject": "100005",
+      "epoch_training_subjects": [
+        "100001",
+        "100002",
+        "100003",
+        "100006"
+      ],
+      "epochs": 58,
+      "train_windows": 1572,
+      "test_windows": 336,
+      "metrics": {
+        "cnn": {
+          "n": 336,
+          "mae": 5.477055776686895,
+          "rmse": 7.0222127445864,
+          "bias": 5.11359555380685,
+          "absolute_error_p90": 12.100627899169922
+        },
+        "ratio_ridge": {
+          "n": 336,
+          "mae": 4.7498110589526945,
+          "rmse": 5.470968115877354,
+          "bias": -0.21884979520525252,
+          "absolute_error_p90": 8.483264923095703
+        },
+        "constant": {
+          "n": 336,
+          "mae": 5.3303573699224565,
+          "rmse": 6.15022232896715,
+          "bias": 0.5684550603230795,
+          "absolute_error_p90": 9.833335876464844
+        }
+      },
+      "refit_training_subjects": [
+        "100001",
+        "100002",
+        "100003",
+        "100005",
+        "100006"
+      ]
+    },
+    {
+      "test_subject": "100005",
+      "epoch_validation_subject": "100006",
+      "epoch_training_subjects": [
+        "100001",
+        "100002",
+        "100003",
+        "100004"
+      ],
+      "epochs": 56,
+      "train_windows": 1624,
+      "test_windows": 284,
+      "metrics": {
+        "cnn": {
+          "n": 284,
+          "mae": 5.1983051568689485,
+          "rmse": 5.897712579106848,
+          "bias": -4.381154825989629,
+          "absolute_error_p90": 8.830055236816408
+        },
+        "ratio_ridge": {
+          "n": 284,
+          "mae": 6.202363914167377,
+          "rmse": 7.497879653606826,
+          "bias": 1.3031010963547398,
+          "absolute_error_p90": 12.704956054687504
+        },
+        "constant": {
+          "n": 284,
+          "mae": 7.264084560770384,
+          "rmse": 8.871176398163767,
+          "bias": 2.670187668061592,
+          "absolute_error_p90": 15.0
+        }
+      },
+      "refit_training_subjects": [
+        "100001",
+        "100002",
+        "100003",
+        "100004",
+        "100006"
+      ]
+    },
+    {
+      "test_subject": "100006",
+      "epoch_validation_subject": "100001",
+      "epoch_training_subjects": [
+        "100002",
+        "100003",
+        "100004",
+        "100005"
+      ],
+      "epochs": 5,
+      "train_windows": 1661,
+      "test_windows": 247,
+      "metrics": {
+        "cnn": {
+          "n": 247,
+          "mae": 6.075393985640182,
+          "rmse": 7.984091483534253,
+          "bias": 4.930784526624177,
+          "absolute_error_p90": 14.507128906250001
+        },
+        "ratio_ridge": {
+          "n": 247,
+          "mae": 6.71799404128843,
+          "rmse": 8.948448192332462,
+          "bias": 6.2275785376668455,
+          "absolute_error_p90": 15.907185363769532
+        },
+        "constant": {
+          "n": 247,
+          "mae": 7.631578762038999,
+          "rmse": 9.073176644066812,
+          "bias": 3.259109126411469,
+          "absolute_error_p90": 15.666664123535156
+        }
+      },
+      "refit_training_subjects": [
+        "100001",
+        "100002",
+        "100003",
+        "100004",
+        "100005"
+      ]
+    }
+  ],
+  "pooled": {
+    "cnn": {
+      "n": 1908,
+      "mae": 7.394588026610561,
+      "rmse": 9.809344647789137,
+      "bias": 2.1062311576347432,
+      "absolute_error_p90": 15.547644805908199
+    },
+    "ratio_ridge": {
+      "n": 1908,
+      "mae": 6.377495727699008,
+      "rmse": 7.811522276891041,
+      "bias": -0.19684657210823875,
+      "absolute_error_p90": 13.03925628662109
+    },
+    "constant": {
+      "n": 1908,
+      "mae": 6.7480783202613175,
+      "rmse": 8.131948257126329,
+      "bias": 1.1673659318648044,
+      "absolute_error_p90": 13.5
+    }
+  },
+  "subject_macro_mae": {
+    "cnn": 7.360246955685884,
+    "ratio_ridge": 6.385405507799294,
+    "constant": 6.8177051627301575
+  },
+  "saturation_bands": {
+    "70-80": {
+      "n": 346,
+      "cnn": {
+        "n": 346,
+        "mae": 12.27411853371328,
+        "rmse": 14.581265971561647,
+        "bias": 8.603377821817563,
+        "absolute_error_p90": 24.72024154663086
+      },
+      "ratio_ridge": {
+        "n": 346,
+        "mae": 11.499237876406983,
+        "rmse": 12.326786515139023,
+        "bias": 11.499237876406983,
+        "absolute_error_p90": 17.22219467163086
+      },
+      "constant": {
+        "n": 346,
+        "mae": 14.032755592654896,
+        "rmse": 14.29864311464512,
+        "bias": 14.032755592654896,
+        "absolute_error_p90": 18.0
+      }
+    },
+    "80-90": {
+      "n": 618,
+      "cnn": {
+        "n": 618,
+        "mae": 8.117762006988032,
+        "rmse": 10.313318573950019,
+        "bias": 2.110035689517518,
+        "absolute_error_p90": 16.091120147705087
+      },
+      "ratio_ridge": {
+        "n": 618,
+        "mae": 3.719646725453991,
+        "rmse": 4.686212428123551,
+        "bias": 2.231870496928885,
+        "absolute_error_p90": 7.78173751831055
+      },
+      "constant": {
+        "n": 618,
+        "mae": 4.374326391127503,
+        "rmse": 5.268501439058712,
+        "bias": 4.350593937253489,
+        "absolute_error_p90": 9.0
+      }
+    },
+    "90-100": {
+      "n": 944,
+      "cnn": {
+        "n": 944,
+        "mae": 5.132682226471982,
+        "rmse": 6.850124721545448,
+        "bias": -0.2776289551945056,
+        "absolute_error_p90": 11.330525970458986
+      },
+      "ratio_ridge": {
+        "n": 944,
+        "mae": 6.240237147121106,
+        "rmse": 7.298109264228427,
+        "bias": -6.073745266865876,
+        "absolute_error_p90": 11.29578323364258
+      },
+      "constant": {
+        "n": 944,
+        "mae": 5.632061748181359,
+        "rmse": 6.367898961650039,
+        "bias": -5.632061748181359,
+        "absolute_error_p90": 9.0
+      }
+    }
+  },
+  "final_epochs": 34,
+  "final_fit_participants": [
+    "100001",
+    "100002",
+    "100003",
+    "100004",
+    "100005",
+    "100006"
+  ],
+  "final_model_evaluation": "Final model refit on all six participants. Reported evaluation is from six separate outer-fold models; the final fit has no independent test cohort.",
+  "phone_validated": false,
+  "uncertainty": "No calibrated individual prediction interval. Window spread is not an accuracy interval.",
+  "limitations": [
+    "Six participants, one Nexus 6P phone model; no independent iPhone or browser cohort.",
+    "Pulse oximeter reference rather than arterial co-oximetry.",
+    "Alignment uses nominal 30 Hz and shared recording start; sensor averaging/lag remain limitations.",
+    "Raw frame means from whole-frame decoded video; browser exposure, white balance, processing and flash differ.",
+    "No clinical threshold, hypoxemia triage, skin-tone subgroup, personalization or glucose validation.",
+    "Adjacent nonoverlapping windows remain correlated; participant count is the effective generalization sample size.",
+    "Live signal gates are provisional engineering rules, not clinical validation."
+  ],
+  "runtime": {
+    "python": "3.12.14",
+    "torch": "2.14.1+cpu",
+    "numpy": "2.3.5"
+  },
+  "elapsed_seconds": 44.88497972488403,
+  "release_decision": "Experimental only. Fixed CNN candidate; baseline comparisons are reported without claiming clinical readiness.",
+  "deployment": {
+    "model_id": "spo2-hoffman-ratio-20261005",
+    "family": "ratio_ridge",
+    "selection": "Exploratory choice after comparison of the same outer folds. No untouched external test cohort.",
+    "clinical_validated": false,
+    "phone_validated": false
+  }
+}

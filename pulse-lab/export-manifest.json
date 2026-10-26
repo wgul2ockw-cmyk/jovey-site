@@ -1,0 +1,16 @@
+{
+  "build": "S15-JOVEY-20261026",
+  "source_commit": "4e171d16dfc4c52e8dd178729d134f82f80b467d",
+  "source_build": "S15-20261005",
+  "models_retrained": false,
+  "standalone": "Pulse_Lab_S15_Jovey.html",
+  "module_count": 16,
+  "assets": {
+    "model.json": "151f3b4dc3d9ac5cd47ce602e341e62ee52c85f8f11b8f489ab1080126e902b4",
+    "benchmark.json": "33488bc3710581f00eb06be2d6750d6f985be2d0b090ae3b01ed94bf5496a91f",
+    "examples.json": "b3690b41ade34e35be2dd063c9855537536cb5189928b52adfbbe2e556ec964b",
+    "spo2/S2-20261005/model.json": "d214de526ac3b60fa10d26059af2a76d62eb3bffe194789c78d658427fa5e9fd",
+    "spo2/S2-20261005/examples.json": "fb212fba17f46c9ce7457afb1eb38e0e92b5e2a5dde610591273037afcfa2b30"
+  },
+  "portable_sha256": "66412ca73ca315ca96a5282e3fad70084f8701ca4f44f06f90f6bc26683a0224"
+}
