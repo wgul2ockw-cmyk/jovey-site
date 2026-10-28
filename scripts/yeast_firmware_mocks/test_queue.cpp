@@ -1,0 +1,2 @@
+#include "firmware/Yeast_Cloud.ino"
+int main(){WIFI_SSID="test";WIFI_PASSWORD="test";WiFi.connection=WL_CONNECTED;setup();loop();for(int i=1;i<=185;i++)queueCloudPoint(i*10000,27,600,120,i);assert(uxQueueMessagesWaiting(cloudQueue)==180);assert(cloudDropped==5);CloudPoint p;xQueueReceive(cloudQueue,&p,0);assert(p.seq==1);queueCloudPoint(1860000,27,600,120,186);for(int i=0;i<180;i++)xQueueReceive(cloudQueue,&p,0);assert(p.seq==186&&p.dropped==5);std::cout<<"PASS cloud sampling rate, bounded queue, oldest preservation, drop accounting\n";}

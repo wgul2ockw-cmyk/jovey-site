@@ -51,3 +51,17 @@ TLS on the user's Mac; compile/upload firmware and verify the physical board.
 The cloud environment's HTTPS inspection does not supply a suitable root CA for
 the board, so no cloud-environment CA was placed in the firmware. The Mac helper
 validates the real project's certificate chain locally and fails closed.
+
+## Offline startup fix — cloud-v2.1
+
+Missing Wi-Fi credentials previously skipped Wi-Fi initialization but still
+started WebServer and NTP/cloud. The firmware now skips all network services
+when SSID/password placeholders remain or WiFi.mode fails. Server and cloud
+start once after the first connection. Sensor CSV continues offline.
+
+Native regression checks assert that Wi-Fi status, listener startup and NTP
+are not called before initialization; exercise placeholder SSID/password,
+Wi-Fi initialization failure, initial disconnection, connection, disconnection
+and reconnection. Ring buffer and bounded cloud queue checks also pass.
+Hardware APIs are mocked. The reported backtrace has not been decoded against
+the user's exact ELF; on-device verification of this fix is still required.

@@ -1,4 +1,4 @@
-/* Cloud v2: local 1s monitor preserved; cloud every 10s. See README_TH.md. */
+/* Cloud v2.1: offline-safe startup; local 1s sampling, cloud every 10s. */
 /*
   Yeast_Live_WiFi v1 — classic ESP32 Dev Module (WROOM-32, 38 pins)
   SETUP: edit WIFI_SSID / WIFI_PASSWORD below, upload, open Serial at 115200,
@@ -34,7 +34,7 @@
 #include <esp_system.h>
 #include <math.h>
 
-// EDIT ONLY THESE TWO LINES first. Keep the quotation marks.
+// Configure Wi-Fi and cloud settings in the secrets.h tab.
 #include "secrets.h"
 
 constexpr uint8_t TEMP_PIN = 4, MQ3_PIN = 34, MQ135_PIN = 35;
@@ -54,6 +54,7 @@ DallasTemperature temperature(&oneWire);
 WebServer server(80);
 uint32_t conversionStart = 0, lastAttempt = 0, lastRetry = 0;
 bool converting = false, credentialsSet = false, wasConnected = false;
+bool networkStarted = false, serverStarted = false;
 
 uint64_t uptimeMs() { return (uint64_t)esp_timer_get_time() / 1000ULL; }
 String unsigned64(uint64_t n) {
@@ -205,27 +206,42 @@ void setup() {
   analogReadResolution(12);
   analogSetPinAttenuation(MQ3_PIN, ADC_11db);
   analogSetPinAttenuation(MQ135_PIN, ADC_11db);
+  Serial.println("# FIRMWARE,cloud-v2.1-offline-safe");
   Serial.print("# RUN,"); Serial.println(bootId);
   Serial.println("ms,tempC,mq3_raw,mq135_raw");
-  credentialsSet = strlen(WIFI_SSID) > 0 && strcmp(WIFI_SSID, "YOUR_WIFI_NAME") != 0;
-  if (credentialsSet) {
-    WiFi.setHostname("yeast-live"); WiFi.mode(WIFI_STA);
-    WiFi.setAutoReconnect(true); WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-    Serial.println("# WIFI_CONNECTING: use 2.4 GHz Wi-Fi; allow 30 seconds.");
-  } else Serial.println("# EDIT WIFI_SSID and WIFI_PASSWORD, then upload again.");
+  credentialsSet = strlen(WIFI_SSID) > 0 && strcmp(WIFI_SSID, "YOUR_WIFI_NAME") != 0
+                   && strcmp(WIFI_PASSWORD, "YOUR_WIFI_PASSWORD") != 0;
+  if (!credentialsSet) {
+    Serial.println("# EDIT WIFI_SSID and WIFI_PASSWORD in secrets.h, then upload again.");
+    Serial.println("# LOCAL_ONLY: sensor CSV continues; Wi-Fi and cloud are not started.");
+    return;
+  }
+  WiFi.setHostname("yeast-live");
+  networkStarted = WiFi.mode(WIFI_STA);
+  if (!networkStarted) {
+    Serial.println("# WIFI_START_FAILED: sensor CSV continues; check memory and restart.");
+    return;
+  }
+  WiFi.setAutoReconnect(true); WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  Serial.println("# WIFI_CONNECTING: use 2.4 GHz Wi-Fi; allow 30 seconds.");
   server.on("/", HTTP_GET, []() { noCache(); server.send_P(200, "text/html; charset=utf-8", PAGE); });
   server.on("/api/data", HTTP_GET, handleData);
   server.on("/api/event", HTTP_POST, handleEvent);
   server.on("/data.csv", HTTP_GET, handleCsv);
   server.on("/events.csv", HTTP_GET, handleEventsCsv);
   server.onNotFound([](){server.send(404, "text/plain", "Not found");});
-  server.begin();
-  startCloud();
+  // Start the listener and NTP/cloud only after the first Wi-Fi connection.
 }
 void loop() {
   sampleSensors();
-  server.handleClient();
+  if (!networkStarted) { delay(1); return; }
   const bool connected = WiFi.status() == WL_CONNECTED;
+  if (connected && !serverStarted) {
+    server.begin();
+    serverStarted = true;
+    startCloud();
+  }
+  if (connected && serverStarted) server.handleClient();
   if (connected && !wasConnected) {
     Serial.print("# OPEN http://"); Serial.print(WiFi.localIP()); Serial.println("/");
   }

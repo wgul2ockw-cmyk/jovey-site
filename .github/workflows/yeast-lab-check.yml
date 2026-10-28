@@ -16,3 +16,4 @@ jobs:
       - run: node --input-type=module --check < yeast-lab/app.js
       - run: node scripts/test_yeast_model.mjs
       - run: node scripts/test_yeast_dashboard.mjs
+      - run: python3 scripts/check_yeast_firmware.py
