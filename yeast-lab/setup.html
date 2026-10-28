@@ -3,30 +3,16 @@
 <nav><a href="/">Jovey</a> · <a href="./">Yeast Lab</a></nav>
 <h1>พาข้อมูลจากบอร์ดขึ้น Jovey</h1>
 <p>ESP32 → ส่ง HTTPS ทุก 10 วินาที → Supabase เก็บข้อมูล → Jovey แสดงกราฟและ baseline</p>
-<section><strong>ตอนนี้หน้าเว็บพร้อม แต่ต้องเชื่อมฐานข้อมูลและบอร์ดของคุณก่อน</strong><p>การเปิดหน้านี้ยังไม่ทำให้บอร์ดส่งข้อมูลเอง ไม่มีจุดจำลอง ข้อมูลจริงจะเริ่มเมื่อ Serial แสดง <code># CLOUD_ACK</code> และจุดบนหน้าเว็บเดินต่อ</p><a class="button" href="downloads/Yeast_Cloud_Kit.zip" download>ดาวน์โหลด Arduino + SQL + คู่มือ</a></section>
-<h2>1 · สร้างที่เก็บข้อมูล</h2>
-<ol><li>เปิด <a href="https://supabase.com/dashboard" target="_blank" rel="noopener noreferrer">Supabase Dashboard</a> และสร้างโปรเจกต์ในบัญชีของคุณ เลือกแผนให้เหมาะกับการใช้งานและตรวจโควตาก่อนเริ่ม</li>
-<li>แตก ZIP เปิด <code>schema.sql</code> คัดลอกทั้งหมดไป SQL Editor → New query → Run ในโปรเจกต์ใหม่</li>
-<li>ไป Authentication → Users → Add user สร้างผู้ใช้ email/password สำหรับเข้าดูข้อมูล บัญชีนี้แยกจากบัญชี Dashboard และต้องยืนยันอีเมลตามการตั้งค่าของโปรเจกต์</li>
-<li>คัดลอก User ID เปิด <code>register_device.sql</code> แทน <code>OWNER_UUID</code> ด้วยค่านั้น แล้วรันหนึ่งครั้ง เก็บ <code>device_id</code> และ <code>device_token</code> ที่ได้ไว้เป็นส่วนตัว</li>
-<li>หา Project URL และ publishable key (หรือ legacy anon key) จากหน้า Connect / Settings ห้ามใช้ secret หรือ service_role key บนเว็บหรือบอร์ด</li></ol>
-<h2>2 · เชื่อมหน้าเว็บ</h2>
-<p>เปิด <a href="./">Yeast Lab</a> ใส่ Project URL, public key และ email/password ที่สร้างในข้อ 1 จะเห็นอุปกรณ์ <strong>Yeast bench 01</strong> สถานะ “รอข้อมูล” เป็นปกติจนกว่าบอร์ดส่งเข้ามา URL และ public key จะจำไว้ในเบราว์เซอร์ แต่รหัสผ่านและ session ไม่บันทึกลง localStorage</p>
-<h2>3 · ใส่ค่าลง Arduino</h2>
-<ol><li>สำรอง sketch เดิม แล้วเปิด <code>Yeast_Cloud/Yeast_Cloud.ino</code> ใน Arduino IDE ให้มีแท็บ <code>CloudSender.h</code> และ <code>secrets.h</code> อยู่ด้วย</li>
-<li>ใช้ ESP32 Dev Module และไลบรารี OneWire / DallasTemperature ตามเดิม ชุดนี้ตั้ง DS18B20 = G4, MQ3 = G34, MQ135 = G35 โดย MQ แต่ละตัวต้องผ่านตัวแบ่งแรงดัน 10K/10K ตามวงจรเดิม</li>
-<li>ใน <code>secrets.h</code> ใส่ Wi-Fi, Project URL, public key, device_id และ device_token เครือข่ายต้องออกอินเทอร์เน็ตได้ โค้ดนี้ยังล็อกอินหน้า captive portal ให้อัตโนมัติไม่ได้</li>
-<li>เตรียมใบรับรอง HTTPS: เปิด Terminal ในโฟลเดอร์ที่แตก ZIP และรันคำสั่งนี้ โดยเปลี่ยน URL เป็นโปรเจกต์จริง:</li></ol>
-<pre><code>python3 prepare_tls.py https://YOUR_PROJECT.supabase.co</code></pre>
-<p>ต้องมี Python 3, OpenSSL และอินเทอร์เน็ต โปรแกรมจะตรวจใบรับรองแล้วเติม ROOT_CA ใน <code>secrets.h</code> หากตรวจไม่ผ่านให้แก้ตามคู่มือ ไม่ปิดการตรวจ TLS</p>
-<ol start="5"><li>เปลี่ยน <code>CLOUD_ENABLED</code> เป็น <code>true</code> แล้ว Upload เปิด Serial Monitor ที่ 115200</li></ol>
-<p><strong>ห้ามส่งรหัสผ่านหรือ device_token ในแชตหรืออัปโหลดไฟล์ secrets.h ที่กรอกจริงแล้วเข้า GitHub</strong></p>
-<h2>4 · ตรวจข้อมูล แล้วเก็บ baseline</h2>
+<section><strong>เซิร์ฟเวอร์และอุปกรณ์ลงทะเบียนพร้อมแล้ว</strong><p>ไม่ต้องสร้างโปรเจกต์ ไม่ต้องรัน SQL และไม่ต้องกรอก API key บนเว็บ เหลือสร้างบัญชีดูกราฟหนึ่งครั้ง และอัปโหลดไฟล์ลง ESP32</p></section>
+<h2>1 · สร้างบัญชีดูกราฟครั้งแรก</h2><ol><li>เปิด <a href="https://supabase.com/dashboard/project/wudjxctrzabkmfqvdwwf/auth/users" target="_blank" rel="noopener noreferrer">Supabase → Authentication → Users</a> ในบัญชีที่เป็นเจ้าของโปรเจกต์ Jovey</li><li>กด Add user → Create new user ใช้อีเมลเจ้าของที่ระบุในไฟล์ START_HERE_TH.txt ของชุดส่วนตัว ตั้งรหัสผ่านของคุณ และเลือกยืนยันอีเมลตามตัวเลือกของหน้า Dashboard</li><li>กลับ <a href="./">Yeast Lab</a> เข้าสู่ระบบด้วยอีเมลและรหัสผ่านที่เพิ่งสร้าง ระบบจะผูกอุปกรณ์กับบัญชีเจ้าของให้อัตโนมัติ บัญชีอื่นอ่านข้อมูลไม่ได้</li></ol><p>นี่คือบัญชีของแอป ไม่ใช่รหัสผ่านบัญชี Supabase Dashboard ไม่ต้องส่งรหัสผ่านในแชต</p>
+<h2>2 · เตรียมบอร์ด</h2><ol><li>ใช้ชุด <strong>Yeast_Jovey_Ready_Private.zip</strong> ที่ส่งให้ส่วนตัวในแชต ซึ่งใส่เซิร์ฟเวอร์และ token อุปกรณ์ไว้แล้ว ห้ามอัปโหลดชุดนี้ไปเว็บสาธารณะ</li><li>ทำตาม START_HERE_TH.txt เพื่อใส่ Wi-Fi และเตรียมใบรับรอง HTTPS บน Mac เครือข่ายต้องออกอินเทอร์เน็ตได้ โค้ดยังล็อกอิน Wi-Fi แบบหน้าเว็บให้อัตโนมัติไม่ได้</li><li>เปิด Yeast_Cloud.ino ใช้ ESP32 Dev Module พร้อม OneWire / DallasTemperature แล้วกด Upload เปิด Serial Monitor 115200</li></ol><p>สายเดิม: DS18B20 G4, MQ3 G34, MQ135 G35 โดยแต่ละ MQ ผ่านตัวแบ่งแรงดัน 10K/10K</p>
+<h2>3 · เริ่มรับข้อมูล</h2><p>รอ Serial แสดง <code># CLOUD_ACK points=...</code> แล้วเปิด Yeast Lab ดูสถานะ LIVE บอร์ดจะส่งทุกประมาณ 10 วินาที แม้ปิดหน้าเว็บ ข้อมูลที่ส่งถึงเซิร์ฟเวอร์แล้วจะยังอยู่</p>
+<h2>4 · เก็บ baseline</h2>
 <ol><li>Serial ต้องแสดง <code># CLOUD_ACK points=...</code> และตาราง <code>yeast_samples</code> มีแถวเพิ่ม หากมีแค่ IP ยังไม่ได้ยืนยันการส่งขึ้นเซิร์ฟเวอร์</li>
 <li>กลับ Yeast Lab รอสถานะ LIVE และกราฟอุณหภูมิ / MQ3 / MQ135 ขยับ</li>
 <li>หลังอุ่นเซนเซอร์และจัดสภาพอ้างอิงให้คงที่ ตั้งชื่อ baseline ติ๊กยืนยัน แล้วกด “เริ่มเก็บ 5 นาที”</li>
 <li>รอครบเวลา ระบบใช้ median จากจุดที่เข้าเกณฑ์เพื่อแสดงส่วนต่างของสัญญาณ เลือก baseline เก่าหรือดาวน์โหลด CSV ได้</li>
 <li>ทดลองปิดเว็บหนึ่งนาทีแล้วเปิดใหม่ ข้อมูลที่ Supabase รับสำเร็จต้องยังอยู่ บอร์ดยังต้องมีไฟและอินเทอร์เน็ต</li></ol>
 <section><strong>อ่านตัวเลขให้ถูก</strong><p>MQ3 / MQ135 เป็น raw ADC ไม่ใช่ CO₂ หรือความเข้มข้นเอทานอล เกณฑ์ baseline ตรวจความครบของข้อมูล ไม่ได้ยืนยันการอุ่นเซนเซอร์ การสอบเทียบ หรือเวลา harvest เว็บแสดงล่าสุดไม่เกิน 600 จุด ส่วนประวัติทั้งหมดอยู่ใน Supabase</p><p>คิวรอส่งบนบอร์ดอยู่ใน RAM และหายเมื่อไฟดับ ยังไม่ใช่เครื่องบันทึกแบบ offline ถาวร</p></section>
-<p><a href="setup/README_TH.md">คู่มือฉบับเต็ม</a> · <a href="setup/VALIDATION.md">สิ่งที่ทดสอบแล้วและข้อจำกัด</a> · <a href="./">กลับ Yeast Lab</a></p>
+<p><a href="downloads/Yeast_Cloud_Kit.zip" download>ชุดตัวอย่างสำหรับโปรเจกต์อื่น (ไม่มี token จริง)</a> · <a href="setup/README_TH.md">คู่มือทั่วไป</a> · <a href="setup/VALIDATION.md">สิ่งที่ทดสอบแล้วและข้อจำกัด</a> · <a href="./">กลับ Yeast Lab</a></p>
 </main></body></html>

@@ -17,3 +17,37 @@ Not yet verified:
 - TLS helper against the user's real project; it requires that project's URL and internet access and fails closed.
 
 No synthetic data is populated into the production page. No CO2, ethanol concentration or harvest inference is made.
+
+## Jovey hosted backend — 2026-10-28
+
+Provisioned project `jovey-yeast-lab` in Singapore on a quoted $0/month plan.
+The dashboard embeds only its URL and publishable key. One physical device is
+registered with a SHA-256-hashed device token; the token is delivered privately.
+The verified owner's first login claims the pending device. The owner's email
+is stored in a private schema, not in public JavaScript or source files.
+
+Hosted verification passed:
+- SQL transaction: valid ingest, duplicate suppression, bad token rejection,
+  owner-scoped reads and baseline creation; test records rolled back.
+- SQL transaction: unverified/wrong-owner claims rejected, verified owner claim
+  succeeds, repeated claim is idempotent; test users rolled back.
+- HTTPS: anonymous sample read denied; incorrect device token rejected; correct
+  token reaches batch validation. No synthetic sensor rows remain.
+- Explicit grants: anonymous baseline execution denied; authenticated direct
+  sample writes and authenticated device ingest denied.
+- Configurator test: Wi-Fi escaping; cloud stays disabled when TLS setup fails.
+
+Security Advisor notes (intentional, reviewed):
+- Private token/enrollment tables have RLS and no client policies (deny all).
+- Three deliberately exposed SECURITY DEFINER RPCs validate either the device
+  credential (ingest), current owner (baseline), or verified registered owner
+  email (claim). EXECUTE is revoked from PUBLIC, anon and authenticated first,
+  then granted only to the intended caller. Search paths are empty.
+  https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable
+  https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable
+
+Still pending: create the owner's Auth account using Supabase Dashboard; prepare
+TLS on the user's Mac; compile/upload firmware and verify the physical board.
+The cloud environment's HTTPS inspection does not supply a suitable root CA for
+the board, so no cloud-environment CA was placed in the firmware. The Mac helper
+validates the real project's certificate chain locally and fails closed.

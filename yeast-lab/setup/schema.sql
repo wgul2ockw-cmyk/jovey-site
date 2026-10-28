@@ -24,11 +24,14 @@ create table public.yeast_baselines (
  id uuid primary key default gen_random_uuid(), device_id uuid not null references public.yeast_devices(id),
  label text not null, start_at timestamptz not null default now(), end_at timestamptz not null,
  check(end_at>start_at));
+alter table yeast_private.tokens enable row level security;
 alter table public.yeast_devices enable row level security;
 alter table public.yeast_samples enable row level security;
 alter table public.yeast_baselines enable row level security;
 revoke all on public.yeast_devices,public.yeast_samples,public.yeast_baselines from anon,authenticated;
 grant select on public.yeast_devices,public.yeast_samples,public.yeast_baselines to authenticated;
+create index yeast_devices_owner_idx on public.yeast_devices(owner_id);
+create index yeast_baselines_device_start_idx on public.yeast_baselines(device_id,start_at);
 create policy own_device on public.yeast_devices for select to authenticated using(owner_id=(select auth.uid()));
 create policy own_samples on public.yeast_samples for select to authenticated using(exists(select 1 from public.yeast_devices d where d.id=device_id and d.owner_id=(select auth.uid())));
 create policy own_baselines on public.yeast_baselines for select to authenticated using(exists(select 1 from public.yeast_devices d where d.id=device_id and d.owner_id=(select auth.uid())));
@@ -54,7 +57,7 @@ begin
  end loop;
  return jsonb_build_object('ok',true,'inserted',n);
 end $$;
-revoke all on function public.yeast_ingest(uuid,text,jsonb) from public;
+revoke all on function public.yeast_ingest(uuid,text,jsonb) from public,anon,authenticated;
 grant execute on function public.yeast_ingest(uuid,text,jsonb) to anon;
 
 create function public.yeast_start_baseline(p_device uuid,p_label text)
@@ -67,7 +70,7 @@ begin
  insert into public.yeast_baselines(device_id,label,end_at) values(p_device,left(coalesce(nullif(p_label,''),'Baseline'),100),now()+interval '5 minutes') returning id into bid;
  return bid;
 end $$;
-revoke all on function public.yeast_start_baseline(uuid,text) from public;
+revoke all on function public.yeast_start_baseline(uuid,text) from public,anon,authenticated;
 grant execute on function public.yeast_start_baseline(uuid,text) to authenticated;
 
 create function public.yeast_baseline_stats(p_baseline uuid)
@@ -84,6 +87,6 @@ begin
  and mq3_raw between 1 and 4094 and mq135_raw between 1 and 4094;
  return result;
 end $$;
-revoke all on function public.yeast_baseline_stats(uuid) from public;
+revoke all on function public.yeast_baseline_stats(uuid) from public,anon,authenticated;
 grant execute on function public.yeast_baseline_stats(uuid) to authenticated;
 commit;

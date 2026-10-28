@@ -45,3 +45,10 @@ node scripts/test_yeast_dashboard.mjs
 `yeast-lab/setup/Yeast_Cloud/secrets.h` is a placeholder template. Never commit real
 Wi-Fi passwords or device tokens. If changing kit sources, rebuild
 `yeast-lab/downloads/Yeast_Cloud_Kit.zip` before publishing.
+
+Jovey's Yeast Lab now has a provisioned Supabase backend; `app.js` contains only
+its public URL/key. The registered owner's first verified Auth login calls
+`yeast_claim_owner()` if no device is visible. Owner enrollment and device tokens
+stay in `yeast_private`. The private device kit is delivered outside this public
+repository. The owner still needs to create the Auth account in Supabase and
+configure/flash the board locally; no live hardware stream has been verified.
