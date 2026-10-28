@@ -1,0 +1,18 @@
+name: Validate Yeast Lab
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  dashboard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --input-type=module --check < yeast-lab/app.js
+      - run: node scripts/test_yeast_model.mjs
+      - run: node scripts/test_yeast_dashboard.mjs

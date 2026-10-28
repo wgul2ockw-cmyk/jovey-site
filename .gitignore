@@ -1,3 +1,6 @@
 assets/v-upload/
 .DS_Store
 .claude/
+
+# Local credentials: the downloadable kit contains placeholders only
+yeast-lab/setup/Yeast_Cloud/secrets.local.h

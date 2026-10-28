@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';import{baselineReady,delta,mergeRows,csv}from'../yeast-lab/model.mjs';
+const b={end_at:'2026-10-28T01:05:00Z'},s={n:30,first_at:'2026-10-28T01:00:01Z',last_at:'2026-10-28T01:04:51Z'};
+assert.equal(baselineReady(b,s,Date.parse('2026-10-28T01:04:00Z')),false);
+assert.equal(baselineReady(b,s,Date.parse('2026-10-28T01:06:00Z')),true);
+assert.equal(baselineReady(b,{...s,n:19},Date.parse('2026-10-28T01:06:00Z')),false);
+assert.equal(baselineReady(b,{...s,last_at:s.first_at},Date.parse('2026-10-28T01:06:00Z')),false);
+assert.equal(delta(900,600),'+300.0 counts · 50.0%');assert(!delta(10,0).includes('%'));assert(!delta(null,0).includes('NaN'));
+const a={id:1,sampled_at:'2026-10-28T01:01:00Z'},c={id:2,sampled_at:'2026-10-28T01:00:00Z'};
+assert.deepEqual(mergeRows([a],[a,c]).map(x=>x.id),[2,1]);assert(csv([{boot_id:'a"b'}]).includes('"a""b"'));
+console.log('PASS: baseline time/sample coverage, raw deltas, zero denominator, null, dedup, delayed ordering, CSV escaping');
