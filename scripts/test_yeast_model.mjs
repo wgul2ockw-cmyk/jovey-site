@@ -1,4 +1,4 @@
-import assert from 'node:assert/strict';import{baselineReady,delta,mergeRows,csv}from'../yeast-lab/model.mjs';
+import assert from 'node:assert/strict';import{baselineReady,delta,mergeRows,csv,meanBaseline,referenceValid,parseReference}from'../yeast-lab/model.mjs';
 const b={end_at:'2026-10-28T01:05:00Z'},s={n:30,first_at:'2026-10-28T01:00:01Z',last_at:'2026-10-28T01:04:51Z'};
 assert.equal(baselineReady(b,s,Date.parse('2026-10-28T01:04:00Z')),false);
 assert.equal(baselineReady(b,s,Date.parse('2026-10-28T01:06:00Z')),true);
@@ -8,3 +8,24 @@ assert.equal(delta(900,600),'+300.0 counts · 50.0%');assert(!delta(10,0).includ
 const a={id:1,sampled_at:'2026-10-28T01:01:00Z'},c={id:2,sampled_at:'2026-10-28T01:00:00Z'};
 assert.deepEqual(mergeRows([a],[a,c]).map(x=>x.id),[2,1]);assert(csv([{boot_id:'a"b'}]).includes('"a""b"'));
 console.log('PASS: baseline time/sample coverage, raw deltas, zero denominator, null, dedup, delayed ordering, CSV escaping');
+
+const origin=Date.parse('2026-11-04T11:00:00Z');
+const samples=Array.from({length:30},(_,i)=>({id:i+1,boot_id:'a',sampled_at:new Date(origin+i*10000).toISOString(),temp_c:27,mq3_raw:i===0?900:600,mq135_raw:100}));
+const mean=meanBaseline(samples),window={end_at:new Date(origin+300000).toISOString()};
+assert.equal(mean.mq3,610,'Use arithmetic mean, not median (600)');
+assert.equal(mean.temp,27);assert.equal(mean.coverage_ms,290000);
+assert.equal(baselineReady(window,mean,origin+400000),true);
+assert.equal(meanBaseline([...samples,samples[0]]).n,30,'Duplicate IDs do not bias the reference');
+assert.equal(meanBaseline(samples.map((r,i)=>({...r,temp_c:i===0?85:r.temp_c}))).temp,27,'Reject DS18B20 85°C sentinel from mean');
+assert.equal(meanBaseline(samples.map((r,i)=>({...r,temp_c:i<25?null:r.temp_c}))).temp,null,'Do not provide a temperature reference from too few valid temperatures');
+const gaps=meanBaseline(samples.filter((_,i)=>i<10||i>=20));
+assert.equal(baselineReady(window,gaps,origin+400000),false,'Sample span alone does not prove four minutes of observed coverage');
+const reboot=meanBaseline(samples.map((r,i)=>({...r,boot_id:i<15?'a':'b'})));
+assert.equal(baselineReady(window,reboot,origin+400000),false,'Do not combine reference samples across a reboot');
+assert.equal(meanBaseline(samples.map(r=>({...r,mq135_raw:4095}))).n,0);
+assert.equal(parseReference('',0).value,null);
+assert.equal(parseReference('25.5',0).value,25.5);
+for(const v of ['0','4095','-1','NaN','Infinity'])assert.ok(parseReference(v,1).error);
+assert.ok(parseReference('126',0).error);
+assert.equal(referenceValid(null,0),false);
+console.log('PASS fixed mean references: arithmetic mean, duplicates, valid temperature coverage, gaps, reboot separation, ADC limits and editable reference validation');
