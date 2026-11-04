@@ -1,5 +1,5 @@
 import {setupAnalysis} from './analysis-ui.js';
-import{fields,timeOf,valid,baselineReady,delta,mergeRows,csv,meanBaseline,referenceValid,parseReference}from'./model.mjs';
+import{fields,timeOf,valid,baselineReady,delta,mergeRows,csv,meanBaseline,referenceValid,parseReference}from'./model.mjs?v=20261104-baseline-mean';
 const $=id=>document.getElementById(id);let base='',key='',device='',rows=[],cursor=0,baselines=[],stats=null,busy=false,epoch=0,lastMeta=0,reference=null;
 const format=t=>new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date(t));
 const SITE_CONFIG={url:'https://wudjxctrzabkmfqvdwwf.supabase.co',key:'sb_publishable_Uhqt2TmlX40XIzkuFX8n_w_Mw3LHsqA'};
