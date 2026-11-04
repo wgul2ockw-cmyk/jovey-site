@@ -29,6 +29,10 @@ const storedReference=JSON.parse([...storage.entries()].find(([k])=>k.startsWith
 assert.equal(storedReference.values[1],500);assert.equal(storedReference.base[1],610);
 get('resetReference').onclick();
 assert.equal(get('ref1').value,610);assert.match(get('d1').textContent,/Δ \+40.0 counts/);
+vm.runInContext('changeDevice()',ctx);
+for(let i=0;i<20;i++)await Promise.resolve();await vm.runInContext('poll()',ctx);
+assert.equal(get('ref1').value,610,'Reloading device restores the saved fixed reference');
+assert.match(get('d1').textContent,/Δ \+40.0 counts/);
 history=[sample];await get('useRecentMean').onclick();
 assert.match(get('referenceMessage').textContent,/ข้อมูลยังไม่พอ/);
 assert.equal(get('ref1').value,610,'Insufficient samples must not replace the reference');
