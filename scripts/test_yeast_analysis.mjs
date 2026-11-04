@@ -1,0 +1,34 @@
+import assert from 'node:assert/strict';
+import {seriesFor,temperatureReport,loadHistory,processedCSV,cleanRows} from '../yeast-lab/analysis.mjs';
+import {chartSVG} from '../yeast-lab/analysis-ui.js';
+const start=Date.parse('2026-11-04T00:00:00Z');
+const row=(id,seconds,temp=25,boot='a',gas=100)=>({id,boot_id:boot,sampled_at:new Date(start+seconds*1000).toISOString(),temp_c:temp,mq3_raw:gas,mq135_raw:gas*2});
+const data=[row(1,0,20),row(2,10,30),row(3,20,85),row(4,30,40),row(5,90,null),row(6,100,50,'b')];
+const stats=temperatureReport(data,start,start+120000,20,30);
+assert.equal(stats.n,4);assert.equal(stats.mean,35);assert.equal(stats.min,20);assert.equal(stats.max,50);assert.equal(stats.inRange,50);
+assert.equal(stats.observedMs,10000);assert.equal(stats.gaps,1);assert.equal(stats.restarts,1);assert.equal(stats.suspicious85,1);
+const temp=seriesFor(data,'temp_c',start,5);
+assert.equal(temp.points.length,3);assert.equal(temp.points[0].raw,25);assert.equal(temp.points[0].n,2);
+assert.deepEqual(temp.points.map(p=>p.segment),[1,2,3]);
+const gasData=[row(1,0,25,'a',100),row(2,10,25,'a',200),row(3,20,25,'a',0),row(4,30,25,'a',300)];
+const gas=seriesFor(gasData,'mq3_raw',start,1,true);
+assert.equal(gas.lo,100);assert.equal(gas.hi,300);assert.equal(gas.points[0].value,25);assert.equal(gas.points[1].value,100);
+const flat=seriesFor([row(1,0),row(2,10)],'mq3_raw',start,1,true);assert.equal(flat.flat,true);assert.equal(flat.points[0].value,null);
+assert.equal(seriesFor([],'temp_c',start).points.length,0);
+assert.equal(cleanRows([data[0],data[0],{id:99,sampled_at:null}]).length,1);
+assert.match(processedCSV([gas],{device:'bench',start,end:start+60000,minutes:1}),/relative_0_100/);
+const svg=chartSVG([{...gas,label:'MQ3 <test>'}],{title:'Profile & test',subtitle:'Test data',start,end:start+60000,normalized:true,unit:'Relative signal (0–100)'});
+assert.match(svg,/MQ3 &lt;test&gt;/);assert.doesNotMatch(svg,/NaN|Infinity/);assert.equal((svg.match(/<polyline/g)||[]).length,2);
+// Short pages must not terminate pagination: server may enforce a smaller cap.
+const records=Array.from({length:2105},(_,i)=>row(i+1,i*10));let calls=0;
+const fetched=await loadHistory(async path=>{
+  calls++;const q=new URLSearchParams(path.split('?')[1]);
+  if(q.get('select')==='id')return [{id:2105}];
+  const after=Number(q.getAll('id').find(x=>x.startsWith('gt.')).slice(3));
+  return records.filter(r=>r.id>after).slice(0,173);
+},'bench',start,start+24*3600000);
+assert.equal(fetched.length,2105);assert.equal(calls,14);
+await assert.rejects(()=>loadHistory(async()=>[], 'bench',start,start+8*86400000),/7/);
+await assert.rejects(()=>loadHistory(async()=>{throw Error('offline')},'bench',start,start+60000),/offline/);
+let count=0;await assert.rejects(()=>loadHistory(async()=>++count===1?[{id:2}]:[{id:1}], 'bench',start,start+60000),/คืบหน้า/);
+console.log('PASS analysis: filtering, median, temperature stats, target %, gap/reboot separation, normalization, constant signals, CSV, SVG and multi-page history');

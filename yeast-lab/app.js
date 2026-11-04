@@ -1,3 +1,4 @@
+import {setupAnalysis} from './analysis-ui.js';
 import{fields,timeOf,valid,baselineReady,delta,mergeRows,csv}from'./model.mjs';
 const $=id=>document.getElementById(id);let base='',key='',device='',rows=[],cursor=0,baselines=[],stats=null,busy=false,epoch=0,lastMeta=0;
 const format=t=>new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date(t));
@@ -30,3 +31,4 @@ function plot(i,f,b,median){const c=$('c'+i),dpr=window.devicePixelRatio||1,w=c.
 setInterval(poll,2000);window.addEventListener('resize',()=>{if(rows.length)render();});
 
 connect();
+setupAnalysis({api,getDevice:()=>device});
