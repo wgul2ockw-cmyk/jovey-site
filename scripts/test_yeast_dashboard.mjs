@@ -1,13 +1,37 @@
 import vm from 'node:vm';import fs from 'node:fs';import assert from 'node:assert/strict';import*as model from '../yeast-lab/model.mjs';
-class Node{constructor(){this.value='';this.children=[];this.checked=false;this.clientWidth=340;this.classList={add(){},remove(){}};}replaceChildren(...c){this.children=c;if(c[0]?.isOption)this.value=c[0].value;}append(x){this.children.push(x)}getContext(){return new Proxy({},{get:(t,k)=>t[k]||(()=>{})});}click(){}}
+class Node{constructor(){this.value='';this.children=[];this.checked=false;this.clientWidth=340;this.classList={add(){},remove(){}};}replaceChildren(...c){this.children=c;if(c[0]?.isOption)this.value=c[0].value;}append(x){this.children.push(x)}getContext(){return new Proxy({},{get:(t,k)=>t[k]||(()=>{})});}click(){}setCustomValidity(message){this.validationMessage=message;}}
 const nodes=new Map();const get=id=>{if(!nodes.has(id))nodes.set(id,new Node());return nodes.get(id)};
-const requests=[];const storage=new Map();let fail=false;const now=Date.now(),sample={id:1,device_id:'dev',boot_id:'boot',seq:10,uptime_ms:10000,sampled_at:new Date(now).toISOString(),received_at:new Date(now).toISOString(),temp_c:27.1,mq3_raw:600,mq135_raw:120,dropped_total:0};
-const ctx=vm.createContext({...model,setupAnalysis(){},console,URL,Blob,AbortSignal,Intl,Date,setInterval(){},setTimeout,crypto:{randomUUID(){return 'local-base';}},localStorage:{getItem(k){return storage.get(k)||null},setItem(k,v){storage.set(k,v)}},Option:function(text,value){return{isOption:true,text,value}},document:{getElementById:get,createElement:()=>new Node()},window:{devicePixelRatio:1,addEventListener(){}},fetch:async(url,opt)=>{if(fail)throw Error('offline');requests.push({url,opt});assert.ok(!url.includes('/auth/')&&!url.includes('/rpc/'));assert.ok(!opt.headers.Authorization);let data;if(url.includes('yeast_samples?'))data=[sample];else throw Error(url);return{ok:true,json:async()=>data};}});
+const requests=[];const storage=new Map();let fail=false;const now=Date.now();let sample={id:1,device_id:'dev',boot_id:'boot',seq:10,uptime_ms:10000,sampled_at:new Date(now).toISOString(),received_at:new Date(now).toISOString(),temp_c:27.1,mq3_raw:600,mq135_raw:120,dropped_total:0};
+let history=Array.from({length:30},(_,i)=>({...sample,id:100+i,seq:100+i,sampled_at:new Date(now-(29-i)*10000).toISOString(),mq3_raw:i===0?900:600}));
+const ctx=vm.createContext({...model,setupAnalysis(){},console,URL,Blob,AbortSignal,Intl,Date,setInterval(){},setTimeout,crypto:{randomUUID(){return 'local-base';}},localStorage:{getItem(k){return storage.get(k)||null},setItem(k,v){storage.set(k,v)}},Option:function(text,value){return{isOption:true,text,value}},document:{getElementById:get,createElement:()=>new Node()},window:{devicePixelRatio:1,addEventListener(){}},fetch:async(url,opt)=>{if(fail)throw Error('offline');requests.push({url,opt});assert.ok(!url.includes('/auth/')&&!url.includes('/rpc/'));assert.ok(!opt.headers.Authorization);let data;if(url.includes('yeast_samples?')){const params=new URL(url).searchParams;const range=params.getAll('sampled_at');data=range.length?history.filter(r=>range.every(condition=>condition.startsWith('gte.')?Date.parse(r.sampled_at)>=Date.parse(condition.slice(4)):Date.parse(r.sampled_at)<Date.parse(condition.slice(3)))):[sample];}else throw Error(url);return{ok:true,json:async()=>data};}});
 vm.runInContext(fs.readFileSync(new URL('../yeast-lab/app.js',import.meta.url),'utf8').replace(/^import[^\n]*\n/gm,''),ctx);
 for(let i=0;i<20;i++)await Promise.resolve();await vm.runInContext('poll()',ctx);
 assert.equal(get('v1').textContent,600);assert.match(get('status').textContent,/LIVE/);assert.ok(requests.length>0);
 await get('start').onclick();assert.match(get('notice').textContent,/ติ๊ก/);
-get('stable').checked=true;await get('start').onclick();assert.match(get('baselineStatus').textContent,/กำลังเก็บ/);assert.match(get('d1').textContent,/ยังไม่มี baseline/);
-fail=true;await vm.runInContext('poll()',ctx);assert.match(get('status').textContent,/ไม่ได้/);assert.equal(get('v1').textContent,600);
-assert.equal(JSON.parse([...storage.values()][0])[0].id,'local-base');
-console.log('PASS dashboard with mocked HTTP/DOM: no-login startup, read-only API, readings, local baseline capture, insufficient baseline, offline status');
+get('stable').checked=true;await get('start').onclick();assert.match(get('baselineStatus').textContent,/กำลังเก็บ/);assert.match(get('d1').textContent,/baseline mean/);
+
+await get('useRecentMean').onclick();
+assert.equal(get('ref1').value,610);
+assert.match(get('d1').textContent,/Δ -10.0 counts/);
+get('ref1').value='500';get('ref1').oninput();
+assert.match(get('d1').textContent,/Δ \+100.0 counts · 20.0%/);
+assert.equal(get('v1').textContent,600,'Editing reference must not modify the measurement');
+sample={...sample,id:2,seq:11,mq3_raw:650};
+await vm.runInContext('poll()',ctx);
+assert.match(get('d1').textContent,/Δ \+150.0 counts · 30.0%/);
+assert.equal(get('ref1').value,'500','Polling must preserve the editable reference');
+get('ref1').value='0';get('ref1').oninput();
+assert.ok(get('ref1').validationMessage);
+assert.match(get('d1').textContent,/baseline mean/);
+assert.ok(!get('d1').textContent.includes('Infinity'));
+get('ref1').value='500';get('ref1').oninput();
+const storedReference=JSON.parse([...storage.entries()].find(([k])=>k.startsWith('jovey-live-reference'))[1]);
+assert.equal(storedReference.values[1],500);assert.equal(storedReference.base[1],610);
+get('resetReference').onclick();
+assert.equal(get('ref1').value,610);assert.match(get('d1').textContent,/Δ \+40.0 counts/);
+history=[sample];await get('useRecentMean').onclick();
+assert.match(get('referenceMessage').textContent,/ข้อมูลยังไม่พอ/);
+assert.equal(get('ref1').value,610,'Insufficient samples must not replace the reference');
+fail=true;await vm.runInContext('poll()',ctx);assert.match(get('status').textContent,/ไม่ได้/);assert.equal(get('v1').textContent,650);
+assert.equal(JSON.parse([...storage.entries()].find(([k])=>k.startsWith('jovey-baselines-v1-'))[1])[0].id,'local-base');
+console.log('PASS dashboard with mocked HTTP/DOM: no-login startup, read-only API, readings, local baseline capture, insufficient baseline, fixed recent mean, instant adjustment, live delta, measurement preservation, reset, local persistence and offline status');
