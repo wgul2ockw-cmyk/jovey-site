@@ -14,6 +14,8 @@ jobs:
         with:
           node-version: '22'
       - run: node --input-type=module --check < yeast-lab/app.js
+      - run: node --input-type=module --check < yeast-lab/analysis-ui.js
       - run: node scripts/test_yeast_model.mjs
       - run: node scripts/test_yeast_dashboard.mjs
+      - run: node scripts/test_yeast_analysis.mjs
       - run: python3 scripts/check_yeast_firmware.py
