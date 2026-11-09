@@ -1,0 +1,8 @@
+{
+  "job_id": "local-drying-concept-v1",
+  "provider": "local-blender",
+  "provider_task_id": null,
+  "method": "procedural",
+  "output_sha256": "38453d94f4742d1bb47bdc48027f434bff560ad42e71ad949b43f160987514b1",
+  "finished_at": "2026-11-09T05:53:35.385294+00:00"
+}

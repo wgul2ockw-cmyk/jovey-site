@@ -1,0 +1,126 @@
+[
+  {
+    "schema_version": 1,
+    "id": "jovey-research-reuse-example",
+    "version": 1,
+    "name": "research concept template",
+    "scope": {
+      "kind": "public",
+      "id": "jovey-concepts"
+    },
+    "path": "models/research.glb",
+    "tags": [
+      "research",
+      "lab",
+      "campus"
+    ],
+    "source_kind": "procedural-template",
+    "mode": "reuse",
+    "adaptation": null,
+    "parent_id": "jovey-template-research",
+    "file_sha256": "34efe11a785bce0a4b1797203d5de9aed5ce595f322b5c63852ea4c3665dea28",
+    "geometry_sha256": "2b67672b095ea06abc9939bced6b8dd7df3280d6f101e612aa754bc6db6c1365",
+    "style_id": null,
+    "provenance": {
+      "creator": "Jovey design prototype",
+      "license": "Original project-generated geometry; reuse within this project",
+      "source": "build_models.py: fixed Blender template, not brief-driven AI generation",
+      "receipt_id": null
+    },
+    "validation_class": "concept-only",
+    "review": "pending"
+  },
+  {
+    "schema_version": 1,
+    "id": "jovey-production-adapt-v1",
+    "version": 1,
+    "name": "Production template with Jovey materials",
+    "scope": {
+      "kind": "public",
+      "id": "jovey-concepts"
+    },
+    "path": "examples/drying-module/adapted-production.glb",
+    "tags": [
+      "drying",
+      "pilot",
+      "concept"
+    ],
+    "source_kind": "procedural-template",
+    "mode": "adapt",
+    "adaptation": "material-only",
+    "parent_id": "jovey-template-production",
+    "file_sha256": "c58f483c2b25895512ba2c8cf47f433b5a7d23bc4e63da76ef69863555f3fd6f",
+    "geometry_sha256": "adee8b9e5087d744711c9378980831aa2464da5892d3b086c3d45eae818b2413",
+    "style_id": "jovey-faceted-facilities-v1",
+    "provenance": {
+      "creator": "Jovey design prototype",
+      "license": "Original project-generated geometry; reuse within this project",
+      "source": "Existing production template; JSON materials changed, original BIN retained",
+      "receipt_id": null
+    },
+    "validation_class": "concept-only",
+    "review": "pending"
+  },
+  {
+    "schema_version": 1,
+    "id": "jovey-drying-source-v1",
+    "version": 1,
+    "name": "New drying module concept",
+    "scope": {
+      "kind": "public",
+      "id": "jovey-concepts"
+    },
+    "path": "examples/drying-module/source.glb",
+    "tags": [
+      "drying",
+      "pilot",
+      "concept"
+    ],
+    "source_kind": "procedural-new",
+    "mode": "generate-new",
+    "adaptation": null,
+    "parent_id": null,
+    "file_sha256": "38453d94f4742d1bb47bdc48027f434bff560ad42e71ad949b43f160987514b1",
+    "geometry_sha256": "cae693f23ed7238a86a25d6af2f66eb79297890b90125225b71f2753fb66b687",
+    "style_id": null,
+    "provenance": {
+      "creator": "AI agent authored plan and Blender script; Blender executed locally",
+      "license": "Original project-generated geometry; reuse within this project",
+      "source": "generate.py: newly authored concept; not a fixed template or CAD-validated design",
+      "receipt_id": "local-drying-concept-v1"
+    },
+    "validation_class": "concept-only",
+    "review": "pending"
+  },
+  {
+    "schema_version": 1,
+    "id": "jovey-drying-styled-v1",
+    "version": 1,
+    "name": "Jovey drying concept",
+    "scope": {
+      "kind": "public",
+      "id": "jovey-concepts"
+    },
+    "path": "examples/drying-module/jovey-styled.glb",
+    "tags": [
+      "drying",
+      "pilot",
+      "concept"
+    ],
+    "source_kind": "procedural-new",
+    "mode": "adapt",
+    "adaptation": "material-only",
+    "parent_id": "jovey-drying-source-v1",
+    "file_sha256": "0f4b6cf96b5bf937781046d4a18f351591fc12cd0bfbd1daa1c9285485df9134",
+    "geometry_sha256": "cae693f23ed7238a86a25d6af2f66eb79297890b90125225b71f2753fb66b687",
+    "style_id": "jovey-faceted-facilities-v1",
+    "provenance": {
+      "creator": "AI agent authored plan and Blender script; Blender executed locally",
+      "license": "Original project-generated geometry; reuse within this project",
+      "source": "generate.py: newly authored concept; not a fixed template or CAD-validated design",
+      "receipt_id": "local-drying-concept-v1"
+    },
+    "validation_class": "concept-only",
+    "review": "pending"
+  }
+]

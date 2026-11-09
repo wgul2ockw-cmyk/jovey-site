@@ -1,0 +1,127 @@
+[
+  {
+    "schema_version": 1,
+    "id": "jovey-template-research",
+    "version": 1,
+    "name": "research concept template",
+    "scope": {
+      "kind": "public",
+      "id": "jovey-concepts"
+    },
+    "path": "models/research.glb",
+    "tags": [
+      "research",
+      "lab",
+      "campus"
+    ],
+    "source_kind": "procedural-template",
+    "mode": "catalog-seed",
+    "adaptation": null,
+    "parent_id": null,
+    "file_sha256": "34efe11a785bce0a4b1797203d5de9aed5ce595f322b5c63852ea4c3665dea28",
+    "geometry_sha256": "2b67672b095ea06abc9939bced6b8dd7df3280d6f101e612aa754bc6db6c1365",
+    "style_id": null,
+    "provenance": {
+      "creator": "Jovey design prototype",
+      "license": "Original project-generated geometry; reuse within this project",
+      "source": "build_models.py: fixed Blender template, not brief-driven AI generation",
+      "receipt_id": null
+    },
+    "validation_class": "concept-only",
+    "review": "pending"
+  },
+  {
+    "schema_version": 1,
+    "id": "jovey-template-production",
+    "version": 1,
+    "name": "production concept template",
+    "scope": {
+      "kind": "public",
+      "id": "jovey-concepts"
+    },
+    "path": "models/production.glb",
+    "tags": [
+      "production",
+      "vessels",
+      "pilot",
+      "process"
+    ],
+    "source_kind": "procedural-template",
+    "mode": "catalog-seed",
+    "adaptation": null,
+    "parent_id": null,
+    "file_sha256": "c82d914449e9ee69d3a5353a95c3422e4229d63ae4e13bacbbc45b648875eca7",
+    "geometry_sha256": "adee8b9e5087d744711c9378980831aa2464da5892d3b086c3d45eae818b2413",
+    "style_id": null,
+    "provenance": {
+      "creator": "Jovey design prototype",
+      "license": "Original project-generated geometry; reuse within this project",
+      "source": "build_models.py: fixed Blender template, not brief-driven AI generation",
+      "receipt_id": null
+    },
+    "validation_class": "concept-only",
+    "review": "pending"
+  },
+  {
+    "schema_version": 1,
+    "id": "jovey-template-greenhouse",
+    "version": 1,
+    "name": "greenhouse concept template",
+    "scope": {
+      "kind": "public",
+      "id": "jovey-concepts"
+    },
+    "path": "models/greenhouse.glb",
+    "tags": [
+      "greenhouse",
+      "growing",
+      "plants"
+    ],
+    "source_kind": "procedural-template",
+    "mode": "catalog-seed",
+    "adaptation": null,
+    "parent_id": null,
+    "file_sha256": "acb5379af3e2fd49df47b8012bf2604a6ea2991dff28607820c02f4ab49c6bf1",
+    "geometry_sha256": "ba25714bcd39c77a8cf9c6ceabc720aab37b14ba759cc7e796c8ad25a4c6c138",
+    "style_id": null,
+    "provenance": {
+      "creator": "Jovey design prototype",
+      "license": "Original project-generated geometry; reuse within this project",
+      "source": "build_models.py: fixed Blender template, not brief-driven AI generation",
+      "receipt_id": null
+    },
+    "validation_class": "concept-only",
+    "review": "pending"
+  },
+  {
+    "schema_version": 1,
+    "id": "jovey-template-warehouse",
+    "version": 1,
+    "name": "warehouse concept template",
+    "scope": {
+      "kind": "public",
+      "id": "jovey-concepts"
+    },
+    "path": "models/warehouse.glb",
+    "tags": [
+      "warehouse",
+      "distribution",
+      "storage"
+    ],
+    "source_kind": "procedural-template",
+    "mode": "catalog-seed",
+    "adaptation": null,
+    "parent_id": null,
+    "file_sha256": "0211845cfb6c0c308cb5148c3774a4e45b8de4d96d9a11072f4382cb2cc40b8b",
+    "geometry_sha256": "e2b936b18be47f53c702ad35a89ad1b9888e8f2053a07d0f5568a2740262b9d4",
+    "style_id": null,
+    "provenance": {
+      "creator": "Jovey design prototype",
+      "license": "Original project-generated geometry; reuse within this project",
+      "source": "build_models.py: fixed Blender template, not brief-driven AI generation",
+      "receipt_id": null
+    },
+    "validation_class": "concept-only",
+    "review": "pending"
+  }
+]

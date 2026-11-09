@@ -1,0 +1,50 @@
+/* Opt-in presentation layer. Does not read or change project data. */
+.personality-theme{--bg:#f7f7f2;--ink:#303b3b;--muted:#656e6b;--line:#dedfd5;--green:#6c548f;--pale:#eee9f5;background:var(--bg);color:var(--ink)}
+.personality-theme aside{background:#eeefe7;border-right-color:#daddd1}
+.personality-theme main{max-width:1560px;padding-top:26px}
+.personality-theme h1{font-size:34px;letter-spacing:-1.3px;color:#34453d}
+.personality-theme .breadcrumb{margin-bottom:18px;color:#68746b}
+.personality-theme .page-heading{margin-bottom:22px}
+.personality-theme .workspace-name{font-weight:750;letter-spacing:.3px;color:#3d5549}
+.personality-theme .overview-nav[aria-current=page]{background:#dce5d8;color:#355b43;box-shadow:inset 3px 0 #618362;border-radius:4px 9px 9px 4px}
+.personality-theme .intro,.personality-theme .card-goal,.personality-theme .facility-heading p{color:#626e67}
+.personality-theme .studio-banner{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:25px 30px;margin-bottom:26px;background:#e8ede0;border:1px solid #d8dfcc;border-radius:18px;overflow:hidden;box-shadow:0 5px 0 #d7decf}
+.personality-theme .studio-banner>div{flex:0 0 42%;position:relative;z-index:1}
+.personality-theme .studio-kicker{font-size:10px;letter-spacing:2px;color:#56694d;font-weight:700}
+.personality-theme .studio-banner h2{font-size:clamp(25px,2.8vw,38px);line-height:1.12;letter-spacing:-1.2px;margin:12px 0;color:#354e3c;font-weight:750}
+.personality-theme .studio-banner p{font-size:12px;color:#5b6d55;margin:12px 0}
+.personality-theme .studio-banner img{width:55%;max-width:610px;align-self:center}
+.personality-theme .studio-preview{font-size:9px;letter-spacing:.4px;color:#53634e;border:1px solid #bfcdb6;padding:4px 8px;border-radius:20px;display:inline-block}
+.personality-theme .main-tabs{gap:28px;border-bottom-color:#d9ddcf}
+.personality-theme .main-tabs button{font-size:12px;color:#626c63}
+.personality-theme .main-tabs button[aria-pressed=true]{color:#5c467c;border-color:#8063a2}
+.personality-theme :is(.summary-panel,.project-card,.bot-intro,.bot-clients article,.agenda,.facility-detail){background:#fffefa;border:1px solid #dcdfd4;border-radius:14px;box-shadow:0 4px 0 #e3e5dc}
+.personality-theme .project-card{padding:21px;border-top:4px solid #8b77ad;transition:transform .18s,box-shadow .18s}
+.personality-theme .project-card:nth-child(4n+2){border-top-color:#72a084}
+.personality-theme .project-card:nth-child(4n+3){border-top-color:#729eb1}
+.personality-theme .project-card:nth-child(4n+4){border-top-color:#c5a04d}
+.personality-theme .project-card:hover{transform:translateY(-3px);box-shadow:0 7px 0 #e3e5dc}
+.personality-theme .card-icon{background:#e9e1f1;color:#6d538f;box-shadow:3px 3px 0 #d3c7e1;border-radius:7px;transform:rotate(-4deg);height:34px;width:34px}
+.personality-theme .project-name{font-size:16px;color:#38463c}
+.personality-theme .card-goal,.personality-theme .next-action p{font-size:12px}
+.personality-theme .eyebrow{color:#73796a}
+.personality-theme .person-name,.personality-theme .kind{color:#657063}
+.personality-theme .avatar{border-radius:8px;background:#e7e0ee;color:#614c7c;border-color:#d4c7df}
+.personality-theme .facility-board{background:radial-gradient(ellipse at 50% 35%,#fffef5,#eaf0e2);border:1px solid #ccd8c1;border-radius:18px;box-shadow:0 6px 0 #d8e0d0}
+.personality-theme .facility-heading h2{font-weight:700;color:#3a5341}
+.personality-theme .facility-tab{background:#fffefa;border-radius:10px;box-shadow:0 3px 0 #e2e4db}
+.personality-theme .facility-tab[aria-pressed=true]{background:#f1eee5;border-width:2px;box-shadow:0 3px 0 #cbd1c1}
+.personality-theme .facility-detail h3{color:#3c4d40;font-weight:650}
+.personality-theme .facility-preview-note,.personality-theme .facility-hint,.personality-theme .facility-disclaimer{color:#65705c}
+.personality-theme .facility-camera button{height:32px;min-width:32px;border-radius:7px;color:#4c6545}
+.personality-theme .scope-tabs,.personality-theme .progress-display-options{background:#e9ece2;border-color:#d9ddce;border-radius:9px}
+.personality-theme .scope-tabs button[aria-pressed=true]{color:#38513e}
+.personality-theme .calendar-scroll{border-radius:14px;border-color:#d9dfd1}
+.personality-theme .weekday{background:#e9ede2;color:#52634e}
+.personality-theme .calendar-day{background:#fffefa}
+.personality-theme .calendar-event{background:#eae1f1;color:#624a81}
+.personality-theme .calendar-event.team{background:#e0edf2;color:#3c6476}
+.personality-theme dialog{background:#fffefa;border-radius:18px;border-color:#d5d9ca}
+.personality-theme button:focus-visible,.personality-theme a:focus-visible{outline:3px solid #775a9a;outline-offset:4px}
+@media(max-width:700px){.personality-theme main{padding:22px 15px}.personality-theme h1{font-size:28px}.personality-theme .studio-banner{padding:20px;display:block}.personality-theme .studio-banner img{width:100%;max-width:420px;display:block;margin:8px auto -12px}.personality-theme .studio-banner h2{font-size:30px}.personality-theme .studio-banner>div{max-width:none}.personality-theme .main-tabs{gap:20px}.personality-theme .project-card{padding:18px}}
+@media(prefers-reduced-motion:reduce){.personality-theme .project-card:hover{transform:none}.personality-theme *{transition:none!important;animation:none!important}}

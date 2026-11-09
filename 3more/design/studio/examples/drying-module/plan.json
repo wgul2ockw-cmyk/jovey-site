@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "id": "example-facility-plan",
+  "workspace": {
+    "kind": "personal",
+    "id": "example-owner"
+  },
+  "brief": "Illustrative request: a yeast pilot concept with lab, processing and a new drying module",
+  "author": "Jovey workflow example authored by agent; not a connected planner",
+  "origin": "agent-proposal",
+  "status": "proposed",
+  "steps": [
+    {
+      "id": "research",
+      "title": "Clarify lab and process needs",
+      "depends_on": [],
+      "status": "proposed",
+      "evidence": []
+    },
+    {
+      "id": "pilot",
+      "title": "Explore pilot flow and dependencies",
+      "depends_on": [
+        "research"
+      ],
+      "status": "proposed",
+      "evidence": []
+    },
+    {
+      "id": "drying",
+      "title": "Review drying concept with specialists",
+      "depends_on": [
+        "pilot"
+      ],
+      "status": "proposed",
+      "evidence": []
+    }
+  ],
+  "modules": [
+    {
+      "id": "lab",
+      "description": "Concept research lab",
+      "step_ids": [
+        "research"
+      ],
+      "mode": "reuse",
+      "reason": "Existing lab template can illustrate this workstream; suitability unconfirmed",
+      "source_asset_id": "jovey-template-research"
+    },
+    {
+      "id": "process",
+      "description": "Adapt production module appearance",
+      "step_ids": [
+        "pilot"
+      ],
+      "mode": "adapt",
+      "reason": "Reuse vessel geometry with Jovey palette; material-only, not new geometry",
+      "source_asset_id": "jovey-template-production"
+    },
+    {
+      "id": "dryer",
+      "description": "Simplified drying module concept with hopper and collection bin",
+      "step_ids": [
+        "drying"
+      ],
+      "mode": "generate-new",
+      "reason": "No dryer matches the catalog; the agent authored new local Blender geometry for this illustrative proposal. No remote provider used.",
+      "source_asset_id": null
+    }
+  ],
+  "unknowns": [
+    "Capacity",
+    "Process constraints",
+    "Dimensions",
+    "Budget"
+  ],
+  "validation_class": "concept-only"
+}

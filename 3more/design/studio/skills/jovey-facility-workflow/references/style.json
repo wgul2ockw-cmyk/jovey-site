@@ -1,0 +1,11 @@
+{
+  "id": "jovey-faceted-facilities-v1",
+  "reference": {"library_file_id":"libfile_7d9cf4cd014c81919187a9ea761a5e1f", "filename":"IMG_0121.png", "inspection":"actual pixels inspected; characters arranged by personality type, not a building reference"},
+  "translation": "Apply its angular silhouettes, simple polygonal planes, grouped colours and restrained ground shadows to recognizable facility modules. Do not insert characters as a substitute for facilities.",
+  "families": {"purple":["#79638f","#b9a4d0","#56446e"],"green":["#659b6d","#a7ce9b","#3f6949"],"teal":["#4e9a9e","#a6d2d2","#397c85"],"ochre":["#ac893b","#e4c669","#806329"]},
+  "geometry": ["Low-poly, legible silhouettes", "Visible flat facets", "Simplified functional details such as vessels, roof vents, loading bays and greenhouse frames", "Compose modules rather than generating a complex whole campus in one call"],
+  "materials": ["Mostly matte", "Limited palette per facility", "Light and dark planes communicate depth", "Avoid photorealistic textures and glossy toy materials"],
+  "review": ["Recognizable requested facility", "Distinct silhouette at roadmap scale", "Geometry change verified separately from materials", "No completion implied by asset appearance", "Source and derivative retained"],
+  "validation_class": "visual-concept",
+  "fidelity": "requires output-by-output visual review; not guaranteed by palette application"
+}

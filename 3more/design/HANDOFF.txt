@@ -1,0 +1,23 @@
+Jovey /3more facilities theme — revised design draft
+
+Original reference IMG_0121.png visually inspected. It contains angular character
+illustrations grouped in purple, green, teal and ochre. The user clarified that
+this visual language must be applied to BUILDINGS AND FACILITIES.
+
+Review /3more/theme-preview.html. Its banner now uses facilities-studio.svg;
+facilities-preview.png is a rendered copy of that exact SVG, not a browser capture.
+Four representative facilities: research campus, production tanks, greenhouse,
+and distribution building. These are design examples, not project progress claims.
+The interactive roadmap preview uses updated palette overrides in preview-roadmap.js.
+preview-app.js is unchanged application logic except its roadmap import.
+
+All draft files are in /3more; production index.html, app.js, roadmap.js and data
+remain unchanged. Do not replace the latest production files with preview copies.
+Coordinate with bot-connectivity work, then selectively integrate the CSS, banner,
+and palette override after review. All data, event handlers, IDs and bot controls
+must stay current. Never copy the original reference to the public site.
+
+Validation: SVG parses and rendered PNG visually inspected. DOM IDs preserved.
+Preview app comparison confirms only roadmap import changes. No production file
+changes. Browser interaction QA remains pending because the last CUA check reported
+Mac locked. No push, publication or changes outside /3more were performed.

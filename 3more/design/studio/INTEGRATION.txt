@@ -1,0 +1,74 @@
+FACILITY STUDIO — implementation handoff
+
+Entry /3more/design/studio/index.html. Isolated from production app/data/bot files.
+Same 3D flow for Personal and Team; mock profiles Dunk, Aim, Aum are display-only.
+No accounts, password fields, credentials, memberships, invitations or permissions
+created. Backend team owns secure invitation redemption, password setup and sessions.
+Never authorize using names, workspace selectors or client-supplied owner IDs.
+
+Implemented prototype (core flow browser verified):
+- Editable template roadmap with explicit user acceptance. NOT AI generated.
+- Four original Blender-generated GLB concept facilities, plus GLB import.
+- Self-contained glTF 2.0 validation, 30 MB limit, external asset URLs rejected.
+- model-viewer orbit/zoom, palette/roughness material transform, GLB export.
+- IndexedDB stores original + styled asset, roadmap, provenance, timestamp and style
+  version. Local demo filters Personal/Team. NOT a security boundary or cloud sync.
+- Reuse restores the saved style, plan and original source. No automatic public upload.
+
+Production pipeline contract to coordinate with backend/MCP worker:
+1. POST project brief in authenticated workspace -> job ID. Server derives owner,
+   checks membership; retrieves only authorized sources with citations.
+2. Planner returns structured proposed steps, dependencies, unknowns and facility
+   requirements. User acceptance creates a new plan revision, not completed progress.
+3. Source/generate model job requires provider choice, licence and cost constraints.
+   Save immutable source GLB plus source provenance/licence. Original CAD/IFC can be
+   retained separately; conversion needs an authorized worker. None currently wired.
+4. Style worker produces derived low-poly mesh, material palette, source hash,
+   style version and preview. Material recolouring alone is NOT full retopology.
+5. Save versioned asset under owner/team access policies. Signed asset retrieval;
+   no private assets in GitHub Pages/public dashboard JSON. MCP must enforce identical
+   server-side policies. User explicitly shares or copies Personal assets into Team.
+6. Browser polls job states queued/running/review/failed/ready; retry uses idempotency
+   keys. Never silently substitute a template and call it AI output.
+
+Needed decisions/infrastructure: existing backend endpoints/auth contract; AI provider
+and budget; model source/generation provider and licences; worker runtime; private
+object storage; versioned metadata database. Coordinate these with bot/auth worker.
+No changes outside /3more are authorized. Stop any deployment needing other paths.
+
+All models here are CONCEPT geometry in arbitrary units. No verified CAD measurements,
+structural/process engineering, code compliance or construction readiness is claimed.
+
+Model-viewer material API reference: https://modelviewer.dev/examples/scenegraph/
+CDN dependency @google/model-viewer 4.1.0. Requires network. No secret in browser.
+
+Verified in the in-app browser on 2026-11-09: brief -> proposal -> acceptance ->
+research GLB -> styling -> save -> restore; Personal/Team switching clears current
+model and filters records. Mobile and desktop layouts visibly rendered. Fixed a
+model-viewer initialization race by setting the src attribute before element upgrade.
+Imported third-party models, storage quota failures and server integration remain
+unverified. Native Mac access is separate from this successful browser verification.
+Local IndexedDB is not private from other users of the same browser profile.
+
+Reusable workflow added at skills/jovey-facility-workflow/SKILL.md.
+- Three modes: reuse, adapt, generate-new. Four seeded assets are explicitly fixed
+  procedural templates with file/geometry hashes, origin, licence note and review.
+- Strict JSON schema for plans, requests, assets and generation receipts.
+- Offline validators/search/authorization helpers and job lifecycle contract.
+- Server grant checks are integration scaffolding, not deployed authentication.
+- Studio guards delayed model loads and catalog reads with navigation epochs;
+  stale Personal results cannot replace a new Team view in tested async cases.
+- 20 Python contract/GLB/provenance tests and 4 JS async navigation tests pass;
+  skill quick validator and JS syntax check pass. No network/provider test required.
+- New mode cards and GLBs visibly render in browser; earlier blank capture is no
+  longer the verification result. No claim about its original cause.
+- examples/drying-module demonstrates an agent-authored illustrative plan and NEW
+  local procedural Blender geometry: 36 meshes, 1,248 vertices, distinct geometry
+  fingerprint from all four seed templates. Neutral and styled GLBs share geometry.
+- Example also validates exact research reuse and production material-only adaptation.
+  assets.json, receipt.json and validation.json preserve provenance and evidence.
+- Browser verified example -> Studio -> accept -> load drying GLB -> style -> save.
+  This runs a prepared example; the webpage does not autonomously call an AI planner.
+- External provider execution remains BLOCKED: no selected/authorized provider,
+  credentials, payload-sharing grant or spending cap. No paid provider call occurred.
+- Existing reference folder preserved untouched and untracked. No live publication.

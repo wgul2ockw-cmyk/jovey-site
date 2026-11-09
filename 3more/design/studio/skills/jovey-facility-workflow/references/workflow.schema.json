@@ -1,0 +1,477 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "personal",
+            "team",
+            "public"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        }
+      },
+      "required": [
+        "kind",
+        "id"
+      ]
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "depends_on": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          }
+        },
+        "status": {
+          "enum": [
+            "proposed"
+          ]
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          }
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "depends_on",
+        "status",
+        "evidence"
+      ]
+    },
+    "module": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "step_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          }
+        },
+        "mode": {
+          "enum": [
+            "reuse",
+            "adapt",
+            "generate-new"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "source_asset_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "description",
+        "step_ids",
+        "mode",
+        "reason",
+        "source_asset_id"
+      ]
+    },
+    "plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "workspace": {
+          "$ref": "#/$defs/scope"
+        },
+        "brief": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "author": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "origin": {
+          "enum": [
+            "template",
+            "agent-proposal"
+          ]
+        },
+        "status": {
+          "enum": [
+            "proposed",
+            "accepted"
+          ]
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/step"
+          },
+          "minItems": 1
+        },
+        "modules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/module"
+          },
+          "minItems": 1
+        },
+        "unknowns": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          }
+        },
+        "validation_class": {
+          "const": "concept-only"
+        }
+      },
+      "required": [
+        "schema_version",
+        "id",
+        "workspace",
+        "brief",
+        "author",
+        "origin",
+        "status",
+        "steps",
+        "modules",
+        "unknowns",
+        "validation_class"
+      ]
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "idempotency_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "workspace": {
+          "$ref": "#/$defs/scope"
+        },
+        "plan_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "plan_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "mode": {
+          "enum": [
+            "reuse",
+            "adapt",
+            "generate-new"
+          ]
+        },
+        "source_asset_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "adaptation": {
+          "enum": [
+            null,
+            "material-only",
+            "geometry-adaptation"
+          ]
+        },
+        "brief": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "style_id": {
+          "const": "jovey-faceted-facilities-v1"
+        },
+        "provider": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "budget": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "currency": {
+              "const": "USD"
+            },
+            "maximum": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "currency",
+            "maximum"
+          ]
+        }
+      },
+      "required": [
+        "schema_version",
+        "idempotency_key",
+        "workspace",
+        "plan_id",
+        "plan_revision",
+        "mode",
+        "source_asset_id",
+        "adaptation",
+        "brief",
+        "style_id",
+        "provider",
+        "budget"
+      ]
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          }
+        },
+        "source_kind": {
+          "enum": [
+            "procedural-template",
+            "procedural-new",
+            "provider-ai",
+            "user-import"
+          ]
+        },
+        "mode": {
+          "enum": [
+            "reuse",
+            "adapt",
+            "generate-new",
+            "catalog-seed"
+          ]
+        },
+        "adaptation": {
+          "enum": [
+            null,
+            "material-only",
+            "geometry-adaptation"
+          ]
+        },
+        "parent_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "file_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "geometry_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "style_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "provenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "creator": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            },
+            "license": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            },
+            "receipt_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "creator",
+            "license",
+            "source",
+            "receipt_id"
+          ]
+        },
+        "validation_class": {
+          "const": "concept-only"
+        },
+        "review": {
+          "enum": [
+            "pending",
+            "accepted",
+            "rejected"
+          ]
+        }
+      },
+      "required": [
+        "schema_version",
+        "id",
+        "version",
+        "name",
+        "scope",
+        "path",
+        "tags",
+        "source_kind",
+        "mode",
+        "adaptation",
+        "parent_id",
+        "file_sha256",
+        "geometry_sha256",
+        "style_id",
+        "provenance",
+        "validation_class",
+        "review"
+      ]
+    },
+    "receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "job_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "provider": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "provider_task_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "method": {
+          "enum": [
+            "procedural",
+            "provider-ai"
+          ]
+        },
+        "output_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "finished_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "job_id",
+        "provider",
+        "provider_task_id",
+        "method",
+        "output_sha256",
+        "finished_at"
+      ]
+    }
+  }
+}

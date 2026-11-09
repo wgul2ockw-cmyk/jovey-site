@@ -1,0 +1,8 @@
+{
+  "reuse": "exact source hash retained",
+  "adapt": "same geometry as original production; different file/materials",
+  "new_geometry": "different geometry fingerprint from every seed asset",
+  "style": "same geometry as new neutral source",
+  "validation": "concept-only; visual review required; no engineering dimensions",
+  "provider_calls": 0
+}
