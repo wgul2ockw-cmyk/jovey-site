@@ -1,4 +1,13 @@
-# GitHub publishing contract — v3
+# GitHub publishing contract — v4
+
+## Online setup and current restriction
+
+The online guide is https://jovey.co/3more/bot/. Bots can read the public snapshot and prepare proposed changes without a download. Existing connected GitHub reads were verified. The user restricts changes to `/3more/` and forbids access changes that could edit other paths. Do not create a new persistent repository-wide bot writer.
+
+GitHub's Contents permission is not folder-scoped. Therefore new unattended online publication is not enabled. A publish service must enforce the fixed repository, branch and path server-side before write access could be considered. Hosting or modifying that service outside `/3more/` requires separate explicit permission. Do not change the homepage, DNS, unrelated paths or old hosted Site/MCP backend.
+
+The old Jovey Mission Control plugin has not been migrated and still points to its earlier hosted storage. Do not use it to read or update this live dashboard. The optional local tools below are reference material, not a configured no-download remote connection, and do not authorize wider access.
+
 
 ## Website and source
 
