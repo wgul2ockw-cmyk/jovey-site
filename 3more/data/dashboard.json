@@ -1,0 +1,838 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "updatedAt": "2026-11-09T02:14:22.730Z",
+  "projects": [
+    {
+      "id": "mindspend",
+      "kind": "personal",
+      "name": "MindSpend",
+      "icon": "◎",
+      "description": "Mindful spending, goals, and everyday money habits.",
+      "url": "https://github.com/wgul2ockw-cmyk/MindSpend",
+      "source": "From our MindSpend project conversations.",
+      "revision": 0,
+      "updatedAt": null,
+      "dataMode": "mock",
+      "goal": "A calmer daily money experience",
+      "previous": {
+        "title": "Review Home concepts",
+        "detail": "Example previous work for this project. The AI summary will link completed work and its supporting evidence here."
+      },
+      "meeting": {
+        "title": "Choose one Home direction",
+        "detail": "Illustrative meeting summary. A connected agent will extract the discussion, decision, and open question from meeting notes.",
+        "decision": "Choose one Home direction",
+        "openQuestion": "What evidence is needed before moving to the next stage?"
+      },
+      "next": {
+        "title": "Connect one goal to the Home prototype",
+        "detail": "Example next step. The connected agent will publish the agreed action, dependencies, and expected output."
+      },
+      "outcome": "Validate a complete daily money flow",
+      "stages": [
+        "Concept",
+        "Home direction",
+        "Prototype",
+        "Validation",
+        "Release"
+      ],
+      "completedStages": 1,
+      "currentStage": 1,
+      "dependencies": [
+        "Supporting evidence",
+        "An agreed decision",
+        "A clear next action"
+      ],
+      "sources": [],
+      "updateNote": "Initial visual prototype. All progress, meetings, and next steps are illustrative.",
+      "assignees": [
+        {
+          "name": "Project owner",
+          "role": "Lead",
+          "isPlaceholder": true
+        }
+      ],
+      "events": [
+        {
+          "id": "mindspend-example-meeting",
+          "title": "Home direction review",
+          "date": "2026-11-10",
+          "type": "meeting",
+          "details": "Example meeting for the prototype. Review the previous work, agree on the next step, and record open questions. This date is illustrative.",
+          "isMock": true
+        }
+      ]
+    },
+    {
+      "id": "jovey",
+      "kind": "personal",
+      "name": "Jovey",
+      "icon": "j",
+      "description": "Your brand, content, and social studio.",
+      "source": "From your Jovey Social Studio workspace.",
+      "revision": 0,
+      "updatedAt": null,
+      "dataMode": "mock",
+      "goal": "A consistent brand and publishing rhythm",
+      "previous": {
+        "title": "Explore content themes",
+        "detail": "Example previous work for this project. The AI summary will link completed work and its supporting evidence here."
+      },
+      "meeting": {
+        "title": "Agree on one audience and theme",
+        "detail": "Illustrative meeting summary. A connected agent will extract the discussion, decision, and open question from meeting notes.",
+        "decision": "Agree on one audience and theme",
+        "openQuestion": "What evidence is needed before moving to the next stage?"
+      },
+      "next": {
+        "title": "Prepare one content series",
+        "detail": "Example next step. The connected agent will publish the agreed action, dependencies, and expected output."
+      },
+      "outcome": "Run a repeatable content cycle",
+      "stages": [
+        "Audience",
+        "Theme",
+        "Content",
+        "Review",
+        "Publish"
+      ],
+      "completedStages": 1,
+      "currentStage": 1,
+      "dependencies": [
+        "Supporting evidence",
+        "An agreed decision",
+        "A clear next action"
+      ],
+      "sources": [],
+      "updateNote": "Initial visual prototype. All progress, meetings, and next steps are illustrative.",
+      "assignees": [
+        {
+          "name": "Project owner",
+          "role": "Lead",
+          "isPlaceholder": true
+        }
+      ],
+      "events": [
+        {
+          "id": "jovey-example-meeting",
+          "title": "Content planning",
+          "date": "2026-11-12",
+          "type": "meeting",
+          "details": "Example meeting for the prototype. Review the previous work, agree on the next step, and record open questions. This date is illustrative.",
+          "isMock": true
+        }
+      ]
+    },
+    {
+      "id": "atlas",
+      "kind": "personal",
+      "name": "World Investment Atlas",
+      "icon": "◌",
+      "description": "Macroeconomics, debt cycles, and a changing world.",
+      "source": "From your Atlas investment dashboard.",
+      "revision": 0,
+      "updatedAt": null,
+      "dataMode": "mock",
+      "goal": "A clear view of global economic shifts",
+      "previous": {
+        "title": "Map available data sources",
+        "detail": "Example previous work for this project. The AI summary will link completed work and its supporting evidence here."
+      },
+      "meeting": {
+        "title": "Choose the first country comparison",
+        "detail": "Illustrative meeting summary. A connected agent will extract the discussion, decision, and open question from meeting notes.",
+        "decision": "Choose the first country comparison",
+        "openQuestion": "What evidence is needed before moving to the next stage?"
+      },
+      "next": {
+        "title": "Build one comparison view",
+        "detail": "Example next step. The connected agent will publish the agreed action, dependencies, and expected output."
+      },
+      "outcome": "Explain a complete country comparison",
+      "stages": [
+        "Sources",
+        "Question",
+        "Comparison",
+        "Review",
+        "Share"
+      ],
+      "completedStages": 1,
+      "currentStage": 1,
+      "dependencies": [
+        "Supporting evidence",
+        "An agreed decision",
+        "A clear next action"
+      ],
+      "sources": [],
+      "updateNote": "Initial visual prototype. All progress, meetings, and next steps are illustrative.",
+      "assignees": [
+        {
+          "name": "Project owner",
+          "role": "Lead",
+          "isPlaceholder": true
+        }
+      ],
+      "events": [
+        {
+          "id": "atlas-example-meeting",
+          "title": "Country comparison review",
+          "date": "2026-11-17",
+          "type": "meeting",
+          "details": "Example meeting for the prototype. Review the previous work, agree on the next step, and record open questions. This date is illustrative.",
+          "isMock": true
+        }
+      ]
+    },
+    {
+      "id": "pulse",
+      "kind": "personal",
+      "name": "Pulse Lab",
+      "icon": "∿",
+      "description": "Phone sensor experiments and waveform research.",
+      "source": "Groups your Pulse Lab, Waveform Research Collector, and Touch Signal Lab prototypes.",
+      "revision": 0,
+      "updatedAt": null,
+      "dataMode": "mock",
+      "goal": "A repeatable phone-sensor research workflow",
+      "previous": {
+        "title": "Explore phone signal capture",
+        "detail": "Example previous work for this project. The AI summary will link completed work and its supporting evidence here."
+      },
+      "meeting": {
+        "title": "Choose one experiment protocol",
+        "detail": "Illustrative meeting summary. A connected agent will extract the discussion, decision, and open question from meeting notes.",
+        "decision": "Choose one experiment protocol",
+        "openQuestion": "What evidence is needed before moving to the next stage?"
+      },
+      "next": {
+        "title": "Review signal quality in a small trial",
+        "detail": "Example next step. The connected agent will publish the agreed action, dependencies, and expected output."
+      },
+      "outcome": "Document a reproducible research method",
+      "stages": [
+        "Question",
+        "Protocol",
+        "Capture",
+        "Analysis",
+        "Report"
+      ],
+      "completedStages": 1,
+      "currentStage": 1,
+      "dependencies": [
+        "Supporting evidence",
+        "An agreed decision",
+        "A clear next action"
+      ],
+      "sources": [],
+      "updateNote": "Initial visual prototype. All progress, meetings, and next steps are illustrative.",
+      "assignees": [
+        {
+          "name": "Project owner",
+          "role": "Lead",
+          "isPlaceholder": true
+        }
+      ],
+      "events": [
+        {
+          "id": "pulse-example-meeting",
+          "title": "Research protocol review",
+          "date": "2026-11-19",
+          "type": "meeting",
+          "details": "Example meeting for the prototype. Review the previous work, agree on the next step, and record open questions. This date is illustrative.",
+          "isMock": true
+        }
+      ]
+    },
+    {
+      "id": "domains",
+      "kind": "personal",
+      "name": "Domain portfolio",
+      "icon": "↗",
+      "description": "Domain research, valuations, and potential buyers.",
+      "url": null,
+      "source": "From our domain valuation and selling conversations.",
+      "revision": 0,
+      "updatedAt": null,
+      "dataMode": "mock",
+      "goal": "A focused domain sales portfolio",
+      "previous": {
+        "title": "Review the domain shortlist",
+        "detail": "Example previous work for this project. The AI summary will link completed work and its supporting evidence here."
+      },
+      "meeting": {
+        "title": "Choose priority domains to research",
+        "detail": "Illustrative meeting summary. A connected agent will extract the discussion, decision, and open question from meeting notes.",
+        "decision": "Choose priority domains to research",
+        "openQuestion": "What evidence is needed before moving to the next stage?"
+      },
+      "next": {
+        "title": "Prepare buyer research for the shortlist",
+        "detail": "Example next step. The connected agent will publish the agreed action, dependencies, and expected output."
+      },
+      "outcome": "Reach a documented sale or renewal decision",
+      "stages": [
+        "Inventory",
+        "Shortlist",
+        "Research",
+        "Outreach",
+        "Decision"
+      ],
+      "completedStages": 1,
+      "currentStage": 1,
+      "dependencies": [
+        "Supporting evidence",
+        "An agreed decision",
+        "A clear next action"
+      ],
+      "sources": [],
+      "updateNote": "Initial visual prototype. All progress, meetings, and next steps are illustrative.",
+      "assignees": [
+        {
+          "name": "Project owner",
+          "role": "Lead",
+          "isPlaceholder": true
+        }
+      ],
+      "events": [
+        {
+          "id": "domains-example-meeting",
+          "title": "Portfolio shortlist review",
+          "date": "2026-11-23",
+          "type": "meeting",
+          "details": "Example meeting for the prototype. Review the previous work, agree on the next step, and record open questions. This date is illustrative.",
+          "isMock": true
+        }
+      ]
+    },
+    {
+      "id": "tao",
+      "kind": "personal",
+      "name": "Tao Daily",
+      "icon": "○",
+      "description": "A daily practice of stillness, breath, and movement.",
+      "source": "From your Tao Daily practice project.",
+      "revision": 0,
+      "updatedAt": null,
+      "dataMode": "mock",
+      "goal": "A simple daily practice people return to",
+      "previous": {
+        "title": "Explore daily practice ideas",
+        "detail": "Example previous work for this project. The AI summary will link completed work and its supporting evidence here."
+      },
+      "meeting": {
+        "title": "Agree on one short practice flow",
+        "detail": "Illustrative meeting summary. A connected agent will extract the discussion, decision, and open question from meeting notes.",
+        "decision": "Agree on one short practice flow",
+        "openQuestion": "What evidence is needed before moving to the next stage?"
+      },
+      "next": {
+        "title": "Try the flow with a small group",
+        "detail": "Example next step. The connected agent will publish the agreed action, dependencies, and expected output."
+      },
+      "outcome": "Publish a clear daily practice experience",
+      "stages": [
+        "Explore",
+        "Practice",
+        "Trial",
+        "Refine",
+        "Share"
+      ],
+      "completedStages": 1,
+      "currentStage": 1,
+      "dependencies": [
+        "Supporting evidence",
+        "An agreed decision",
+        "A clear next action"
+      ],
+      "sources": [],
+      "updateNote": "Initial visual prototype. All progress, meetings, and next steps are illustrative.",
+      "assignees": [
+        {
+          "name": "Project owner",
+          "role": "Lead",
+          "isPlaceholder": true
+        }
+      ],
+      "events": [
+        {
+          "id": "tao-example-meeting",
+          "title": "Practice flow review",
+          "date": "2026-11-25",
+          "type": "meeting",
+          "details": "Example meeting for the prototype. Review the previous work, agree on the next step, and record open questions. This date is illustrative.",
+          "isMock": true
+        }
+      ]
+    },
+    {
+      "assignees": [
+        {
+          "name": "AUM",
+          "role": "Team member · Project responsibility unspecified",
+          "isPlaceholder": false
+        },
+        {
+          "name": "AIM",
+          "role": "Team member · Project responsibility unspecified",
+          "isPlaceholder": false
+        },
+        {
+          "name": "DUNG",
+          "role": "Team member · Project responsibility unspecified",
+          "isPlaceholder": false
+        }
+      ],
+      "events": [
+        {
+          "id": "yeast-example-meeting",
+          "title": "Extraction experiment review",
+          "date": "2026-11-11",
+          "type": "meeting",
+          "details": "Example meeting for the prototype. Review the previous work, agree on the next step, and record open questions. This date is illustrative.",
+          "isMock": true
+        },
+        {
+          "id": "yeast-example-milestone",
+          "title": "Bench trial",
+          "date": "2026-11-21",
+          "type": "milestone",
+          "details": "Example milestone date for the prototype. Use the project detail view to follow its expected outcome and dependencies.",
+          "isMock": true
+        }
+      ],
+      "roadmap": {
+        "goal": "An operating yeast protein factory, with a connected production line and a market for its products.",
+        "isMock": true,
+        "streams": [
+          {
+            "id": "strain",
+            "name": "Yeast strain facility",
+            "kind": "strain",
+            "stages": [
+              "Strain direction",
+              "Candidate review",
+              "Pilot strain bank",
+              "Production-ready bank"
+            ],
+            "completedStages": 2,
+            "next": "Agree which candidate moves into the next evaluation.",
+            "goal": "A documented strain bank ready to support production.",
+            "dependsOn": []
+          },
+          {
+            "id": "reactor",
+            "name": "Bioreactor facility",
+            "kind": "reactor",
+            "stages": [
+              "System concept",
+              "Bench setup",
+              "Pilot system",
+              "Production system"
+            ],
+            "completedStages": 1,
+            "next": "Define the bench system and the evidence needed for the pilot.",
+            "goal": "A repeatable, production-ready growth system.",
+            "dependsOn": [
+              "strain"
+            ]
+          },
+          {
+            "id": "extract",
+            "name": "Yeast extract facility",
+            "kind": "extract",
+            "stages": [
+              "Process concept",
+              "Bench demonstration",
+              "Pilot extraction",
+              "Production line"
+            ],
+            "completedStages": 1,
+            "next": "Agree on the first extraction demonstration and its review criteria.",
+            "goal": "A consistent extraction line connected to the bioreactor.",
+            "dependsOn": [
+              "reactor"
+            ]
+          },
+          {
+            "id": "powder",
+            "name": "Protein powder facility",
+            "kind": "powder",
+            "stages": [
+              "Product brief",
+              "Sample product",
+              "Pilot finishing",
+              "Packaged product"
+            ],
+            "completedStages": 0,
+            "next": "Define the intended powder product and acceptance criteria.",
+            "goal": "A packaged protein product with an agreed quality standard.",
+            "dependsOn": [
+              "extract"
+            ]
+          },
+          {
+            "id": "market",
+            "name": "Marketing",
+            "kind": "market",
+            "stages": [
+              "Customer direction",
+              "Positioning & samples",
+              "Pilot customers",
+              "Market launch"
+            ],
+            "completedStages": 1,
+            "next": "Review the target customer and the product story together.",
+            "goal": "A clear offer, validated demand, and a launch plan.",
+            "dependsOn": []
+          },
+          {
+            "id": "factory",
+            "name": "Real factory",
+            "kind": "factory",
+            "stages": [
+              "Factory brief",
+              "Site & line plan",
+              "Commissioning",
+              "Operating factory"
+            ],
+            "completedStages": 0,
+            "next": "Bring production needs and market assumptions into one factory brief.",
+            "goal": "All four facilities working together in an operating factory.",
+            "dependsOn": [
+              "powder",
+              "market"
+            ]
+          }
+        ]
+      },
+      "id": "yeast",
+      "kind": "team",
+      "name": "Yeast protein",
+      "icon": "⠿",
+      "description": "Protein extraction and yeast research.",
+      "source": "Team project added at your request. Linked to your Yeast Monitor prototype.",
+      "revision": 2,
+      "updatedAt": "2026-11-08T08:43:10.804Z",
+      "dataMode": "mock",
+      "goal": "A repeatable yeast protein process",
+      "previous": {
+        "title": "Compare extraction approaches",
+        "detail": "Example brief — gather the candidate approaches, baseline conditions, and the measurements needed to compare results. Keep the assumptions with the experiment record."
+      },
+      "meeting": {
+        "title": "Agree on the next controlled experiment",
+        "detail": "Example discussion — choose a candidate approach, agree on a comparison baseline, and identify the measurements required before the next review.",
+        "decision": "Use one controlled trial to resolve the next research question.",
+        "openQuestion": "Which result would justify moving from a bench trial to validation?"
+      },
+      "next": {
+        "title": "Run and document a small extraction trial",
+        "detail": "Example action — prepare the trial plan, record the agreed conditions, and capture observations in one shared record. Bring the result and remaining questions to the next review."
+      },
+      "outcome": "Validate the process against agreed criteria",
+      "stages": [
+        "Research",
+        "Experiment plan",
+        "Bench trial",
+        "Validation",
+        "Handoff"
+      ],
+      "completedStages": 1,
+      "currentStage": 1,
+      "dependencies": [
+        "Agreed trial plan",
+        "Comparison baseline",
+        "Recorded observations"
+      ],
+      "sources": [],
+      "updateNote": "Team roster updated from your instruction to AUM, AIM, and DUNG. All three are shown together pending project-specific responsibilities. Progress and meeting content are illustrative."
+    },
+    {
+      "assignees": [
+        {
+          "name": "AUM",
+          "role": "Team member · Project responsibility unspecified",
+          "isPlaceholder": false
+        },
+        {
+          "name": "AIM",
+          "role": "Team member · Project responsibility unspecified",
+          "isPlaceholder": false
+        },
+        {
+          "name": "DUNG",
+          "role": "Team member · Project responsibility unspecified",
+          "isPlaceholder": false
+        }
+      ],
+      "events": [
+        {
+          "id": "satit-example-meeting",
+          "title": "Curriculum planning",
+          "date": "2026-11-13",
+          "type": "meeting",
+          "details": "Example meeting for the prototype. Review the previous work, agree on the next step, and record open questions. This date is illustrative.",
+          "isMock": true
+        },
+        {
+          "id": "satit-example-milestone",
+          "title": "Pilot",
+          "date": "2026-11-23",
+          "type": "milestone",
+          "details": "Example milestone date for the prototype. Use the project detail view to follow its expected outcome and dependencies.",
+          "isMock": true
+        }
+      ],
+      "roadmap": {
+        "theme": "education",
+        "progressKnown": false,
+        "goal": "Transform Thai education through AP, teacher development, shared services, integrated ERP, and a scalable boarding-school and shopping-mall campus.",
+        "isMock": true,
+        "vision": {
+          "title": "One school. One direction.",
+          "mission": "Cultivate young global leaders through industry-driven, innovative learning. Develop knowledge, skills, and character so students can create positive change.",
+          "pillars": [
+            {
+              "title": "American curriculum & AP",
+              "detail": "American Common Core, an Advanced Placement pathway, university preparation, and global university connections."
+            },
+            {
+              "title": "Disruptive thinking pedagogy",
+              "detail": "Real-world problems, project-based STEM, digital and AI literacy, and student-centered inquiry."
+            },
+            {
+              "title": "Confident voices, global connections",
+              "detail": "English, Chinese, Spanish, and Thai for academic success, global connection, and cultural identity."
+            }
+          ]
+        },
+        "streams": [
+          {
+            "id": "pedagogy",
+            "name": "1. AP & disruptive pedagogy",
+            "kind": "pedagogy",
+            "stages": [
+              "Redesign the old structure",
+              "Define the AP pathway",
+              "Pilot disruptive teaching",
+              "Embed the new learning model"
+            ],
+            "completedStages": 0,
+            "next": "Map what must change in the current structure and define the first AP and disruptive-pedagogy pilot.",
+            "goal": "Self-disrupt the existing model through AP and a new way of teaching and learning.",
+            "dependsOn": []
+          },
+          {
+            "id": "teachers",
+            "name": "2. KKU teacher supply chain",
+            "kind": "teachers",
+            "stages": [
+              "Define teacher needs",
+              "Design the KKU facility",
+              "Develop the teacher pipeline",
+              "Sustain training & placement"
+            ],
+            "completedStages": 0,
+            "next": "Define the role of the KKU educational facility and the teacher development and placement pathway.",
+            "goal": "A KKU educational facility that develops and supplies teachers for the learning model.",
+            "dependsOn": [
+              "pedagogy"
+            ]
+          },
+          {
+            "id": "kitchen",
+            "name": "3. Central kitchen",
+            "kind": "kitchen",
+            "stages": [
+              "Define service needs",
+              "Design the kitchen model",
+              "Pilot shared food service",
+              "Operate the central kitchen"
+            ],
+            "completedStages": 0,
+            "next": "Define who the central kitchen serves and the scope of the first shared-service pilot.",
+            "goal": "A central kitchen that supports the school ecosystem as it grows.",
+            "dependsOn": [
+              "teachers"
+            ]
+          },
+          {
+            "id": "erp",
+            "name": "4. All ERP",
+            "kind": "erp",
+            "stages": [
+              "Map all operations",
+              "Define shared data & workflows",
+              "Connect core operations",
+              "Run the integrated ERP"
+            ],
+            "completedStages": 0,
+            "next": "Map school, teacher, kitchen, and campus workflows into one ERP scope.",
+            "goal": "An integrated ERP across the education ecosystem and its operations.",
+            "dependsOn": [
+              "kitchen"
+            ]
+          },
+          {
+            "id": "campus",
+            "name": "5. Boarding school & shopping mall",
+            "kind": "campus",
+            "stages": [
+              "Define the expansion vision",
+              "Plan boarding & mall buildings",
+              "Build & open the campus",
+              "Scale the operating model"
+            ],
+            "completedStages": 0,
+            "next": "Define how the boarding school and shopping mall support the education vision and the expansion model.",
+            "goal": "Build and scale the boarding-school and shopping-mall campus around the transformed education model.",
+            "dependsOn": [
+              "erp"
+            ]
+          }
+        ]
+      },
+      "id": "satit",
+      "kind": "team",
+      "name": "Satit KKUIDS",
+      "icon": "⌘",
+      "description": "Transforming Thai education through a new learning model, teacher development, shared services, and a growing campus.",
+      "url": null,
+      "source": "Team project added at your request, with context from your Satit Science Atlas.",
+      "revision": 2,
+      "updatedAt": "2026-11-08T10:44:17.327Z",
+      "dataMode": "mock",
+      "goal": "Transform Thai education through a scalable KKUIDS learning ecosystem.",
+      "previous": {
+        "title": "Vision and five-step direction defined",
+        "detail": "The education vision and the five strategic steps were supplied in this conversation. Implementation progress has not been confirmed."
+      },
+      "meeting": {
+        "title": "Meeting not yet recorded",
+        "detail": "No meeting notes have been supplied for this transformation roadmap.",
+        "decision": "No confirmed meeting decision published.",
+        "openQuestion": "What will be the scope and success criteria of the first AP and disruptive-pedagogy pilot?"
+      },
+      "next": {
+        "title": "Start with AP and disruptive pedagogy",
+        "detail": "Proposed next action: map the current structure, identify what to change, and define the first AP and disruptive-pedagogy pilot."
+      },
+      "outcome": "A scalable KKUIDS education ecosystem that transforms Thai education.",
+      "stages": [
+        "AP & pedagogy",
+        "KKU teachers",
+        "Central kitchen",
+        "All ERP",
+        "Boarding & mall"
+      ],
+      "completedStages": 0,
+      "currentStage": 0,
+      "dependencies": [
+        "AP and teaching model",
+        "KKU teacher supply chain",
+        "Integrated operations and campus plan"
+      ],
+      "sources": [],
+      "updateNote": "Vision and five-step roadmap supplied by the user. Supporting milestones are proposed. Actual progress, dates, and project-specific responsibilities are unconfirmed."
+    },
+    {
+      "assignees": [
+        {
+          "name": "AUM",
+          "role": "Team member · Project responsibility unspecified",
+          "isPlaceholder": false
+        },
+        {
+          "name": "AIM",
+          "role": "Team member · Project responsibility unspecified",
+          "isPlaceholder": false
+        },
+        {
+          "name": "DUNG",
+          "role": "Team member · Project responsibility unspecified",
+          "isPlaceholder": false
+        }
+      ],
+      "events": [
+        {
+          "id": "solar-example-meeting",
+          "title": "Prototype scope review",
+          "date": "2026-11-16",
+          "type": "meeting",
+          "details": "Example meeting for the prototype. Review the previous work, agree on the next step, and record open questions. This date is illustrative.",
+          "isMock": true
+        },
+        {
+          "id": "solar-example-milestone",
+          "title": "Prototype",
+          "date": "2026-11-26",
+          "type": "milestone",
+          "details": "Example milestone date for the prototype. Use the project detail view to follow its expected outcome and dependencies.",
+          "isMock": true
+        }
+      ],
+      "roadmap": null,
+      "id": "solar",
+      "kind": "team",
+      "name": "Solar paint",
+      "icon": "☼",
+      "description": "A shared space for the solar paint project.",
+      "url": null,
+      "source": "Team project added at your request.",
+      "revision": 1,
+      "updatedAt": "2026-11-08T08:43:13.443Z",
+      "dataMode": "mock",
+      "goal": "An evidence-based solar paint prototype",
+      "previous": {
+        "title": "Gather initial research",
+        "detail": "Example previous work for this project. The AI summary will link completed work and its supporting evidence here."
+      },
+      "meeting": {
+        "title": "Define the prototype question",
+        "detail": "Illustrative meeting summary. A connected agent will extract the discussion, decision, and open question from meeting notes.",
+        "decision": "Define the prototype question",
+        "openQuestion": "What evidence is needed before moving to the next stage?"
+      },
+      "next": {
+        "title": "Compare candidate approaches",
+        "detail": "Example next step. The connected agent will publish the agreed action, dependencies, and expected output."
+      },
+      "outcome": "Demonstrate a prototype against agreed criteria",
+      "stages": [
+        "Research",
+        "Scope",
+        "Prototype",
+        "Testing",
+        "Decision"
+      ],
+      "completedStages": 1,
+      "currentStage": 1,
+      "dependencies": [
+        "Supporting evidence",
+        "An agreed decision",
+        "A clear next action"
+      ],
+      "sources": [],
+      "updateNote": "Team roster updated from your instruction to AUM, AIM, and DUNG. All three are shown together pending project-specific responsibilities. Progress and meeting content are illustrative."
+    }
+  ],
+  "updates": [],
+  "botCursors": {
+    "chatgpt": {},
+    "claude": {},
+    "grok": {}
+  },
+  "appliedUpdates": [],
+  "notificationStartRevisions": {
+    "mindspend": 0,
+    "jovey": 0,
+    "atlas": 0,
+    "pulse": 0,
+    "domains": 0,
+    "tao": 0,
+    "yeast": 2,
+    "satit": 2,
+    "solar": 1
+  }
+}
