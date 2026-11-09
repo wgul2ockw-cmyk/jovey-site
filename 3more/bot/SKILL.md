@@ -13,7 +13,7 @@ Open https://jovey.co/3more/bot/ in the bot conversation. No user download is ne
 
 The owner permits changes only inside `/3more/`. Do not create or expand a bot write connection whose permission can reach other paths. GitHub Contents permissions are repository-wide, not folder-scoped. The online setup currently supports reading and planning; a new persistent online publisher is blocked until an explicitly approved service enforces this folder boundary. Existing authorized maintenance may edit only `/3more/`.
 
-Do not use the old Jovey Mission Control plugin for live reads or writes. It still uses its previous hosted storage. Its prepared replacement was not deployed because the owner prohibited changes outside `/3more/`. Treat it as a retired integration for this dashboard, even if its tools remain visible. The sole live source is the GitHub snapshot below.
+Do not use the old Jovey Mission Control plugin for live reads or writes. It still uses its previous hosted storage. Treat it as a retired integration for this dashboard, even if its tools remain visible. The sole live source is the GitHub snapshot below.
 
 Online runs stop after a draft. The following write workflow is reference for separately authorized maintenance, not permission to configure a new online writer.
 
