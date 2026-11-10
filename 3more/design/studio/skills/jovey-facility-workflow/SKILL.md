@@ -9,6 +9,17 @@ Work only under `/3more`. This skill is a reusable agent workflow, not a connect
 AI service. Never label the studio's templates or material recolouring as AI
 planning or new geometry. Personal and Team use the same workflow; access differs.
 
+## Input and output control
+
+People explore the dashboard and published 3D models. The browser is read-only:
+no brief editor, plan acceptance, upload, styling, generation or save action.
+Take the brief in the authorized bot chat; the bot prepares plans, creates/adapts
+geometry and publishes outputs within the user's approved scope. Keep unknowns,
+provenance and concept labels. Put detailed notes in expandable evidence, not the
+main visual view. This workflow does not grant GitHub access, register clients or
+activate an external generator. Existing repository administrators retain their
+GitHub permissions; a read-only page is not a repository security boundary.
+
 ## Brief to proposal
 
 Read the current project, authorized workspace and the user's need. Preserve unknown
@@ -17,7 +28,7 @@ facility modules and open questions as a **proposal**, with evidence for factual
 claims. Bind modules to roadmap step IDs; buildings represent work, not completion.
 Use the [schema](references/workflow.schema.json) to express the plan. The AI agent
 may author the proposal itself; mark it `agent-proposal`, include its actual author,
-and do not present it as an externally connected planner. Existing UI templates
+and do not present it as an externally connected planner. Reused procedural catalog models
 remain `template`. Never infer a team member's role from a profile name.
 
 Inspect the supplied reference pixels when accessible before claiming visual

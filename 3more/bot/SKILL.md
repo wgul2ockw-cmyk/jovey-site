@@ -7,6 +7,16 @@ description: "Manage the Jovey 3more dashboard on GitHub Pages: projects, 3D roa
 
 The dashboard runs directly at **https://jovey.co/3more/** as static HTML, CSS and JavaScript. It has no hosted app server or ChatGPT login. The authoritative project snapshot is `3more/data/dashboard.json` in **wgul2ockw-cmyk/jovey-site**, branch **main**.
 
+## Input and output ownership
+
+People view and filter the dashboard. Project edits and 3D creation happen through
+an authorized AI bot, using the user's chat brief. Do not reintroduce human-facing
+project editors, model imports, style controls or save buttons. Camera, search,
+filters and detail inspection remain available. Use the facility workflow at
+`/3more/design/studio/skills/jovey-facility-workflow/SKILL.md` for model work.
+Automatic generation and unattended publishing are not activated by this rule;
+repository permissions and the user's existing authorization still apply.
+
 ## Online access and current write restriction
 
 Open https://jovey.co/3more/bot/ in the bot conversation. No user download is needed. Use the already authorized GitHub read tools, or read the public snapshot at https://jovey.co/3more/data/dashboard.json when the bot supports URL retrieval. Return drafts in chat.

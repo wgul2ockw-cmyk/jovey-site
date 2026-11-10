@@ -1,33 +1,29 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import vm from 'node:vm';
 import fs from 'node:fs';
-const code=fs.readFileSync(new URL('../../../studio.js',import.meta.url),'utf8');
-const bytes=fs.readFileSync(new URL('../../../models/research.glb',import.meta.url));
-function setup(){
- const elements=new Map();const get=id=>{if(!elements.has(id))elements.set(id,{value:id==='workspace'?'personal':'',textContent:'',disabled:false,addEventListener(){},setAttribute(k,v){this[k]=v},removeAttribute(k){delete this[k]},replaceChildren(){},append(){}});return elements.get(id)};
- const context=vm.createContext({document:{getElementById:get,createElement:()=>({append(){}})},indexedDB:{open:()=>({})},URL:{createObjectURL:()=> 'blob:test',revokeObjectURL(){}},customElements:{get:()=>true},setTimeout(){},DataView,TextDecoder,Blob,console,structuredClone,crypto:{randomUUID:()=> 'test'},fetch:()=>Promise.reject(Error('unexpected network'))});
- vm.runInContext(code,context);return {context,get};
+import {mountLibrary,models} from '../../../studio.js';
+// Minimal DOM surface: the viewer must never need storage, uploads or a write API.
+class Element{
+ constructor(tag='div'){this.tagName=tag;this.children=[];this.attrs={};this.handlers={};this.textContent='';this.style={setProperty(){}};}
+ setAttribute(k,v){this.attrs[k]=String(v);}getAttribute(k){return this.attrs[k]??null;}
+ append(...items){this.children.push(...items);}replaceChildren(...items){this.children=items;}
+ addEventListener(k,fn){(this.handlers[k]??=[]).push(fn);}removeEventListener(k,fn){this.handlers[k]=(this.handlers[k]||[]).filter(f=>f!==fn);}
+ emit(k){for(const fn of this.handlers[k]||[])fn();}
 }
-const payload=()=>bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength);
-test('delayed model validation cannot enter a different workspace',async()=>{
- const {context,get}=setup();let release;context.pending={size:bytes.length,arrayBuffer:()=>new Promise(resolve=>release=resolve)};
- const result=vm.runInContext("loadModel(pending,'old personal model')",context);
- get('workspace').value='team';get('workspace').onchange();release(payload());await result;
- assert.equal(get('viewer').src,undefined);assert.equal(get('model-state').textContent,'No model');
+function setup(){const elements=new Map(),root={ownerDocument:{createElement:tag=>new Element(tag)},querySelector:selector=>{if(!elements.has(selector))elements.set(selector,new Element());return elements.get(selector);}};return {root,get:id=>root.querySelector('#'+id),app:mountLibrary(root)};}
+test('initial published concept loads without an editor, storage or generation action',()=>{
+ const {get}=setup();assert.equal(get('model-name').textContent,'Drying module');assert.equal(get('model-list').children.length,5);const viewer=get('viewer-host').children[0];assert.match(viewer.attrs.src,/jovey-styled\.glb$/);assert.equal(viewer.attrs['camera-controls'],'');viewer.emit('load');assert.match(get('viewer-status').textContent,/orbit/);
 });
-test('newer model supersedes a delayed earlier model',async()=>{
- const {context,get}=setup();let release;context.slow={size:bytes.length,arrayBuffer:()=>new Promise(resolve=>release=resolve)};context.fast={size:bytes.length,arrayBuffer:async()=>payload()};
- const old=vm.runInContext("loadModel(slow,'old')",context);await vm.runInContext("loadModel(fast,'new')",context);release(payload());await old;
- assert.equal(get('model-state').textContent,'new');
+test('only catalog IDs may change the read-only model and late load events cannot overwrite current state',()=>{
+ const {get,app}=setup(),old=get('viewer-host').children[0];assert.equal(app.select('https://evil.test/model.glb'),false);assert.equal(app.select('research'),true);const current=get('viewer-host').children[0];old.emit('load');assert.equal(get('viewer-status').textContent,'Loading model…');current.emit('error');assert.match(get('viewer-status').textContent,/unavailable/);old.emit('load');assert.match(get('viewer-status').textContent,/unavailable/);assert.equal(get('model-name').textContent,'Research campus');
 });
-test('fetch completion cannot write source provenance into Team after leaving Personal',async()=>{
- const {context,get}=setup();let release;context.fetch=()=>new Promise(resolve=>release=resolve);
- vm.runInContext("accepted={kind:'research'}",context);const old=get('concept').onclick();
- get('workspace').value='team';get('workspace').onchange();release({ok:true,blob:async()=>new Blob([bytes])});await old;
- assert.equal(get('viewer').src,undefined);assert.equal(get('provenance').value,'');
+test('selection, camera reset and disposal are view-only; destroyed views ignore late events',()=>{
+ const {get,app}=setup();get('model-list').children[2].emit('click');assert.equal(get('model-name').textContent,'Production facility');const before=get('viewer-host').children[0];get('reset-view').emit('click');const after=get('viewer-host').children[0];assert.notEqual(before,after);assert.equal(before.attrs.src,after.attrs.src);app.destroy();after.emit('load');assert.equal(get('viewer-host').children.length,0);assert.equal(app.select('research'),false);
 });
-test('editing accepted plan invalidates an in-flight model',async()=>{
- const {context,get}=setup();let release;context.slow={size:bytes.length,arrayBuffer:()=>new Promise(resolve=>release=resolve)};
- const old=vm.runInContext("loadModel(slow,'old plan model')",context);get('brief').oninput();release(payload());await old;assert.equal(get('viewer').src,undefined);
+test('every displayed model and provenance file exists; GLBs contain valid self-contained glTF 2.0',()=>{
+ for(const model of models){
+  const base=new URL('../../../',import.meta.url);assert.ok(fs.existsSync(new URL(model.evidence,base)));
+  const b=fs.readFileSync(new URL(model.path,base));assert.equal(b.readUInt32LE(0),0x46546c67);assert.equal(b.readUInt32LE(4),2);assert.equal(b.readUInt32LE(8),b.length);
+  const json=JSON.parse(b.subarray(20,20+b.readUInt32LE(12)).toString());assert.ok(json.meshes.length>0);for(const item of [...json.buffers||[],...json.images||[]])assert.ok(!item.uri||item.uri.startsWith('data:'));
+ }
 });

@@ -151,7 +151,7 @@ function selectFacility(id){selected=id;renderScene();renderDetails();for(const 
 function renderDetails(){
   const roadmap=currentProject.roadmap,stream=roadmap.streams.find(item=>item.id===selected)||roadmap.streams[0];selected=stream.id;
   const project=ownerOf(stream);
-  const panel=root.querySelector('.facility-detail');panel.replaceChildren();panel.style.setProperty('--facility-color',palettes[stream.kind][0]);
+  const panel=root.querySelector('.facility-detail');panel.replaceChildren(el('summary','Steps & details'));panel.style.setProperty('--facility-color',palettes[stream.kind][0]);
   const title=el('div',undefined,'facility-detail-heading'),copy=el('div');copy.append(el('div',project.name+' / Selected workstream','eyebrow'),el('h3',stream.name));
   const hasProgress=known(stream);
   const metric=el('span',hasProgress?stream.completedStages+' / '+stream.stages.length+' completed':'Progress unconfirmed','facility-metric');title.append(copy,metric);panel.append(title);
@@ -168,7 +168,7 @@ function renderDetails(){
     project.roadmap.streams.forEach((item,index)=>{const action=button(String(index+1)+' · '+item.name.replace(/^\d+\. /,''),null,()=>{selected=project.id+':'+item.id;phase='project-step:'+project.id+':'+(index+1);updatePreview(true);renderDetails();renderRail();},'education-step');action.setAttribute('aria-pressed',String(phase==='project-step:'+project.id+':'+(index+1)));sequence.append(action);});panel.append(sequence);
   }
   if(project.roadmap.vision){const vision=project.roadmap.vision,source=el('details',undefined,'vision-reference');source.append(el('summary',project.id==='satit'?'Vision & original KKUIDS reference':'Project vision'),el('p',vision.mission));for(const pillar of vision.pillars){const detail=el('p');detail.append(el('strong',pillar.title+' · '),document.createTextNode(pillar.detail));source.append(detail);}if(project.id==='satit'){const img=el('img');img.src='./assets/kkuid-vision.jpg';img.alt='User-supplied KKUIDS vision and strategic pillars';img.loading='lazy';source.append(img);}panel.append(source);}
-  const summary=root.querySelector('.map-selection-summary');if(summary){summary.replaceChildren(el('span',project.name+' · '+stream.name),button('View details ↓',null,()=>panel.scrollIntoView({block:'nearest',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})));}
+  const summary=root.querySelector('.map-selection-summary');if(summary){summary.replaceChildren(el('span',project.name+' · '+stream.name),button('Details ↓',null,()=>{panel.open=true;panel.scrollIntoView({block:'nearest',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});}));}
 }
 function renderRail(){
   const rail=root.querySelector('.facility-rail');rail.replaceChildren();
@@ -181,7 +181,7 @@ function renderRail(){
 function updatePreview(animate=false){
   for(const node of root.querySelectorAll('[data-roadmap-phase]'))node.setAttribute('aria-pressed',String(node.dataset.roadmapPhase===phase));
   const education=currentProject.roadmap.theme==='education';
-  root.querySelector('.facility-preview-note').textContent=phase==='now'?(isPortfolio()?'Shared roadmap · Select a workstream to see its evidence and progress status.':currentProject.roadmap.progressKnown===false?'Proposed roadmap · Actual progress has not been confirmed.':'Current roadmap · Select a facility to explore its steps.'):phase.startsWith('project-step:')?'Satit concept preview through step '+phase.split(':')[2]+' · Other project progress is unchanged.':phase.startsWith('step-')?'Concept preview through step '+phase.slice(5)+' · '+currentProject.roadmap.streams[Number(phase.slice(5))-1].name.replace(/^\d+\. /,'')+'. Saved progress is unchanged.':phase==='next'?'Future preview · Every workstream advances one stage. Saved progress is unchanged.':'End-goal preview · All visible facilities completed. Saved progress is unchanged.';
+  root.querySelector('.facility-preview-note').textContent=phase==='now'?'Select a building to explore.':phase.startsWith('project-step:')||phase.startsWith('step-')?'Step preview · Saved progress unchanged':phase==='next'?'Next-step preview · Saved progress unchanged':'End-goal preview · Saved progress unchanged';
   for(const node of root.querySelectorAll('[data-strategy-step]'))node.setAttribute('aria-pressed',String(phase==='step-'+node.dataset.strategyStep));
   root.querySelector('.facility-preview-note').classList.toggle('is-preview',phase!=='now');
   cancelAnimationFrame(animationFrame);
@@ -200,7 +200,7 @@ export function renderRoadmap(container,input){
   if(!project?.roadmap){root.append(el('p','A facility roadmap has not been published for this project.','empty'));return;}
   const roadmap=project.roadmap;if(!roadmap.streams.some(stream=>stream.id===selected))selected=roadmap.streams[0].id;
   const education=roadmap.theme==='education';root.classList.toggle('education-roadmap',education);root.classList.toggle('portfolio-roadmap',isPortfolio());
-  const head=el('div',undefined,'facility-heading'),copy=el('div');copy.append(el('div',isPortfolio()?'Portfolio / Shared 3D map':project.name+' / '+(education?'Education transformation':'Living roadmap'),'eyebrow'),el('h2',isPortfolio()?'One map. Every roadmap.':education?'Transform Thai education.':'Grow the system. Reach the goal.'),el('p',isPortfolio()?'Explore projects together. Filter an area, find a facility, or select a building to see what happens next.':roadmap.goal??'Vision unknown — the roadmap can evolve as the team learns.'));head.append(copy);root.append(head);
+  const head=el('div',undefined,'facility-heading'),copy=el('div');copy.append(el('div',isPortfolio()?'Portfolio / Shared 3D map':project.name+' / '+(education?'Education transformation':'Living roadmap'),'eyebrow'),el('h2',isPortfolio()?'Project map':education?'Transform Thai education.':project.name));head.append(copy);root.append(head);
   if(!isPortfolio()&&roadmap.vision){const vision=el('div',undefined,'education-vision');vision.append(el('strong',roadmap.vision.title));const pillars=el('div',undefined,'education-pillars');for(const pillar of roadmap.vision.pillars){const card=el('div');card.append(el('h3',pillar.title));pillars.append(card);}vision.append(pillars);root.append(vision);}
   const searchBar=el('div',undefined,'map-search-bar'),search=el('input');search.type='search';search.placeholder='Find a facility…';search.setAttribute('aria-label','Find a facility');search.value=searchQuery;
   const applySearch=()=>{searchQuery=search.value;const matches=roadmap.streams.filter(matchesSearch);if(matches.length&&!matches.some(s=>s.id===selected))selected=matches[0].id;renderScene();renderRail();renderDetails();if(searchQuery)root.querySelector('.facility-directory').open=true;};search.oninput=applySearch;searchBar.append(search,button('Clear','Clear facility search',()=>{search.value='';applySearch();}),el('span',undefined,'map-match-count'));root.append(searchBar);
@@ -217,8 +217,8 @@ export function renderRoadmap(container,input){
   for(const [label,aria,action] of [['↶','Rotate left',()=>yaw-=Math.PI/8],['↷','Rotate right',()=>yaw+=Math.PI/8],['−','Zoom out',()=>zoom=Math.max(.5,zoom-.2)],['+','Zoom in',()=>zoom=Math.min(2.4,zoom+.2)],['Fit','Fit map to view',()=>{yaw=isPortfolio()?Math.PI/12:Math.PI/6;zoom=1;panX=0;panY=0;}]])camera.append(button(label,aria,()=>{action();renderScene();}));bottom.append(camera);board.append(bottom);root.append(board);
   root.append(el('div',undefined,'map-selection-summary'));
   const rail=el('div',undefined,'facility-rail');rail.setAttribute('aria-label','Facility workstreams');
-  const detail=el('section',undefined,'facility-detail');detail.setAttribute('aria-live','polite');root.append(detail);
+  const detail=el('details',undefined,'facility-detail');detail.setAttribute('aria-live','polite');root.append(detail);
   const directory=el('details',undefined,'facility-directory');directory.open=!isPortfolio();directory.append(el('summary','Browse facilities'),rail);root.append(directory);
-  root.append(el('p',education?'Vision and five strategic steps supplied by you. Supporting milestones are proposed; progress and dates remain unconfirmed. Campus buildings are conceptual.':roadmap.isMock?'Illustrative facility stages and progress. A concept roadmap, not a construction plan. AI publications update this view.':roadmap.progressKnown===false?'Proposed facility footprints. Steps, vision and actual progress may still be unknown.':'Facility progress from AI publications. Building sizes represent stage completion, not physical dimensions.','facility-disclaimer'));
+  root.append(el('p',roadmap.isMock?'Sample concept · Not a construction plan':roadmap.progressKnown===false?'Proposed concept · Progress unknown':'Concept view · Sizes show progress', 'facility-disclaimer'));
   updatePreview();renderDetails();renderRail();
 }

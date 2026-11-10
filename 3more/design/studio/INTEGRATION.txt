@@ -1,3 +1,14 @@
+CURRENT VIEWER CONTRACT — 2026-11-10
+The public Studio is now a read-only output library. No brief/plan editing,
+uploads, material mutation, model generation, local writes or save controls are
+exposed. People may select models, orbit/zoom and inspect provenance. Bots use the
+existing workflow skill from chat to prepare/edit/generate authorized outputs.
+Existing IndexedDB demo records are preserved but are no longer read or written.
+Four procedural templates and the agent-authored drying concept remain labeled.
+Automatic generation/private storage remains unconnected; no access was enabled.
+The implementation notes below describe the superseded editable prototype and
+retain historical technical context, not the current public UI contract.
+
 FACILITY STUDIO — implementation handoff
 
 Entry /3more/design/studio/index.html. Isolated from production app/data/bot files.

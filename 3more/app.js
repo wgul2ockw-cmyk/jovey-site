@@ -93,7 +93,7 @@ function renderDetail(project) {
 function renderProject() {
   const project=projects.find(p=>p.id===selectedId);if(!project)return;
   const main=$('project-detail');main.replaceChildren();
-  if(project.roadmap){const action=element('button','Explore 3D facility roadmap ↗','roadmap-link');action.onclick=()=>openRoadmap(project);main.append(action);}
+  if(project.roadmap){const action=element('button','3D map ↗','roadmap-link');action.onclick=()=>openRoadmap(project);main.append(action);}
   const heading=element('div',undefined,'heading'),name=element('div');
   name.append(element('div',project.kind+' / project map','eyebrow'),element('h2',project.name),element('p',project.description,'intro'));
   heading.append(name,element('span',project.dataMode==='mock'?'Sample AI update':project.dataMode==='planning'?'Proposed plan':'Source-backed update','prototype'));
@@ -168,7 +168,7 @@ function renderOverview() {
   const percent=total?Math.round(100*completed/total):0;
   const panel=element('section',undefined,'summary-panel');
   const top=element('div',undefined,'summary-top'),heading=element('div');
-  heading.append(element('h2',groupTitle+' progress'),element('p','Progress from the first milestone to the end goal.','summary-subtitle'));
+  heading.append(element('h2',groupTitle+' progress'));
   const overall=element('div',undefined,'overall'),ring=element('div',undefined,'ring');
   ring.style.setProperty('--progress',percent+'%');ring.append(element('span',total?percent+'%':'—'));
   ring.setAttribute('role','img');ring.setAttribute('aria-label',!total?'Progress unknown':`${completed} of ${total} milestones completed across ${progressGroup} projects`);
@@ -199,7 +199,7 @@ function renderOverview() {
     row.append(name,track,element('span',(progress(project)===null?'Unknown':progress(project)+'%'),'track-value'));chart.append(row);
   }
   scroll.append(chart);
-  panel.append(top,stats,scroll,element('div','Progress counts completed milestones. Each milestone has equal weight.','portfolio-footer'));
+  panel.append(top,stats,scroll);
   $('overview').replaceChildren(panel);
   $('data-badge').textContent=projects.some(p=>p.dataMode==='mock')?'Includes sample data':'Source-backed updates';
 }
@@ -215,7 +215,7 @@ function renderCards() {
     progressRow.append(track,element('small',(progress(project)===null?'Unknown':progress(project)+'%')));
     const next=element('div',undefined,'next-action');next.append(element('div','Next step','eyebrow'),element('p',project.next.title));
     card.append(top,name,element('p',project.goal,'card-goal'),progressRow,next,peopleFor(project));
-    if(project.roadmap){const action=element('button','Explore 3D roadmap ↗','roadmap-link');action.onclick=()=>openRoadmap(project);card.append(action);}return card;
+    if(project.roadmap){const action=element('button','3D map ↗','roadmap-link');action.onclick=()=>openRoadmap(project);card.append(action);}return card;
   });
   $('project-cards').replaceChildren(...cards);
   if(!visible.length)$('project-cards').append(element('p','No projects in this view yet.','empty'));
@@ -268,7 +268,7 @@ async function refresh() {
       if(focused)document.querySelector(`[data-focus="${CSS.escape(focused)}"]`)?.focus({preventScroll:true});
     }
     if(mainView==='bots')renderBotHub();
-    $('sync-status').textContent='Published version '+publicationRevision+' · Checking for updates automatically';
+    $('sync-status').textContent='Version '+publicationRevision+' · Auto-refresh';
   } catch {
     $('sync-status').textContent=projects.length?'Connection interrupted · Last update shown':'Updates unavailable · Retrying automatically';
     if(!projects.length)$('overview').replaceChildren(element('p','Project updates could not be loaded. This page will retry automatically.','loading'));
@@ -306,7 +306,7 @@ function renderProgress() {
   const groupTitle=progressGroup==='personal'?'Personal':'Team';
   $('progress-scope-label').textContent=showRoadmap?candidates.length+' of '+projects.length+' projects mapped':groupTitle+' projects';
   $('cards-heading').textContent=showRoadmap?'Projects on the map':groupTitle+' projects & people';
-  if(mainView==='progress')$('page-intro').textContent=showRoadmap?'All project roadmaps in one interactive view.':'Personal and team projects, each with their own view.';
+  if(mainView==='progress')$('page-intro').textContent='';
   renderCards();
   for(const group of ['personal','team'])$('progress-'+group+'-count').textContent=projects.filter(project=>project.kind===group).length;
   for(const button of document.querySelectorAll('[data-progress-group]'))button.setAttribute('aria-pressed',String(button.dataset.progressGroup===progressGroup));
@@ -317,14 +317,14 @@ function setMainView(view) {
   if(view==='bots')history.replaceState(null,'','#bots');else if(view==='calendar')history.replaceState(null,'','#calendar');else if(progressDisplay==='roadmap')history.replaceState(null,'','#roadmap-'+roadmapProjectId);
   $('progress-view').hidden=!isProgress;$('calendar-view').hidden=view!=='calendar';$('bots-view').hidden=view!=='bots';
   $('page-title').textContent=isProgress?'Progress track':view==='bots'?'Team bots':'Calendar';
-  $('page-intro').textContent=isProgress?'Personal and team projects, each with their own view.':'Meetings and milestones across all personal and team projects.';
+  $('page-intro').textContent='';
   $('breadcrumb-view').textContent=$('page-title').textContent;
   for(const button of document.querySelectorAll('[data-main-view]')) {
     const active=button.dataset.mainView===view;
     if(button.closest('.main-tabs'))button.setAttribute('aria-pressed',String(active));
     else if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');
   }
-  if(view==='bots'){$('page-intro').textContent='One shared project memory. Every bot follows the same rules.';renderBotHub();}
+  if(view==='bots'){$('page-intro').textContent='';renderBotHub();}
   else if(projects.length){if(isProgress)renderProgress();else renderCalendar();}
 }
 function renderCalendar() {
@@ -430,15 +430,15 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();
 async function renderBotHub(){
  const list=$('bot-updates');
  const count=rawProjects.filter(p=>p.goal==null||p.next==null||p.progressKnown===false||p.roadmap?.progressKnown===false||(p.questions||[]).some(q=>q.answer==null)).length;
- $('unknown-count').textContent=count+' projects have open questions or unconfirmed progress';
+ $('unknown-count').textContent=count+' with unknowns';
  try{
   const data={updates:teamUpdates};
   list.replaceChildren();
-  if(!data.updates.length)list.append(element('p','No bot updates yet. The next project change will appear here automatically.','empty'));
+  if(!data.updates.length)list.append(element('p','No updates yet.','empty'));
   for(const item of data.updates.slice(0,40)){
    const card=element('article',undefined,'bot-update');const top=element('div',undefined,'bot-update-top');
    const name=element('button',item.projectName);name.onclick=()=>{const p=projects.find(p=>p.id===item.projectId);if(p)openProject(p);};
-   top.append(name,element('span','Revision '+item.revision));card.append(top,element('p',item.summary),element('small',new Date(item.at).toLocaleString()+' · '+item.actor),element('small','Available to ChatGPT · Claude · Grok'));list.append(card);
+   top.append(name,element('span','Revision '+item.revision));card.append(top,element('p',item.summary),element('small',new Date(item.at).toLocaleString()+' · '+item.actor));list.append(card);
   }
  }catch{list.replaceChildren(element('p','The update inbox is unavailable. Try again shortly.','empty'));}
 }

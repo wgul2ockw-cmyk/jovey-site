@@ -18,3 +18,13 @@ node --test 3more/bot/tests/*.test.mjs
 Bots publish the entire validated JSON file in a single GitHub commit using its current blob SHA. The browser checks for updates every 30 seconds after Pages publishes. The optional MCP adapter runs in the bot's environment, not the website. No credentials are shipped. Bot inbox updates are durable; external chat delivery needs a separately connected receiver.
 
 Dashboard changes stay within this directory. Preserve all existing Jovey root pages, other project paths and DNS. `noindex` keeps this operational page out of the search sitemap, but it does not make its data private.
+
+The public dashboard and `/3more/design/studio/` model library are view-only. People
+filter, orbit and inspect; authorized bots handle project edits and 3D creation
+from chat. The library contains four procedural templates and one agent-authored
+concept, with provenance preserved. No browser imports, plan editors, local model
+writes or generation calls remain. Existing browser-local demo records are not
+deleted. Automatic provider generation is still unconnected. GitHub repository
+permissions remain unchanged; this UI does not prevent repository administrators
+from editing source. The private backend draft separately enforces bot-only content
+writes and remains unpublished.
