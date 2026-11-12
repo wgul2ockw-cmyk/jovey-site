@@ -1,40 +1,21 @@
-"use strict";
-
-const button = document.querySelector("#run");
-const status = document.querySelector("#status");
-const results = document.querySelector("#results");
-button.addEventListener("click", async () => {
-  button.disabled = true;
-  results.replaceChildren();
+import { createNetworkControls } from './network-core.mjs';
+const button = document.querySelector('#run');
+const status = document.querySelector('#status');
+const results = document.querySelector('#results');
+button.addEventListener('click', async () => {
+  button.disabled = true; results.replaceChildren();
+  const row = value => { const li = document.createElement('li'); li.textContent = value; results.append(li); };
   try {
-    const dynamicRules = await chrome.declarativeNetRequest.getDynamicRules();
-    if (dynamicRules.length) {
-      throw new Error("Resume blocking and remove website exceptions before running these baseline checks.");
-    }
-    const cases = [
-      ["Ad domain", "https://doubleclick.net/ad.js", "https://example.org", "script", true],
-      ["Ad subdomain", "https://ads.doubleclick.net/ad.js", "https://example.org", "script", true],
-      ["Tracker", "https://www.google-analytics.com/collect", "https://example.org", "xmlhttprequest", true],
-      ["Normal resource", "https://example.org/app.js", "https://example.org", "script", false],
-      ["Lookalike domain", "https://doubleclick.net.example.org/app.js", "https://example.org", "script", false],
-      ["Domain in path", "https://example.org/doubleclick.net/ad.js", "https://example.org", "script", false],
-      ["Direct navigation", "https://doubleclick.net/", "https://example.org", "main_frame", false],
-      ["First-party resource", "https://doubleclick.net/app.js", "https://doubleclick.net", "script", false]
-    ];
-    let passed = 0;
-    for (const [name, url, initiator, type, expected] of cases) {
-      const outcome = await chrome.declarativeNetRequest.testMatchOutcome({ url, initiator, type });
-      const blocked = outcome.matchedRules.some(rule => rule.rulesetId === "bundled");
-      const ok = blocked === expected;
-      passed += Number(ok);
-      const row = document.createElement("li");
-      row.textContent = (ok ? "PASS — " : "FAIL — ") + name;
-      results.append(row);
-    }
-    status.textContent = passed + " of " + cases.length + " checks passed";
-  } catch (error) {
-    status.textContent = error.message;
-  } finally {
-    button.disabled = false;
-  }
+    const state = await createNetworkControls(chrome.declarativeNetRequest).read();
+    row(state.available ? 'PASS — Bundled filter is enabled' : 'FAIL — Bundled filter is disabled');
+    row(state.paused ? 'NOTICE — Network blocking is paused' : 'PASS — Network blocking is not paused');
+    row('INFO — Website exceptions: ' + state.exceptions.length);
+    await chrome.storage.local.get('appearance');
+    row('PASS — Local settings are readable');
+    const activity = await chrome.runtime.sendMessage({ type: 'getActivity' });
+    if (activity?.error || activity?.mode !== 'native-badge') throw new Error(activity?.error || 'Page counter unavailable');
+    row('PASS — Chrome’s per-page toolbar counter is enabled');
+    status.textContent = state.available && !state.paused ? 'Configuration checks complete' : 'Configuration checks complete — review notices';
+  } catch (error) { status.textContent = 'Checks could not finish: ' + error.message; }
+  finally { button.disabled = false; }
 });

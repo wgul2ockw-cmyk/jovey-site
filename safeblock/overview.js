@@ -42,14 +42,21 @@ document.querySelectorAll("[data-toggle-network]").forEach(button => button.addE
 
 async function renderTotals() {
   try {
-    const totals = await chrome.runtime.sendMessage({ type: "getTotals" });
-    if (totals.error) throw new Error(totals.error);
-    if (![totals.session, totals.lifetime, totals.since].every(Number.isFinite)) throw new Error("No verified totals are available.");
-    text("[data-session-total]", totals.session.toLocaleString());
-    text("[data-lifetime-total]", totals.lifetime.toLocaleString());
-    text("[data-count-since]", "Counting since " + new Date(totals.since).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }));
+    const state = await chrome.runtime.sendMessage({ type: "getActivity" });
+    if (state?.error || state?.mode !== "native-badge") throw new Error(state?.error || "Chrome did not confirm the page counter.");
+    text("[data-page-counter]", "On icon");
+    text("[data-counter-detail]", "Pin SafeBlock to see Chrome’s blocked-request count for each page.");
+    document.querySelectorAll("[data-history]").forEach(node => { node.hidden = !state.historical; });
+    if (state.historical) {
+      text("[data-historical-total]", state.historical.lifetime.toLocaleString());
+      text("[data-history-since]", "Recorded by the earlier developer build, starting " + new Date(state.historical.since).toLocaleDateString());
+    }
     text("#counter-error", "");
-  } catch (error) { text("#counter-error", "Counts unavailable. " + error.message); }
+  } catch (error) {
+    text("[data-page-counter]", "Unavailable");
+    text("[data-counter-detail]", "Reload SafeBlock in Chrome’s Extensions page.");
+    text("#counter-error", "Page counter unavailable. " + error.message);
+  }
 }
 async function renderFeatures() {
   await Promise.allSettled([
@@ -66,7 +73,7 @@ async function renderFeatures() {
   ]);
 }
 chrome.storage.onChanged.addListener((changes, area) => {
-  if ((area === "local" && changes.blockTotals) || (area === "session" && changes.counterSession)) renderTotals();
+  if (area === "local" && changes.blockTotals) renderTotals();
   if (area === "local" && (changes.cookieBannerEnabled || changes.youtubeEnabled)) renderFeatures();
 });
 window.addEventListener("focus", () => { if (!busy) { renderNetwork(); renderFeatures(); renderTotals(); } });
