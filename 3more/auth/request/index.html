@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-3ZsMjofqifKCsx4IfFzVBg3zSkUI2dgR53XLNS7dfbw='; style-src 'sha256-lfWHrzeIvcX43wXbZLMmyb3xDjdhAA4kae7pEy/Y+r4='; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>3more · เตรียมบัญชี AUM</title>
+<style>
+body{font:1.05rem/1.65 system-ui,sans-serif;color:#183536;background:#f4f6ef;max-width:42rem;margin:auto;padding:2rem 1.25rem}h1{line-height:1.25}button,textarea{font:inherit}button{padding:.55rem 1rem;margin:.6rem 0}textarea{box-sizing:border-box;width:100%;min-height:11rem;padding:.6rem;font: .9rem/1.45 monospace}label{display:block}#status{font-weight:600}
+</style>
+</head>
+<body><main>
+<h1>เตรียมบัญชี 3more ของ AUM</h1>
+<p>เปิดหน้านี้บนเครื่องส่วนตัวเมื่ออุ้มและผู้ดูแลพร้อม กดเตรียมคำขอ แล้วเปิดแท็บนี้ค้างไว้จนตั้งรหัสผ่านเสร็จ คำขอในแท็บใช้ได้ 10 นาที</p>
+<button type="button" id="prepare" disabled>เตรียมคำขอ</button>
+<p id="status" role="status">กำลังตรวจสอบหน้าตั้งค่า</p>
+<label for="request">ส่งเฉพาะข้อความในช่องนี้ให้ผู้ดูแลผ่านช่องทางส่วนตัวที่ยืนยันแล้ว</label>
+<textarea id="request" readonly spellcheck="false" autocomplete="off"></textarea>
+<p>ผู้ดูแลจะตรวจคำขอสำหรับบัญชี AUM พร้อมพื้นที่ Personal และ Team ว่างที่อุ้มเป็นเจ้าของ โดยไม่มีสิทธิ์บอต เมื่อได้รับการยืนยันแล้ว ให้ติ๊กช่องด้านล่างและตั้งรหัสผ่านด้วยตัวเอง</p>
+<label><input type="checkbox" id="confirmed" disabled> ผู้ดูแลยืนยันว่าบัญชีพร้อมแล้ว</label>
+<button type="button" id="launch" disabled>เปิดหน้าตั้งรหัสผ่าน</button>
+<p>อย่าส่ง URL ของหน้าตั้งรหัสผ่านหรือรหัสผ่านให้ใคร หากปิดแท็บ หมดเวลา หรือไม่แน่ใจว่าบัญชีถูกสร้างแล้วหรือยัง ให้ติดต่อผู้ดูแลก่อนเริ่มใหม่</p>
+<noscript>ต้องเปิด JavaScript เพื่อเตรียมคำขอในเบราว์เซอร์นี้</noscript>
+</main>
+<script>
+(() => {
+ 'use strict';
+ const allowed = () => window.isSecureContext && window.top === window.self && window.opener === null
+  && location.href === 'https://jovey.co/3more/auth/request/' && !navigator.serviceWorker?.controller;
+ const byId = id => document.getElementById(id);
+ const prepare = byId('prepare'), request = byId('request'), confirmed = byId('confirmed');
+ const launch = byId('launch'), status = byId('status');
+ let proof = null, deadline = 0, closed = false, timer;
+ function clear() {
+  closed = true;
+  proof = null;
+  clearTimeout(timer);
+  request.value = '';
+  confirmed.checked = false;
+  confirmed.disabled = launch.disabled = prepare.disabled = true;
+ }
+ function expire() {
+  clear();
+  status.textContent = 'คำขอหมดอายุแล้ว ติดต่อผู้ดูแลเพื่อตรวจสถานะก่อนเริ่มใหม่';
+ }
+ function current() {
+  if (closed) return false;
+  if (!allowed() || Date.now() >= deadline) { expire(); return false; }
+  return true;
+ }
+ if (!allowed()) {
+  clear();
+  status.textContent = 'เปิดหน้าคำขอโดยตรงในแท็บใหม่บนเครื่องส่วนตัวของอุ้ม';
+  return;
+ }
+ prepare.disabled = false;
+ status.textContent = 'ยังไม่ได้สร้างคำขอหรือบัญชี';
+ prepare.onclick = async () => {
+  if (prepare.disabled || !allowed() || closed) return;
+  prepare.disabled = true;
+  deadline = Date.now() + 600000;
+  timer = setTimeout(expire, 600000);
+  try {
+   const bytes = crypto.getRandomValues(new Uint8Array(32));
+   proof = '3m_b_' + btoa(String.fromCharCode(...bytes)).replaceAll('+','-').replaceAll('/','_').replaceAll('=','');
+   bytes.fill(0);
+   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(proof));
+   if (!current()) return;
+   const bootstrapHash = Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2,'0')).join('');
+   request.value = JSON.stringify({version:1,purpose:'aum-first-setup',projectRef:'ynxvviwwwdxxpjdhpukz',
+    account:'aum',userId:crypto.randomUUID(),personalId:crypto.randomUUID(),teamId:crypto.randomUUID(),bootstrapHash},null,2);
+   confirmed.disabled = false;
+   status.textContent = 'คำขอพร้อมแล้ว ส่งข้อความด้านล่างให้ผู้ดูแลและรอการยืนยัน';
+  } catch {
+   clear();
+   status.textContent = 'เตรียมคำขอไม่สำเร็จ โปรดติดต่อผู้ดูแล';
+  }
+ };
+ confirmed.onchange = () => { launch.disabled = !current() || !confirmed.checked || !proof; };
+ launch.onclick = () => {
+  if (!current() || !confirmed.checked || !proof) return;
+  const destination = 'https://jovey.co/3more/auth/setup/#token=' + proof;
+  clear();
+  location.replace(destination);
+ };
+ window.addEventListener('pagehide',clear);
+})();
+</script>
+</body>
+</html>
