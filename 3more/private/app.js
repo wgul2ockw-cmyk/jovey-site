@@ -1,6 +1,6 @@
 import {context,action} from './bridge.mjs';
 const privateContext=await context;
-import {renderRoadmap} from '/3more/roadmap.js';
+import {renderRoadmap} from './roadmap.js';
 const $ = id => document.getElementById(id);
 let projects=[];
 let rawProjects=[];
